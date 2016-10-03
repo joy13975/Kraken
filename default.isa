@@ -1,0 +1,11 @@
+add     dreg    sreg1   sreg2   #dreg = sreg1   +   sreg2
+addi    dreg    sreg    imd     #dreg = sreg    +   imd
+cmp     dreg    sreg1   sreg2   #dreg = sreg1   >   sreg2
+cmpi    dreg    sreg    imd     #dreg = sreg    >   imd
+ld      dreg    sreg            #dreg = sreg
+ldi     dreg    imd             #dreg = imd
+bi      imd                     #pc   = imd
+rbi     imd                     #pc   = pc      +   imd
+blt     sreg1   sreg2   sreg3   #pc   = sreg2   <   sreg3   ?   sreg1   : pc
+blti    sreg1   sreg2   imd     #pc   = sreg2   <   imd     ?   sreg1   : pc
+bz      sreg1   sreg2           #pc   = sreg2   ==  0       ?   sreg1   : pc
