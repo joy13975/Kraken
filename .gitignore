@@ -1,0 +1,4 @@
+$(EXE)
+*.o
+*.dSym
+.DS_Store
