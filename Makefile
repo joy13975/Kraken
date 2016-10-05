@@ -1,17 +1,17 @@
-EXE=proc
+EXE=sim
 CC=gcc
-CCFLAGS=-O2 -g
+CCFLAGS=-O2 -g -fopenmp
 COMPILE=$(CC) $(CCFLAGS)
 
-all: proc
+all: $(EXE)
 
 %.o: %.c
 	$(COMPILE) $^ -c
 
-$(EXE): $(EXE).o clock_component.o components.o
+$(EXE): $(EXE).o util.o register_unit.o
 	$(COMPILE) $^ -o $@
 
 fresh: clean all
 
 clean:
-	rm -rf $(EXE) *.o *.dSym .DS_Store
+	rm -rf $(EXE) *.o *.dSYM .DS_Store
