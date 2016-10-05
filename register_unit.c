@@ -10,7 +10,7 @@ void propagate_registers(register_unit *head, size_t n)
     for (int i = 0; i < n; i++)
     {
         propagate_register(head);
-        head += sizeof(register_unit);
+        head++;
     }
 }
 

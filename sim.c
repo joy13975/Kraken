@@ -51,12 +51,6 @@ void do_simulation()
     long half_periods = 0;
     #pragma omp parallel
     {
-        // There seems to be a bug where the program hangs if
-        // some threads enter omp sections region before all
-        // threads have been spawned. Barrier after omp parallel
-        // solves this.
-        #pragma omp barrier
-
         while (1)
         {
             // before clock changes state
@@ -141,7 +135,7 @@ void initialise()
 {
     imem = calloc(1, imem_size);
     dmem = calloc(1, dmem_size);
-    registers.rf = calloc(1, reg_file_size * sizeof(register_unit));
+    registers.rf = calloc(reg_file_size, sizeof(register_unit));
 }
 
 void finalise()
