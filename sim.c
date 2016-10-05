@@ -21,17 +21,18 @@ byte *imem;                     // instruction memory
 
 struct
 {
-    register_unit *reg_file;          // register file
-    register_unit inst;        // instruction register
-    register_unit prog_cntr;        // program counter
-    register_unit mem_addr;        // memory address register
-    register_unit mem_data;        // memory data register
-    register_unit stage_flag;        // stage flag register
+    register_unit *reg_file;    // register file
+    register_unit *inst;        // instruction register
+    register_unit *prog_cntr;   // program counter
+    register_unit *mem_addr;    // memory address register
+    register_unit *mem_data;    // memory data register
+    register_unit *stage_flag;  // stage flag register
 } registers = {0};
 
-
+void queue_component_logic();
 void queue_register_propagation();
 void clock_wait_half_period();
+void clock_advance();
 void do_simulation();
 void initialise();
 void finalise();
@@ -70,25 +71,66 @@ void do_simulation()
 
                 #pragma omp taskwait
 
-                // clock changes state
-                clock_state ^= 0x1U;
-                clock_half_periods_elapsed++;
+                // clock flips state
+                clock_advance();
 
-                // update components concurrently
                 #pragma omp task /* clock */
                 {
                     clock_wait_half_period();
                 }
 
-                #pragma omp task /* inst. cache */
-                {
-                    // fetch
-                    set_register(&(registers.inst), imem[registers.prog_cntr.output]);
-                }
+                // update components (concurrently) if clock is high
+                if (clock_state)
+                    queue_component_logic();
+            }
+        }
+    }
+}
 
-                #pragma omp task /* decoder */
-                {
-                }
+void queue_component_logic()
+{
+    #pragma omp task /* stage counter unit */
+    {
+        set_register(registers.stage_flag, (get_register(registers.stage_flag) + 1) % NUM_STAGES);
+        dbg("stage counter unit: set stage flag to %d\n", get_register(registers.stage_flag));
+    }
+
+    #pragma omp task /* fetch stage */
+    {
+        if (get_register(registers.stage_flag) == FETCH_STAGE_FLAG)
+        {
+            const WORD fetch_addr      = get_register(registers.prog_cntr);
+            const WORD fetched_value   = *((WORD*) & (imem[fetch_addr]));
+            prf("fetch stage: pc = %d, imem[pc] = %d\n", fetch_addr, fetched_value);
+            set_register(registers.inst, fetched_value);
+        }
+    }
+
+    #pragma omp task /* decode stage */
+    {
+        if (get_register(registers.stage_flag) == DECODE_STAGE_FLAG)
+        {
+
+        }
+    }
+
+    #pragma omp task /* execute stage */
+    {
+        if (get_register(registers.stage_flag) == EXECUTE_STAGE_FLAG)
+        {
+
+        }
+    }
+
+    #pragma omp task /* write-back stage */
+    {
+        if (get_register(registers.stage_flag) == WRITEBACK_STAGE_FLAG)
+        {
+            if (1)
+            {
+                const WORD current_pc = get_register(registers.prog_cntr);
+                dbg("write-back stage: pc = %d, incremeting\n", current_pc);
+                set_register(registers.prog_cntr, current_pc + 1);
             }
         }
     }
@@ -105,31 +147,31 @@ void queue_register_propagation()
     #pragma omp task /* inst reg */
     {
         prf("task: propagate instruction register\n");
-        propagate_register(&(registers.inst));
+        propagate_register(registers.inst);
     }
 
     #pragma omp task /* pc reg */
     {
         prf("task: propagate program counter\n");
-        propagate_register(&(registers.prog_cntr));
+        propagate_register(registers.prog_cntr);
     }
 
     #pragma omp task /* mem addr reg */
     {
         prf("task: propagate memory address register\n");
-        propagate_register(&(registers.mem_addr));
+        propagate_register(registers.mem_addr);
     }
 
     #pragma omp task /* mem data reg */
     {
         prf("task: propagate memory data register\n");
-        propagate_register(&(registers.mem_data));
+        propagate_register(registers.mem_data);
     }
 
     #pragma omp task /* mem data reg */
     {
         prf("task: propagate stage flag register\n");
-        propagate_register(&(registers.stage_flag));
+        propagate_register(registers.stage_flag);
     }
 }
 
@@ -141,11 +183,22 @@ void clock_wait_half_period()
     nsleep(clock_half_period_us * 1e3);
 }
 
+void clock_advance()
+{
+    clock_state ^= 0x1U;
+    clock_half_periods_elapsed++;
+}
+
 void initialise()
 {
-    imem = calloc(1, imem_size);
-    dmem = calloc(1, dmem_size);
-    registers.reg_file = calloc(reg_file_size, sizeof(register_unit));
+    imem                    = calloc(1, imem_size);
+    dmem                    = calloc(1, dmem_size);
+    registers.reg_file      = create_registers(reg_file_size);
+    registers.inst           = create_register();
+    registers.prog_cntr      = create_register();
+    registers.mem_addr       = create_register();
+    registers.mem_data       = create_register();
+    registers.stage_flag     = create_register();
 }
 
 void finalise()

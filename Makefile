@@ -13,5 +13,6 @@ $(EXE): $(EXE).o util.o register_unit.o
 
 fresh: clean all
 
+.PHONY: clean
 clean:
 	rm -rf $(EXE) *.o *.dSYM .DS_Store

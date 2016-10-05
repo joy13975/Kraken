@@ -3,14 +3,13 @@
 
 #include "config.h"
 
-typedef struct
-{
-    REG_PROTOTYPE input;
-    REG_PROTOTYPE output;
-} register_unit;
+typedef struct register_unit register_unit;
 
-void set_register(register_unit *r, REG_PROTOTYPE new_val);
+WORD get_register(register_unit *r);
+void set_register(register_unit *r, WORD new_val);
 void propagate_registers(register_unit *head, size_t n);
 void propagate_register(register_unit *r);
+register_unit *create_registers(size_t n);
+register_unit *create_register();
 
 #endif
