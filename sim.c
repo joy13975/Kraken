@@ -29,6 +29,8 @@ struct
     register_unit stage_flag;        // stage flag register
 } registers = {0};
 
+
+void queue_register_propagation();
 void clock_wait_half_period();
 void do_simulation();
 void initialise();
@@ -45,9 +47,7 @@ int main(int argc, char *argv[])
 }
 
 /*
- * The main thread simulates the reset signal, the clock unit, and all "cache"
- * registers that store inputs to any arbitrary unit as clock goes rising
- * edge.
+ * The main thread simulates the reset signal and the clock unit
  */
 void do_simulation()
 {
@@ -61,35 +61,7 @@ void do_simulation()
                 if (!clock_state)
                 {
                     // rising edge: propagate data from inpute buses to input buses
-                    #pragma omp task /* register file */
-                    {
-                        prf("task: propagate register file\n");
-                        propagate_registers(registers.reg_file, reg_file_size);
-                    }
-
-                    #pragma omp task /* inst reg */
-                    {
-                        prf("task: propagate instruction register\n");
-                        propagate_register(&(registers.inst));
-                    }
-
-                    #pragma omp task /* pc reg */
-                    {
-                        prf("task: propagate program counter\n");
-                        propagate_register(&(registers.prog_cntr));
-                    }
-
-                    #pragma omp task /* mem addr reg */
-                    {
-                        prf("task: propagate memory address register\n");
-                        propagate_register(&(registers.mem_addr));
-                    }
-
-                    #pragma omp task /* mem data reg */
-                    {
-                        prf("task: propagate memory data register\n");
-                        propagate_register(&(registers.mem_data));
-                    }
+                    queue_register_propagation();
                 }
                 else
                 {
@@ -119,6 +91,45 @@ void do_simulation()
                 }
             }
         }
+    }
+}
+
+void queue_register_propagation()
+{
+    #pragma omp task /* register file */
+    {
+        prf("task: propagate register file\n");
+        propagate_registers(registers.reg_file, reg_file_size);
+    }
+
+    #pragma omp task /* inst reg */
+    {
+        prf("task: propagate instruction register\n");
+        propagate_register(&(registers.inst));
+    }
+
+    #pragma omp task /* pc reg */
+    {
+        prf("task: propagate program counter\n");
+        propagate_register(&(registers.prog_cntr));
+    }
+
+    #pragma omp task /* mem addr reg */
+    {
+        prf("task: propagate memory address register\n");
+        propagate_register(&(registers.mem_addr));
+    }
+
+    #pragma omp task /* mem data reg */
+    {
+        prf("task: propagate memory data register\n");
+        propagate_register(&(registers.mem_data));
+    }
+
+    #pragma omp task /* mem data reg */
+    {
+        prf("task: propagate stage flag register\n");
+        propagate_register(&(registers.stage_flag));
     }
 }
 
