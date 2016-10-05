@@ -19,40 +19,44 @@ void _log(const char *filename, int line, log_level_t lvl, char *fmt, ...)
         va_list args;
         va_start(args, fmt);
 
-        char *tag;
+        char *new_fmt;
         FILE *fd;
         switch (lvl)
         {
+        case LOG_PRF:
+            fd = stdout;
+            asprintf(&new_fmt, "[PRF] %s", fmt);
+            break;
         case LOG_DBG:
             fd = stdout;
-            fprintf(fd, "[DBG] ");
+            asprintf(&new_fmt, "[DBG] %s", fmt);
             break;
         case LOG_WARN:
             fd = stdout;
-            fprintf(fd, "[WRN] ");
+            asprintf(&new_fmt, "[WRN] %s", fmt);
             break;
         case LOG_MSG:
             fd = stdout;
-            fprintf(fd, "[MSG] ");
+            asprintf(&new_fmt, "[MSG] %s", fmt);
             break;
         case LOG_RAW:
             fd = stdout;
-            tag = "RAW";
             break;
         case LOG_ERROR:
             fd = stderr;
-            fprintf(fd, "[ERR] %s:%d\n", filename, line);
+            asprintf(&new_fmt, "[ERR %s:%d] %s\n", filename, line, fmt);
             break;
         case LOG_DEATH:
             fd = stderr;
-            fprintf(fd, "[DIE] %s:%d\n", filename, line);
+            asprintf(&new_fmt, "[DIE %s:%d] %s\n", filename, line, fmt);
             break;
         default:
             fd = stdout;
-            fprintf(fd, "[Unknown Log Type] ");
+            asprintf(&new_fmt, "[Unknown Log Type] %s", fmt);
         }
 
-        vfprintf(fd, fmt, args);
+        vfprintf(fd, new_fmt, args);
+        fflush(fd);
 
         va_end(args);
     }
