@@ -5,7 +5,8 @@
 
 typedef struct register_unit register_unit;
 
-WORD get_register(register_unit *r);
+
+const WORD get_register(register_unit *r);
 void set_register(register_unit *r, WORD new_val);
 void propagate_registers(register_unit *head, size_t n);
 void propagate_register(register_unit *r);

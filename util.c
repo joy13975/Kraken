@@ -2,10 +2,22 @@
 #include <stdarg.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
+#include <errno.h>
 
 #include "util.h"
 
 log_level_t log_level = DEFAULT_LOG_LEVEL;
+
+const char *get_error_string()
+{
+    return strerror(errno);
+}
+
+bool check_arg(const char *arg, const char *arg_forms[2])
+{
+    return !strcmp(arg, arg_forms[0]) || !strcmp(arg, arg_forms[1]);
+}
 
 void set_log_level(log_level_t lvl)
 {
@@ -41,10 +53,11 @@ void _log(const char *filename, int line, log_level_t lvl, char *fmt, ...)
             break;
         case LOG_RAW:
             fd = stdout;
+            new_fmt = fmt;
             break;
         case LOG_ERROR:
             fd = stderr;
-            asprintf(&new_fmt, "[ERR %s:%d] %s\n", filename, line, fmt);
+            asprintf(&new_fmt, "[ERR] %s\n", filename, line, fmt);
             break;
         case LOG_DEATH:
             fd = stderr;

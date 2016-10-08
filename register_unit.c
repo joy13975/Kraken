@@ -8,7 +8,7 @@ struct register_unit
     WORD output;
 } ;
 
-WORD get_register(register_unit *r)
+const WORD get_register(register_unit *r)
 {
     return r->output;
 }

@@ -1,46 +1,29 @@
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "omp.h"
+#include <stdbool.h>
 
 #include "util.h"
 #include "config.h"
-#include "register_unit.h"
+#include "state.h"
+#include "clock.h"
 
-double clock_freq_hz            = DEFAULT_CLOCK_FREQ;
-int clock_state                 = 0;
-long clock_half_periods_elapsed = 0;
-
-size_t imem_size                = DEFAULT_IMEM_SIZE;
-size_t dmem_size                = DEFAULT_DMEM_SIZE;
-size_t reg_file_size            = DEFAULT_REG_FILE_SIZE;
-
-typedef uint8_t byte;
-byte *dmem;                     // data memory
-byte *imem;                     // instruction memory
-
-struct
-{
-    register_unit *reg_file;    // register file
-    register_unit *inst;        // instruction register
-    register_unit *prog_cntr;   // program counter
-    register_unit *mem_addr;    // memory address register
-    register_unit *mem_data;    // memory data register
-    register_unit *stage_flag;  // stage flag register
-} registers = {0};
-
-void queue_component_logic();
-void queue_register_propagation();
-void clock_wait_half_period();
-void clock_advance();
+void propagate_signals();
 void do_simulation();
+void parse_program(WORD **program, size_t *num_words);
 void initialise();
 void finalise();
-void parse_arguments();
+void print_help();
+void parse_arguments(int argc, char *argv[]);
+
+char *asm_file                  = NULL;
+bool pipeline_enabled           = false;
+const char *arg_asm[2]          = {"-a", "--asm"};
+const char *arg_help[2]         = {"-h", "--help"};
+const char *arg_pipeline[2]     = {"-p", "--pipeline"};
 
 int main(int argc, char *argv[])
 {
-    parse_arguments();
+    parse_arguments(argc, argv);
     initialise();
     do_simulation();
     finalise();
@@ -52,162 +35,136 @@ int main(int argc, char *argv[])
  */
 void do_simulation()
 {
-    #pragma omp parallel
+    while (1)
     {
-        while (1)
+        // before clock changes state
+        if (!get_clock_state())
         {
-            // before clock changes state
-            #pragma omp single
-            {
-                if (!clock_state)
-                {
-                    // rising edge: propagate data from inpute buses to input buses
-                    queue_register_propagation();
-                }
-                else
-                {
-                    // falling edge: do nothing
-                }
-
-                #pragma omp taskwait
-
-                // clock flips state
-                clock_advance();
-
-                #pragma omp task /* clock */
-                {
-                    clock_wait_half_period();
-                }
-
-                // update components (concurrently) if clock is high
-                if (clock_state)
-                    queue_component_logic();
-            }
+            // rising edge: propagate data from inpute buses to input buses
+            propagate_state();
         }
+        else
+        {
+            // falling edge: do nothing
+        }
+
+        // clock flips state
+        clock_advance();
+
+        // update components (concurrently) if clock is high
+        if (get_clock_state())
+        {
+            propagate_signals();
+        }
+
+        clock_delay();
     }
 }
 
-void queue_component_logic()
+void propagate_signals()
 {
-    #pragma omp task /* stage counter unit */
+    advance_stage();
+
+    const WORD stage_flag = get_stage_flag();
+
+    if (pipeline_enabled || stage_flag & FETCH_STAGE_FLAG)
     {
-        set_register(registers.stage_flag, (get_register(registers.stage_flag) + 1) % NUM_STAGES);
-        dbg("stage counter unit: set stage flag to %d\n", get_register(registers.stage_flag));
+        dbg("Fetch stage\n");
+        fetch_instruction();
+        dbg("\n");
     }
 
-    #pragma omp task /* fetch stage */
+    if (pipeline_enabled || stage_flag & DECODE_STAGE_FLAG)
     {
-        if (get_register(registers.stage_flag) == FETCH_STAGE_FLAG)
-        {
-            const WORD fetch_addr      = get_register(registers.prog_cntr);
-            const WORD fetched_value   = *((WORD*) & (imem[fetch_addr]));
-            prf("fetch stage: pc = %d, imem[pc] = %d\n", fetch_addr, fetched_value);
-            set_register(registers.inst, fetched_value);
-        }
+        dbg("Decode stage\n");
+
+        dbg("\n");
     }
 
-    #pragma omp task /* decode stage */
+    if (pipeline_enabled || stage_flag & EXECUTE_STAGE_FLAG)
     {
-        if (get_register(registers.stage_flag) == DECODE_STAGE_FLAG)
-        {
+        dbg("Execute stage\n");
 
-        }
+        dbg("\n");
     }
 
-    #pragma omp task /* execute stage */
+    if (pipeline_enabled || stage_flag & WRITEBACK_STAGE_FLAG)
     {
-        if (get_register(registers.stage_flag) == EXECUTE_STAGE_FLAG)
-        {
-
-        }
-    }
-
-    #pragma omp task /* write-back stage */
-    {
-        if (get_register(registers.stage_flag) == WRITEBACK_STAGE_FLAG)
-        {
-            if (1)
-            {
-                const WORD current_pc = get_register(registers.prog_cntr);
-                dbg("write-back stage: pc = %d, incremeting\n", current_pc);
-                set_register(registers.prog_cntr, current_pc + 1);
-            }
-        }
+        dbg("Write back stage\n");
+        write_back();
+        dbg("\n");
     }
 }
 
-void queue_register_propagation()
+void parse_program(WORD **program, size_t *num_words)
 {
-    #pragma omp task /* register file */
+    if (!asm_file)
     {
-        prf("task: propagate register file\n");
-        propagate_registers(registers.reg_file, reg_file_size);
+        err("No assembly file specified.\n");
+        print_help();
+        exit(1);
     }
 
-    #pragma omp task /* inst reg */
+    FILE *fp = fopen(asm_file, "r");
+    if (!fp)
     {
-        prf("task: propagate instruction register\n");
-        propagate_register(registers.inst);
+        err("Assembly file could not be opened (%s).\n",
+            get_error_string());
+        print_help();
+        exit(1);
     }
-
-    #pragma omp task /* pc reg */
-    {
-        prf("task: propagate program counter\n");
-        propagate_register(registers.prog_cntr);
-    }
-
-    #pragma omp task /* mem addr reg */
-    {
-        prf("task: propagate memory address register\n");
-        propagate_register(registers.mem_addr);
-    }
-
-    #pragma omp task /* mem data reg */
-    {
-        prf("task: propagate memory data register\n");
-        propagate_register(registers.mem_data);
-    }
-
-    #pragma omp task /* mem data reg */
-    {
-        prf("task: propagate stage flag register\n");
-        propagate_register(registers.stage_flag);
-    }
-}
-
-void clock_wait_half_period()
-{
-    const double clock_half_period_us = 1e6 * (1.0f / clock_freq_hz) / 2.0f;
-    dbg("clock_wait_half_period()[%d] - freq: %.0f hz, half period: %.0f us, clock_state: %d, half periods elapsed: %ld\n",
-        omp_get_thread_num(), clock_freq_hz, clock_half_period_us, clock_state, clock_half_periods_elapsed);
-    nsleep(clock_half_period_us * 1e3);
-}
-
-void clock_advance()
-{
-    clock_state ^= 0x1U;
-    clock_half_periods_elapsed++;
 }
 
 void initialise()
 {
-    imem                    = calloc(1, imem_size);
-    dmem                    = calloc(1, dmem_size);
-    registers.reg_file      = create_registers(reg_file_size);
-    registers.inst           = create_register();
-    registers.prog_cntr      = create_register();
-    registers.mem_addr       = create_register();
-    registers.mem_data       = create_register();
-    registers.stage_flag     = create_register();
+    WORD *program;
+    size_t num_words;
+    parse_program(&program, &num_words);
+    create_state(program, num_words);
 }
 
 void finalise()
 {
-    free(imem);
-    free(dmem);
-    free(registers.reg_file);
+    destroy_state();
 }
 
-void parse_arguments()
+void print_help()
 {
+    raw("sim: JProcessor Simulator\n");
+    raw("Usage: ./sim [INPUT] [OPTIONS]\n");
+    raw("   INPUT: \n");
+    raw("       %s, %s <FILE>\n", arg_asm[0], arg_asm[1]);
+    raw("           Specify input assembly file\n");
+    raw("   OPTIONS: \n");
+    raw("       % s, % s\n", arg_help[0], arg_help[1]);
+    raw("           Print this help message, then exit\n");
+    raw("       % s, % s\n", arg_pipeline[0], arg_pipeline[1]);
+    raw("           Turn on pipelining - default is off\n");
+}
+
+void parse_arguments(int argc, char *argv[])
+{
+    if (argc < 3)
+    {
+        print_help();
+        exit(1);
+    }
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (check_arg(argv[i], arg_asm))
+        {
+            asm_file = argv[++i];
+        }
+
+        if (check_arg(argv[i], arg_help))
+        {
+            print_help();
+        }
+
+        if (check_arg(argv[i], arg_pipeline))
+        {
+            pipeline_enabled = true;
+        }
+    }
 }

@@ -1,14 +1,15 @@
 EXE=sim
 CC=gcc
-CCFLAGS=-O2 -g -fopenmp
-COMPILE=$(CC) $(CCFLAGS)
+CCFLAGS=-O3 -g
+ARGS=
+COMPILE=$(CC) $(CCFLAGS) $(ARGS)
 
 all: $(EXE)
 
 %.o: %.c
 	$(COMPILE) $^ -c
 
-$(EXE): $(EXE).o util.o register_unit.o
+$(EXE): $(EXE).o util.o register_unit.o state.o clock.o
 	$(COMPILE) $^ -o $@
 
 fresh: clean all
