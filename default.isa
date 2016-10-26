@@ -1,15 +1,32 @@
-halt                            #stop execution of program
-add     dreg    sreg1   sreg2   #dreg = sreg1   +   sreg2
-addi    dreg    sreg    imd     #dreg = sreg    +   imd
-cmp     dreg    sreg1   sreg2   #dreg = sreg1   >   sreg2
-cmpi    dreg    sreg    imd     #dreg = sreg    >   imd
-mov     dreg    sreg            #dreg = sreg
-ld      dreg    sreg            #dreg = dmem[sreg]
-ldi     dreg    imd             #dreg = imd
-st      sreg1   sreg2           #dmem[sreg1] = sreg2
-sti     sreg1   imd             #dmem[sreg1] = imd
+nop                             #do nothing
+
+#arithmetics
+add     dreg    sreg1   sreg2   #dreg.v = sreg1.v   +   sreg2.v
+addi    dreg    sreg    imd     #dreg.v = sreg.v    +   imd
+sub     dreg    sreg1   sreg2   #dreg.v = sreg1.v   -   sreg2.v
+subi    dreg    sreg1   imd     #dreg.v = sreg1.v   -   imd
+mul     dreg    sreg1   sreg2   #dreg.v = sreg1.v   *   sreg2.v
+muli    dreg    sreg1   imd     #dreg.v = sreg1.v   *   imd
+div     dreg    sreg1   sreg2   #dreg.v = sreg1.v   /   sreg2.v
+divi    dreg    sreg1   imd     #dreg.v = sreg1.v   /   imd
+cmp     dreg    sreg1   sreg2   #dreg.v = sreg1.v   >   sreg2.v
+cmpi    dreg    sreg    imd     #dreg.v = sreg.v    >   imd
+
+#move, load, store
+mov     dreg    sreg            #dreg.v = sreg.v
+movi    dreg    imd             #dreg.v = imd
+ld      dreg    sreg            #dreg.v = dmem[sreg.v]
+ldi     dreg    imd             #dreg.v = dmem[imd]
+st      dreg    sreg            #dmem[dreg.v] = sreg.v
+sti     imd     sreg            #dmem[imd] = sreg.v
+
+#branching
 b       imd                     #pc   = imd
-rb      imd                     #pc   = pc      +   imd
-blt     sreg1   sreg2   imd     #pc   = sreg2   <   imd     ?   sreg1       : pc
-rblt    imd     sreg2   imd     #pc   = sreg2   <   imd     ?   pc + imd    : pc
-bz      sreg1   sreg2           #pc   = sreg2   ==  0       ?   sreg1       : pc
+rb      imd                     #pc   = pc        +   imd
+blt     imd     sreg1   sreg2   #pc   = sreg1.v   <   sreg2.v   ?   imd         : pc
+rblt    imd     sreg1   sreg2   #pc   = sreg1.v   <   sreg2.v   ?   pc + imd    : pc
+bz      imd     sreg1           #pc   = sreg1.v   ==  0         ?   imd         : pc
+rbz     imd     sreg1           #pc   = sreg1.v   ==  0         ?   pc + imd    : pc
+
+#control
+halt                            #stop execution of program
