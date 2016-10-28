@@ -1,0 +1,21 @@
+#test program for counting upto 500
+
+#int i = 0;
+sub r0 r0 r0            #zero r0
+sti 0 r0                #store r1 (0) into mem[0]
+
+#int max = 500;
+sub r1 r1 r1           #zero r1
+addi r1 r1 500          #put 100000 into r1
+sti 1 r1                #store r1 (500) into mem[r0=1]
+
+#while(i < max)
+#    i = i + 1;
+ldi r0 0                #pretend to load mem[0] (i) into r0
+ldi r1 1                #pretend to load mem[1] (500) into r1
+rb 2                    #jump forward 2 instructions
+addi r0 r0 1            #increment r1 (i)
+rblt -1 r0 r1           #if r0 (i) < r1 (500) then jump back to start of loop body
+
+#write back
+sti 0 r0                #store r1 (i) into mem[0]

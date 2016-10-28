@@ -10,7 +10,7 @@ extern "C" {
 
 typedef enum {LOG_PRF, LOG_DBG, LOG_WARN, LOG_MSG, LOG_RAW, LOG_ERROR, LOG_DEATH} Log_Level;
 
-#define DEFAULT_LOG_LEVEL LOG_DBG
+#define DEFAULT_LOG_LEVEL LOG_WARN
 
 typedef struct argument_format
 {

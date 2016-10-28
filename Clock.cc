@@ -59,7 +59,8 @@ void Clock::tick()
             dbg("Current clock state: %s\n", ClockState_String[myState]);
 
             if (myState == CLOCK_RISING)
-                raw("_________________________/--------------------------\n");
+                raw("___________C(%4d)____________/------------C(%4d)-----------\n",
+                myCycles - 1, myCycles);
 
             for (std::vector<Clockable*>::iterator i = myClockables.begin(); i != myClockables.end(); ++i)
                 #pragma omp task

@@ -32,7 +32,7 @@ else
 	GOMP_FLAG=
 endif
 
-TEST_ASM_FILE="tests/counting.jasm"
+TEST_ASM_FILE="tests/counting50.jasm"
 MORE_COMPILE_FLAGS=
 RUN_ARGS=
 

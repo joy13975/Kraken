@@ -24,53 +24,6 @@ const argument_format af_pipeline  = {"-p", "--pipeline",       0, "Turn on pipe
 const argument_format af_freq      = {"-f", "--frequency",      1, "Set clock frequency in hertz (0=manual)"};
 const argument_format af_loglv     = {"-l", "--loglevel",       1, "Set log level"};
 
-// void propagate_signal_buffers()
-// {
-//     const WORD stage_flag = get_stage_flag();
-//     state *my_state = get_state();
-
-//     if (N_EXEC_UNITS > 1)
-//         die("Guard: multiple EU\n");
-
-//     if (pipelineEnabled || stage_flag == FETCH_STAGE_FLAG)
-//     {
-//         raw("[Stage::Fetch]\n");
-//         for (int i = 0; i < N_EXEC_UNITS; i++)
-//             fetch(get_reg_val(my_state->program_counter),
-//                   my_state->imem,
-//                   my_state->dc_sbuffers[i]);
-//     }
-
-//     if (pipelineEnabled || stage_flag == DECODE_STAGE_FLAG)
-//     {
-//         raw("[Stage::Decode]\n");
-//         for (int i = 0; i < N_EXEC_UNITS; i++)
-//             decode(my_state->dc_sbuffers[i],
-//                    my_state->ex_sbuffers[i]);
-//     }
-
-//     if (pipelineEnabled || stage_flag == EXECUTE_STAGE_FLAG)
-//     {
-//         raw("[Stage::Execute]\n");
-//         for (int i = 0; i < N_EXEC_UNITS; i++)
-//             execute(my_state->ex_sbuffers[i],
-//                     my_state->reg_file,
-//                     my_state->program_counter,
-//                     my_state->dmem);
-//     }
-
-//     // if (pipelineEnabled || stage_flag == MEMACC_STAGE_FLAG)
-//     // {
-//     //     raw("[Stage::MemAccess]\n");
-//     //     for (int i = 0; i < N_EXEC_UNITS; i++)
-//     //         access_memory(my_state->ma_sbuffers[i],
-//     //                       my_state->reg_file,
-//     //                       my_state->dmem);
-//     // }
-
-//     advance_stage();
-// }
-
 void print_help_and_exit()
 {
     raw("JProcessor Simulator\n");
@@ -83,6 +36,7 @@ void print_help_and_exit()
     print_help_arguement(af_freq);
     print_help_arguement(af_pipeline);
     print_help_arguement(af_loglv);
+    print_help_arguement(af_jasm);
     set_leading_spaces(0);
 
     exit(1);
