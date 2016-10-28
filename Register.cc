@@ -61,7 +61,8 @@ void Register::testClass()
 
     set_leading_spaces(4);
     this->clear();
-    Byte buffer[test_len] = { 0 };
+    Byte buffer[test_len];
+    memset(buffer, 0, test_len);
     this->readData(buffer);
 
     if (strcmp((char*)buffer, ""))
