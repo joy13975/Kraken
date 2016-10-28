@@ -3,8 +3,6 @@
 
 #include "util.h"
 
-using VoidVoidFunc = void(*)();
-
 class Testable
 {
 public:
