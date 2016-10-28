@@ -19,6 +19,9 @@
     exactly 5 cycles to process. The instruction set is
     explained in accompanying slides.
 
+    Hint: You can view the markdown symbolic link of this file
+    at README.md - it's nicer.
+
 --------------------------------------------------------------
 ###To compile:
     Simply do "make". The output should be identical to
