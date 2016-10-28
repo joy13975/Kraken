@@ -1,4 +1,4 @@
-$(EXE)
+sim
 *.o
 *.dSym
 .DS_Store
