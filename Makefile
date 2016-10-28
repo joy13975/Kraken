@@ -8,9 +8,12 @@ $(shell mkdir -p $(HIDDEN))
 C_SRC := util.c
 CC_SRC := UtilCpp.cc \
 	JAssembler.cc Register.cc \
-	Clock.cc Fetcher.cc \
-	Decoder.cc \
-	JProcessor.cc
+	Clock.cc ProcStage.cc \
+	Fetcher.cc \
+	XOut.cc Decoder.cc DMemer.cc \
+	XInOut.cc RegFiler.cc MemReader.cc IntALU.cc MemWriter.cc \
+	JProcessor.cc \
+	$(EXE).cc
 OBJS := $(C_SRC:%.c=$(HIDDEN)/%.o) $(CC_SRC:%.cc=$(HIDDEN)/%.o)
 DEPS := $(C_SRC:%.c=$(HIDDEN)/%.d) $(CC_SRC:%.cc=$(HIDDEN)/%.d)
 
@@ -53,6 +56,14 @@ COMPILE:=$(CXX) $(DEPFLAGS) $(CPPFLAGS) $(MORE_CPPFLAGS)
 
 all: $(EXE)
 
+fresh: clean $(EXE)
+
+test: $(EXE)
+	$(RUN)
+
+clean:
+	rm -rf $(EXE) $(HIDDEN)/* $(HIDDEN)/* *.dSYM .DS_Store
+
 EXTS=c cc
 define make_rule
 $(HIDDEN)/%.o: %.$1
@@ -61,18 +72,9 @@ endef
 $(foreach EXT,$(EXTS),$(eval $(call make_rule,$(EXT))))
 
 $(EXE): $(OBJS)
-	$(COMPILE) $(LDFLAGS) $(EXE).cc $^ $(LDLIBS) -o $@
+	$(COMPILE) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 -include $(DEPS)
-
-fresh: clean $(EXE)
-
-test: $(EXE)
-	$(RUN)
-
-.PHONY: clean
-clean:
-	rm -rf $(EXE) $(HIDDEN)/* $(HIDDEN)/* *.dSYM .DS_Store
 
 #
 # DO NOT DELETE NEWLINE AT END OF FILE
