@@ -9,7 +9,8 @@ void WTBack::onPrepare()
 
 void WTBack::beforeWrite()
 {
-
+    raw("%14s: Writing back to register file\n",
+        this->myStageName);
 }
 
 void WTBack::onCannotWrite()
