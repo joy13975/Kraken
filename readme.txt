@@ -6,13 +6,13 @@
 #############################################################
 
 ###Description:
-    This process is a simple scalar implementation of the
+    This processor is a simple implementation of the classic
     5-stage RISC processor. The stages are:
         1 Fetch
         2 Decode
-        3 Memory Read     (LOAD)
-        4 Arithmatics     (ALU)
-        5 Memory Write    (STORE)
+        3 Execute
+        4 Memory Access
+        5 Register Write Back
 
     There is no pipeline nor out-of-order execution in the
     current implementation. Hence, each instruction takes

@@ -10,9 +10,9 @@
 #include "Clock.hh"
 #include "Fetcher.hh"
 #include "Decoder.hh"
-#include "MemReader.hh"
-#include "IntALU.hh"
-#include "MemWriter.hh"
+#include "Executor.hh"
+#include "MemAcc.hh"
+#include "WTBack.hh"
 
 class JProcessor : public Testable
 {
@@ -37,9 +37,9 @@ private:
 
     Fetcher         myFetcher;
     Decoder         myDecoder;
-    MemReader       myMemReader;
-    IntALU          myIntALU;
-    MemWriter       myMemWriter;
+    Executor        myExec;
+    MemAcc          myMemAcc;
+    WTBack          myWTBack;
 
 
     //private methods

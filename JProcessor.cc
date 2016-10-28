@@ -95,26 +95,25 @@ void JProcessor::testClass()
                         testFetcher);
     testDecoder.testClass();
 
-    MemReader testMemReader(testClock,
-                            testInputReadyRegs,
-                            testDecoder,
-                            testRegFile,
-                            testDmem);
-    testMemReader.testClass();
-
-    IntALU testIntALU(testClock,
+    Executor testExec(testClock,
                       testInputReadyRegs,
-                      testMemReader,
+                      testDecoder,
                       testRegFile,
                       testPCReg);
-    testIntALU.testClass();
+    testExec.testClass();
 
-    MemWriter testMemWriter(testClock,
-                            testInputReadyRegs,
-                            testIntALU,
-                            testRegFile,
-                            testDmem);
-    testMemWriter.testClass();
+    MemAcc testMemAcc(testClock,
+                      testInputReadyRegs,
+                      testExec,
+                      testRegFile,
+                      testDmem);
+    testMemAcc.testClass();
+
+    WTBack testWTBack(testClock,
+                      testInputReadyRegs,
+                      testMemAcc,
+                      testRegFile);
+    testWTBack.testClass();
 
     //test current class
     Memory m;
@@ -184,21 +183,20 @@ JProcessor::JProcessor(const double & clockFreq, const JProgram & program) :
     myDecoder(myClock,
               myInputReadyRegs,
               myFetcher),
-    myMemReader(myClock,
-                myInputReadyRegs,
-                myDecoder,
-                myRegFile,
-                myDMem),
-    myIntALU(myClock,
+    myExec(myClock,
+           myInputReadyRegs,
+           myDecoder,
+           myRegFile,
+           myPCReg),
+    myMemAcc(myClock,
              myInputReadyRegs,
-             myMemReader,
+             myExec,
              myRegFile,
-             myPCReg),
-    myMemWriter(myClock,
-                myInputReadyRegs,
-                myIntALU,
-                myRegFile,
-                myDMem)
+             myDMem),
+    myWTBack(myClock,
+             myInputReadyRegs,
+             myMemAcc,
+             myRegFile)
 {
     raw("+----------------------------------------------------------+\n");
     raw("|                   JProcessor Simulator                   |\n");

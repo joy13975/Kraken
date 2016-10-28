@@ -40,13 +40,13 @@ using Memory = std::vector<Word>;
 #define FOREACH_StageID(MACRO) \
     MACRO(STAGE_FETCH) \
     MACRO(STAGE_DECODE) \
-    MACRO(STAGE_MEMRDR) \
-    MACRO(STAGE_INTALU) \
-    MACRO(STAGE_MEMWTR)
+    MACRO(STAGE_EXEC) \
+    MACRO(STAGE_MEMACC) \
+    MACRO(STAGE_WTBACK)
 DECL_ENUM_AND_STRING(StageID, FOREACH_StageID);
 
 #ifndef N_STAGES
-#define N_STAGES                    (STAGE_MEMWTR + 1)
+#define N_STAGES                    (STAGE_WTBACK + 1)
 #endif /* def guard for N_STAGES */
 
 #ifndef PIPELINED

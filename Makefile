@@ -11,7 +11,7 @@ CC_SRC := UtilCpp.cc \
 	Clock.cc ProcStage.cc \
 	Fetcher.cc \
 	XOut.cc Decoder.cc DMemer.cc \
-	XInOut.cc RegFiler.cc MemReader.cc IntALU.cc MemWriter.cc \
+	XInOut.cc RegFiler.cc MemAcc.cc Executor.cc WTBack.cc \
 	JProcessor.cc \
 	$(EXE).cc
 OBJS := $(C_SRC:%.c=$(HIDDEN)/%.o) $(CC_SRC:%.cc=$(HIDDEN)/%.o)

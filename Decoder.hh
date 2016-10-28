@@ -4,7 +4,6 @@
 #include "JProcDefs.hh"
 #include "UtilCpp.hh"
 #include "XInOut.hh"
-#include "Fetcher.hh"
 #include "Register.hh"
 
 class Decoder : public XInOut
