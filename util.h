@@ -10,7 +10,7 @@ extern "C" {
 
 typedef enum {LOG_PRF, LOG_DBG, LOG_WARN, LOG_MSG, LOG_RAW, LOG_ERROR, LOG_DEATH} Log_Level;
 
-#define DEFAULT_LOG_LEVEL LOG_WARN
+#define DEFAULT_LOG_LEVEL LOG_DBG
 
 typedef struct argument_format
 {
@@ -89,6 +89,7 @@ DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
 #define raw(fmt, ...) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__);
 #define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__);
 
+Log_Level get_log_level();
 void set_log_level(Log_Level lvl);
 void nsleep(long ns);
 double get_timestamp_us();

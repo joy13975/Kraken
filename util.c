@@ -104,6 +104,11 @@ void init_args(int argc, char *argv[])
     args_initilaised    = true;
 }
 
+Log_Level get_log_level()
+{
+    return log_level;
+}
+
 void set_log_level(Log_Level lvl)
 {
     if (lvl < 0 || lvl >= LOG_ERROR)

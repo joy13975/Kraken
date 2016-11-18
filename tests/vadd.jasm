@@ -11,7 +11,7 @@ sti 0 r0        #&i = 0
 
 #int lim = 32;
 sub r1 r1 r1    #r1(lim) := 0
-addi r1 r1 32    #r1(lim) += 32
+addi r1 r1 32   #r1(lim) += 32
 sti 1 r1        #&lim = 1
 
 #int a_ptr = 5;
@@ -33,9 +33,9 @@ sti 4 r4        #&c_ptr = 4
 #c[i] = a[i] + b[i];
 #i++;
 rb 9
-add r5 r2 r0   #r5(a_ptr+i) := r2(a_ptr) + r0(i)
-add r6 r3 r0   #r6(b_ptr+i) := r3(b_ptr) + r0(i)
-add r7 r4 r0   #r7(c_ptr+i) := r4(c_ptr) + r0(i)
+add r5 r2 r0    #r5(a_ptr+i) := r2(a_ptr) + r0(i)
+add r6 r3 r0    #r6(b_ptr+i) := r3(b_ptr) + r0(i)
+add r7 r4 r0    #r7(c_ptr+i) := r4(c_ptr) + r0(i)
 ld r8 r5        #r5(*(a_ptr+i)) := mem[r5(a_ptr+i)]
 ld r9 r6        #r6(*(b_ptr+i)) := mem[r6(b_ptr+i)]
 add r10 r8 r9   #r10(*(c_ptr+i)) := r8 + r9
