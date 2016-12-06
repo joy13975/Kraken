@@ -34,7 +34,7 @@
 #include "vixl/a64/assembler-a64.h"
 #include "vixl/a64/debugger-a64.h"
 #include "vixl/a64/instrument-a64.h"
-#include "vixl/a64/simulator-constants-a64.h"
+#include "vixl/a64/debug-constants-a64.h"
 
 
 #define LS_MACRO_LIST(V)                                     \

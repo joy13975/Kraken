@@ -24,8 +24,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef VIXL_A64_SIMULATOR_CONSTANTS_A64_H_
-#define VIXL_A64_SIMULATOR_CONSTANTS_A64_H_
+#ifndef VIXL_A64_DEBUG_CONSTANTS_A64_H_
+#define VIXL_A64_DEBUG_CONSTANTS_A64_H_
 
 namespace vixl {
 
@@ -135,4 +135,4 @@ const unsigned kLogParamsOffset = 1 * kInstructionSize;
 const unsigned kLogLength = 2 * kInstructionSize;
 }  // namespace vixl
 
-#endif  // VIXL_A64_SIMULATOR_CONSTANTS_A64_H_
+#endif  // VIXL_A64_DEBUG_CONSTANTS_A64_H_

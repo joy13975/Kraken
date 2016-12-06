@@ -37,7 +37,7 @@
 #include "vixl/globals.h"
 #include "vixl/utils.h"
 #include "vixl/a64/constants-a64.h"
-#include "vixl/a64/simulator-a64.h"
+// #include "vixl/a64/simulator-a64.h"
 
 namespace vixl {
 

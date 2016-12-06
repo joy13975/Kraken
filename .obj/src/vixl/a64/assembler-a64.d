@@ -5,4 +5,4 @@
  src/vixl/a64/instructions-a64.h src/vixl/a64/constants-a64.h \
  src/vixl/a64/macro-assembler-a64.h src/vixl/a64/debugger-a64.h \
  src/vixl/a64/instrument-a64.h src/vixl/a64/decoder-a64.h \
- src/vixl/a64/simulator-constants-a64.h
+ src/vixl/a64/debug-constants-a64.h
