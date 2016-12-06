@@ -16,14 +16,88 @@ extern "C" {
 Log_Level log_level         = UTIL_DEFAULT_LOG_LEVEL;
 int print_leading_spaces    = 0;
 
-//argument parsing
-bool args_initilaised       = false;
-int arg_count, arg_idx;
-char **arg_val;
+void print_arg_title(const char *title)
+{
+    set_leading_spaces(4);
+    raw("%s\n", title);
+    reset_leading_spaces();
+}
+
+void print_arg_bundles(const argument_bundle *argbv, const int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        const argument_bundle *ab = &(argbv[i]);
+        set_leading_spaces(8);
+        raw("%s, %s\n", ab->short_form, ab->long_form);
+        set_leading_spaces(12);
+        raw("%s\n", ab->description);
+    }
+    reset_leading_spaces();
+}
+
+bool arg_matches(const char *arg_in, const argument_bundle ab)
+{
+    return 0 == strcmp(arg_in, ab.short_form) || 0 == strcmp(arg_in, ab.long_form);
+}
+
+void parse_args(const int argc,
+                char const *argv[],
+                const int argbc,
+                const argument_bundle *argbv,
+                void (*const failure_callback) (const char *failure_arg_in))
+{
+    for (int i = 1; i < argc; i++)
+    {
+        bool found_arg = false;
+
+        // iterate through argument bundle to match argument
+        // call callback function if matched
+        for (int j = 0; j < argbc; j++)
+        {
+            if ((found_arg = arg_matches(argv[i], argbv[j])))
+            {
+                if (argbv[j].call_back != NULL)
+                {
+                    if (argbv[j].exp_val )
+                    {
+                        if (i + 1 > argc - 1)
+                        {
+                            err("Argument %s expects a pairing value\n",
+                                argv[i]);
+                            failure_callback(argv[i]);
+                            break;
+                        }
+                        else
+                        {
+                            argbv[j].call_back(argv[++i]);
+                        }
+                    }
+                    else
+                    {
+                            argbv[j].call_back(argv[i]);
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (!found_arg)
+        {
+            err("Unknown argument: %s\n", argv[i]);
+            failure_callback(argv[i]);
+        }
+    }
+}
 
 int get_leading_spaces()
 {
     return print_leading_spaces;
+}
+
+void reset_leading_spaces()
+{
+    print_leading_spaces = 0;
 }
 
 void set_leading_spaces(int n)
@@ -53,60 +127,6 @@ long parse_long(const char *str)
 const char *get_error_string()
 {
     return strerror(errno);
-}
-
-void print_help_arguement(const argument_format af)
-{
-    set_leading_spaces(get_leading_spaces() + 4);
-    raw("%s, %s\n", af.short_form, af.long_form);
-    set_leading_spaces(get_leading_spaces() + 4);
-    raw("%s\n", af.description);
-    set_leading_spaces(get_leading_spaces() - 8);
-}
-
-char *next_arg()
-{
-    if (arg_idx > arg_count - 1)
-        die("Argument index overflow - you need to check have_next_arg()\n");
-    return arg_val[arg_idx++];
-}
-
-bool have_next_arg()
-{
-    if (!args_initilaised)
-        die("Must call init_args() first\n");
-    return arg_idx <= arg_count - 1;
-}
-
-bool next_arg_matches(const argument_format af)
-{
-    if (arg_idx > arg_count - 1)
-        die("Argument index overflow - you need to check have_next_arg()\n");
-
-    const char *arg = arg_val[arg_idx];
-    bool match = !strcmp(arg, af.short_form) || !strcmp(arg, af.long_form);
-
-    if (!match)
-        return false;
-
-    if ((arg_idx + af.num_parts) > arg_count - 1)
-    {
-        err("Missing argument value for \"%s\" (\"%s\")\n",
-            af.short_form, af.long_form);
-        return false;
-    }
-
-    arg_idx++;
-
-    return true;
-}
-
-void init_args(int argc, char *argv[])
-{
-    arg_count           = argc;
-    arg_val             = argv;
-    arg_idx             = 1;
-    args_initilaised    = true;
 }
 
 Log_Level get_log_level()
@@ -139,9 +159,9 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
         va_list args;
         va_start(args, fmt);
 
-        char space_buffer[print_leading_spaces + 2];
-        memset(space_buffer, ' ', print_leading_spaces + 1);
-        space_buffer[print_leading_spaces + 1] = '\0';
+        char space_buffer[print_leading_spaces + 1];
+        memset(space_buffer, ' ', print_leading_spaces);
+        space_buffer[print_leading_spaces] = '\0';
 
         char *new_fmt;
         FILE *fd;
@@ -149,22 +169,22 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
         {
         case LOG_PROOF:
             fd = stdout;
-            asprintf(&new_fmt, "%s[PRF]%s%s%s",
+            asprintf(&new_fmt, "%s[PRF] %s%s%s",
                      CLR_CYN, CLR_NRM, space_buffer, fmt);
             break;
         case LOG_DEBUG:
             fd = stdout;
-            asprintf(&new_fmt, "%s[DBG]%s%s%s",
+            asprintf(&new_fmt, "%s[DBG] %s%s%s",
                      CLR_BLU, CLR_NRM, space_buffer, fmt);
             break;
         case LOG_WARN:
             fd = stdout;
-            asprintf(&new_fmt, "%s[WRN]%s%s%s",
+            asprintf(&new_fmt, "%s[WRN] %s%s%s",
                      CLR_YEL, CLR_NRM, space_buffer, fmt);
             break;
         case LOG_MESSAGE:
             fd = stdout;
-            asprintf(&new_fmt, "%s[MSG]%s%s%s",
+            asprintf(&new_fmt, "%s[MSG] %s%s%s",
                      CLR_MAG, CLR_NRM, space_buffer, fmt);
             break;
         case LOG_RAW:
@@ -173,17 +193,17 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
             break;
         case LOG_ERROR:
             fd = stderr;
-            asprintf(&new_fmt, "%s[ERR]%s%s%s",
+            asprintf(&new_fmt, "%s[ERR] %s%s%s",
                      CLR_RED, CLR_NRM, space_buffer, fmt);
             break;
         case LOG_DEATH:
             fd = stderr;
-            asprintf(&new_fmt, "\n%s[DIE %s:%d]%s%s%s",
+            asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
                      CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
             break;
         default:
             fd = stdout;
-            asprintf(&new_fmt, "%s[???]%s%s%s",
+            asprintf(&new_fmt, "%s[???] %s%s%s",
                      CLR_RED, CLR_NRM, space_buffer, fmt);
         }
 

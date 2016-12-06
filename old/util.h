@@ -56,24 +56,32 @@ DECL_ENUM_AND_STRING(Log_Level, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 
-typedef struct argument_format
-{
-    const char *short_form;
-    const char *long_form;
-    const int num_parts;
-    const char *description;
-} argument_format;
+#define DECL_VOID_FUNC_STR(name) void name(const char* arg_in)
+#define DECL_ARG_CALLBACK(name) DECL_VOID_FUNC_STR(name)
+#define DECL_ARG_IN_FAIL_CALLBACK(name) DECL_VOID_FUNC_STR(name)
 
+typedef struct argument_bundle
+{
+    const char *const short_form;
+    const char *const long_form;
+    const char *const description;
+    const bool exp_val;
+    void (*const call_back)(const char *arg_in);
+} argument_bundle;
+
+void parse_args(const int argc,
+                char const *argv[],
+                const int argbc,
+                const argument_bundle *argbv,
+                void (*const failure_callback) (const char *failure_arg_in));
 int get_leading_spaces();
+void reset_leading_spaces();
 void set_leading_spaces(int n);
 float parse_float(const char *str);
 long parse_long(const char *str);
 const char *get_error_string();
-void print_help_arguement(const argument_format af);
-char *next_arg();
-bool have_next_arg();
-bool next_arg_matches(const argument_format af);
-void init_args(int argc, char *argv[]);
+void print_arg_title(const char *title);
+void print_arg_bundles(const argument_bundle *argbv, const int n);
 void _log(const char *filename, const int line, const Log_Level lvl, const char *fmt, ...);
 
 #define jmin(a, b)                   (a < b ? a : b)
