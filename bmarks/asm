@@ -5,4 +5,11 @@ if [[ $# -lt 2 ]]; then
     exit
 fi
 
-./compile -c -g -Wa,-adhl $1 > $2
+debug=${debug:-0}
+
+if [[ $debug == 1 ]]; then
+    ./compile -c -g -Wa,-adhl $1 > $2
+    echo debug
+else
+    ./compile -S $1 -o $2
+fi
