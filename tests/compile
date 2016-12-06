@@ -1,0 +1,3 @@
+#!/bin/bash
+HACK="--specs=rdimon.specs -lgcc -lc -lm -lrdimon"
+arm-none-eabi-gcc -march=armv8-a -O0 -std=gnu99 -fno-stack-protector $HACK $@

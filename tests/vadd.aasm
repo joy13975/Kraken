@@ -1,0 +1,159 @@
+ARM GAS  /var/folders/3_/jqwj0qmx09v9fr68yt74kf5h0000gn/T//ccsMKtAZ.s 			page 1
+
+
+   1              		.arch armv8-a
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.arm
+  13              		.syntax divided
+  14              		.file	"vadd.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.align	2
+  19              		.global	main
+  21              	main:
+  22              	.LFB0:
+  23              		.file 1 "vadd.c"
+   1:vadd.c        **** #ifdef _DEBUG
+   2:vadd.c        **** #include <stdio.h>
+   3:vadd.c        **** #endif
+   4:vadd.c        **** 
+   5:vadd.c        **** #define N 256
+   6:vadd.c        **** int main(void)
+   7:vadd.c        **** {
+  24              		.loc 1 7 0
+  25              		.cfi_startproc
+  26              		@ args = 0, pretend = 0, frame = 3080
+  27              		@ frame_needed = 1, uses_anonymous_args = 0
+  28              		@ link register save eliminated.
+  29 0000 04B02DE5 		str	fp, [sp, #-4]!
+  30              		.cfi_def_cfa_offset 4
+  31              		.cfi_offset 11, -4
+  32 0004 00B08DE2 		add	fp, sp, #0
+  33              		.cfi_def_cfa_register 11
+  34 0008 03DB4DE2 		sub	sp, sp, #3072
+  35 000c 0CD04DE2 		sub	sp, sp, #12
+  36              	.LBB2:
+   8:vadd.c        ****     int a[N], b[N], c[N];
+   9:vadd.c        **** 
+  10:vadd.c        ****     //intialise arrays
+  11:vadd.c        ****     for (int i = 0; i < N; i++)
+  37              		.loc 1 11 0
+  38 0010 0030A0E3 		mov	r3, #0
+  39 0014 08300BE5 		str	r3, [fp, #-8]
+  40 0018 160000EA 		b	.L2
+  41              	.L3:
+  12:vadd.c        ****     {
+  13:vadd.c        ****         b[i] = i;
+  42              		.loc 1 13 0 discriminator 3
+  43 001c 08301BE5 		ldr	r3, [fp, #-8]
+  44 0020 0331A0E1 		mov	r3, r3, asl #2
+  45 0024 04204BE2 		sub	r2, fp, #4
+ARM GAS  /var/folders/3_/jqwj0qmx09v9fr68yt74kf5h0000gn/T//ccsMKtAZ.s 			page 2
+
+
+  46 0028 033082E0 		add	r3, r2, r3
+  47 002c 08201BE5 		ldr	r2, [fp, #-8]
+  48 0030 082803E5 		str	r2, [r3, #-2056]
+  14:vadd.c        ****         a[i] = 3 * ~b[i];
+  49              		.loc 1 14 0 discriminator 3
+  50 0034 08301BE5 		ldr	r3, [fp, #-8]
+  51 0038 0331A0E1 		mov	r3, r3, asl #2
+  52 003c 04204BE2 		sub	r2, fp, #4
+  53 0040 033082E0 		add	r3, r2, r3
+  54 0044 083813E5 		ldr	r3, [r3, #-2056]
+  55 0048 0320E0E1 		mvn	r2, r3
+  56 004c 0230A0E1 		mov	r3, r2
+  57 0050 8330A0E1 		mov	r3, r3, asl #1
+  58 0054 022083E0 		add	r2, r3, r2
+  59 0058 08301BE5 		ldr	r3, [fp, #-8]
+  60 005c 0331A0E1 		mov	r3, r3, asl #2
+  61 0060 04104BE2 		sub	r1, fp, #4
+  62 0064 033081E0 		add	r3, r1, r3
+  63 0068 082403E5 		str	r2, [r3, #-1032]
+  11:vadd.c        ****     {
+  64              		.loc 1 11 0 discriminator 3
+  65 006c 08301BE5 		ldr	r3, [fp, #-8]
+  66 0070 013083E2 		add	r3, r3, #1
+  67 0074 08300BE5 		str	r3, [fp, #-8]
+  68              	.L2:
+  11:vadd.c        ****     {
+  69              		.loc 1 11 0 is_stmt 0 discriminator 1
+  70 0078 08301BE5 		ldr	r3, [fp, #-8]
+  71 007c FF0053E3 		cmp	r3, #255
+  72 0080 E5FFFFDA 		ble	.L3
+  73              	.LBE2:
+  74              	.LBB3:
+  15:vadd.c        ****     }
+  16:vadd.c        **** 
+  17:vadd.c        ****     //vector add arrays
+  18:vadd.c        ****     for (int i = 0; i < N; i++)
+  75              		.loc 1 18 0 is_stmt 1
+  76 0084 0030A0E3 		mov	r3, #0
+  77 0088 0C300BE5 		str	r3, [fp, #-12]
+  78 008c 120000EA 		b	.L4
+  79              	.L5:
+  19:vadd.c        ****         c[i] = a[i] + b[i];
+  80              		.loc 1 19 0 discriminator 3
+  81 0090 0C301BE5 		ldr	r3, [fp, #-12]
+  82 0094 0331A0E1 		mov	r3, r3, asl #2
+  83 0098 04204BE2 		sub	r2, fp, #4
+  84 009c 033082E0 		add	r3, r2, r3
+  85 00a0 082413E5 		ldr	r2, [r3, #-1032]
+  86 00a4 0C301BE5 		ldr	r3, [fp, #-12]
+  87 00a8 0331A0E1 		mov	r3, r3, asl #2
+  88 00ac 04104BE2 		sub	r1, fp, #4
+  89 00b0 033081E0 		add	r3, r1, r3
+  90 00b4 083813E5 		ldr	r3, [r3, #-2056]
+  91 00b8 032082E0 		add	r2, r2, r3
+  92 00bc 0C301BE5 		ldr	r3, [fp, #-12]
+  93 00c0 0331A0E1 		mov	r3, r3, asl #2
+  94 00c4 04104BE2 		sub	r1, fp, #4
+ARM GAS  /var/folders/3_/jqwj0qmx09v9fr68yt74kf5h0000gn/T//ccsMKtAZ.s 			page 3
+
+
+  95 00c8 033081E0 		add	r3, r1, r3
+  96 00cc 082C03E5 		str	r2, [r3, #-3080]
+  18:vadd.c        ****         c[i] = a[i] + b[i];
+  97              		.loc 1 18 0 discriminator 3
+  98 00d0 0C301BE5 		ldr	r3, [fp, #-12]
+  99 00d4 013083E2 		add	r3, r3, #1
+ 100 00d8 0C300BE5 		str	r3, [fp, #-12]
+ 101              	.L4:
+  18:vadd.c        ****         c[i] = a[i] + b[i];
+ 102              		.loc 1 18 0 is_stmt 0 discriminator 1
+ 103 00dc 0C301BE5 		ldr	r3, [fp, #-12]
+ 104 00e0 FF0053E3 		cmp	r3, #255
+ 105 00e4 E9FFFFDA 		ble	.L5
+ 106              	.LBE3:
+  20:vadd.c        **** 
+  21:vadd.c        **** #ifdef _DEBUG
+  22:vadd.c        ****     printf("c[0](%d) = a[0](%d) + b[0](%d)\n", c[0], a[0], b[0]);
+  23:vadd.c        ****     printf("c[N-1](%d) = a[N-1](%d) + b[N-1](%d)\n", c[N - 1], a[N - 1], b[N - 1]);
+  24:vadd.c        **** #endif
+  25:vadd.c        **** 
+  26:vadd.c        ****     return 0;
+ 107              		.loc 1 26 0 is_stmt 1
+ 108 00e8 0030A0E3 		mov	r3, #0
+  27:vadd.c        **** }...
+ 109              		.loc 1 27 0
+ 110 00ec 0300A0E1 		mov	r0, r3
+ 111 00f0 00D04BE2 		sub	sp, fp, #0
+ 112              		.cfi_def_cfa_register 13
+ 113              		@ sp needed
+ 114 00f4 04B09DE4 		ldr	fp, [sp], #4
+ 115              		.cfi_restore 11
+ 116              		.cfi_def_cfa_offset 0
+ 117 00f8 1EFF2FE1 		bx	lr
+ 118              		.cfi_endproc
+ 119              	.LFE0:
+ 121              	.Letext0:
