@@ -1,0 +1,24 @@
+Stat: 
+   5 
+  21 add
+   5 b
+   1 bge
+   1 bgt
+   8 bl
+   1 ble
+   2 blt
+   1 bne
+   4 bx
+   6 cmp
+   5 ldmfd
+  56 ldr
+  33 mov
+   3 movt
+   3 movw
+   2 mul
+  64 nop
+   5 stmfd
+  28 str
+  22 sub
+Unique Insns: 
+      21
