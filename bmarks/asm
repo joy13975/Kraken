@@ -8,15 +8,16 @@ fi
 cmd=${3:-}
 
 ARCH="-march=armv8-a -mno-thumb-interwork"
-CODE="-O0 -std=gnu99 -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -c -s"
-ACC="arm-none-eabi-gcc $ARCH $CODE"
+CODE="-O0 -std=gnu99 -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -e main"
+NOLIB="-nostdlib -nodefaultlibs"
+ACC="arm-none-eabi-gcc $ARCH $CODE $NOLIB"
 
 if [[ "$cmd" == "debug" ]]; then
     echo asm debug
     $ACC -g -Wa,-adhl $1 > $2
 elif [[ "$cmd" == "obj" ]]; then
     echo asm obj
-    $ACC $1 -o $2 -Xlinker --oformat=binary
+    $ACC -nostdlib $1 -o $2
 else
     $ACC -S $1 -o $2
 fi

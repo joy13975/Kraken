@@ -18,11 +18,10 @@ COMPILE_X86:=gcc -O0 -std=gnu99 -fno-stack-protector -D_DEBUG
 
 	$(eval asmObjName := $(@:.$(EXT_A64_ASM)=.o))
 	./asm $< $(asmObjName) obj
-	./extract $(asmObjName)
+	# ./extract $(asmObjName)
 
 all: $(BIN_X86) $(ASM_A64)
 	awk 'FNR==1{print ""}1' *.$(EXT_A64_ASM) > all.s
-	rm -rf *.o
 
 stat: all
 	asmstat all.s > allstat.txt
