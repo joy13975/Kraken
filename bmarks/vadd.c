@@ -2,25 +2,21 @@
 #include <stdio.h>
 #endif
 
-#define N 256
+#include "nums1k.h"
+
+#define N 1024
 int main(void)
 {
-    int a[N], b[N], c[N];
+    int c[N];
 
-    //intialise arrays
     for (int i = 0; i < N; i++)
-    {
-        b[i] = i;
-        a[i] = 3 * ~b[i];
-    }
-
-    //vector add arrays
-    for (int i = 0; i < N; i++)
-        c[i] = a[i] + b[i];
+        c[i] = nums1k1[i] + nums1k2[i];
 
 #ifdef _DEBUG
-    printf("c[0](%d) = a[0](%d) + b[0](%d)\n", c[0], a[0], b[0]);
-    printf("c[N-1](%d) = a[N-1](%d) + b[N-1](%d)\n", c[N - 1], a[N - 1], b[N - 1]);
+    printf("c[0](%d)    = nums1k1[0](%d) + nums1k2[0](%d)\n",
+           c[0], nums1k1[0], nums1k2[0]);
+    printf("c[N-1](%d)  = nums1k1[N-1](%d) + nums1k2[N-1](%d)\n",
+           c[N - 1], nums1k1[N - 1], nums1k2[N - 1]);
 #endif
 
     return 0;

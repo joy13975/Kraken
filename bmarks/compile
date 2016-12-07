@@ -1,5 +1,0 @@
-#!/bin/bash
-HACK="--specs=rdimon.specs -lgcc -lc -lm -lrdimon"
-ARCH="-march=armv8-a -mno-thumb-interwork"
-CODE="-O0 -std=gnu99 -fno-stack-protector -c"
-arm-none-eabi-gcc $ARCH $CODE $HACK $@

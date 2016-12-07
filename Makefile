@@ -1,11 +1,12 @@
 CXX=g++
 
-EXE=sim
+EXE=kraken
 
 OBJ_DIR := .obj
 
 SRC_DIR := src
-C_SRC := $(wildcard $(SRC_DIR)/*.c)
+LIBELF_DIR := $(SRC_DIR)/libelf
+C_SRC := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(LIBELF_DIR)/*.c)
 CC_SRC := $(wildcard $(SRC_DIR)/*.cc)
 OBJS := $(C_SRC:%.c=$(OBJ_DIR)/%.o) $(CC_SRC:%.cc=$(OBJ_DIR)/%.o)
 DEPS := $(C_SRC:%.c=$(OBJ_DIR)/%.d) $(CC_SRC:%.cc=$(OBJ_DIR)/%.d)
@@ -49,6 +50,9 @@ $(EXE): $(OBJS)
 .PHONY: all clean
 
 all: $(EXE)
+
+test: $(EXE)
+	./$(EXE) -i bmarks/vadd.s
 
 -include $(DEPS)
 

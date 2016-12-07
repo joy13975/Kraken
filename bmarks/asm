@@ -5,11 +5,18 @@ if [[ $# -lt 2 ]]; then
     exit
 fi
 
-debug=${debug:-0}
+cmd=${3:-}
 
-if [[ $debug == 1 ]]; then
-    ./compile -c -g -Wa,-adhl $1 > $2
-    echo debug
+ARCH="-march=armv8-a -mno-thumb-interwork"
+CODE="-O0 -std=gnu99 -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -c -s"
+ACC="arm-none-eabi-gcc $ARCH $CODE"
+
+if [[ "$cmd" == "debug" ]]; then
+    echo asm debug
+    $ACC -g -Wa,-adhl $1 > $2
+elif [[ "$cmd" == "obj" ]]; then
+    echo asm obj
+    $ACC $1 -o $2 -Xlinker --oformat=binary
 else
-    ./compile -S $1 -o $2
+    $ACC -S $1 -o $2
 fi
