@@ -7,8 +7,8 @@ fi
 
 cmd=${3:-}
 
-ARCH="-march=armv8-a -mno-thumb-interwork"
-CODE="-O0 -std=gnu99 -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -e main"
+ARCH="-march=armv7-a -mthumb -Wl,-Ttext=0x100 -Wa,-mthumb"
+CODE="-O0 -std=gnu99 -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables -fPIC -e main"
 NOLIB="-nostdlib -nodefaultlibs"
 ACC="arm-none-eabi-gcc $ARCH $CODE $NOLIB"
 

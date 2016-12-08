@@ -1,4 +1,5 @@
-	.arch armv8-a
+	.syntax unified
+	.arch armv7-a
 	.fpu softvfp
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
@@ -9,8 +10,8 @@
 	.eabi_attribute 30, 6
 	.eabi_attribute 34, 1
 	.eabi_attribute 18, 4
-	.arm
-	.syntax divided
+	.thumb
+	.syntax unified
 	.file	"vadd.c"
 	.global	nums1k1
 	.data
@@ -2074,47 +2075,73 @@ nums1k2:
 	.text
 	.align	2
 	.global	main
+	.thumb
+	.thumb_func
 	.type	main, %function
 main:
 	@ args = 0, pretend = 0, frame = 4104
 	@ frame_needed = 1, uses_anonymous_args = 0
 	@ link register save eliminated.
-	str	fp, [sp, #-4]!
-	add	fp, sp, #0
+	push	{r7}
 	sub	sp, sp, #4096
 	sub	sp, sp, #12
-	mov	r3, #0
-	str	r3, [fp, #-8]
+	add	r7, sp, #0
+	ldr	r2, .L5
+.LPIC0:
+	add	r2, pc
+	movs	r3, #0
+	add	r1, r7, #4096
+	add	r1, r1, #4
+	str	r3, [r1]
 	b	.L2
 .L3:
-	movw	r3, #:lower16:nums1k1
-	movt	r3, #:upper16:nums1k1
-	ldr	r2, [fp, #-8]
-	ldr	r2, [r3, r2, asl #2]
-	movw	r3, #:lower16:nums1k2
-	movt	r3, #:upper16:nums1k2
-	ldr	r1, [fp, #-8]
-	ldr	r3, [r3, r1, asl #2]
-	add	r2, r2, r3
-	sub	r3, fp, #4096
-	sub	r3, r3, #4
+	ldr	r3, .L5+4
+	ldr	r3, [r2, r3]
 	mov	r1, r3
-	ldr	r3, [fp, #-8]
-	mov	r3, r3, asl #2
-	add	r3, r1, r3
-	str	r2, [r3, #-4]
-	ldr	r3, [fp, #-8]
-	add	r3, r3, #1
-	str	r3, [fp, #-8]
+	add	r3, r7, #4096
+	add	r3, r3, #4
+	ldr	r3, [r3]
+	ldr	r1, [r1, r3, lsl #2]
+	ldr	r3, .L5+8
+	ldr	r3, [r2, r3]
+	mov	r0, r3
+	add	r3, r7, #4096
+	add	r3, r3, #4
+	ldr	r3, [r3]
+	ldr	r3, [r0, r3, lsl #2]
+	adds	r0, r1, r3
+	add	r3, r7, #8
+	subs	r3, r3, #4
+	add	r1, r7, #4096
+	add	r1, r1, #4
+	ldr	r1, [r1]
+	str	r0, [r3, r1, lsl #2]
+	add	r3, r7, #4096
+	add	r3, r3, #4
+	ldr	r3, [r3]
+	adds	r3, r3, #1
+	add	r1, r7, #4096
+	add	r1, r1, #4
+	str	r3, [r1]
 .L2:
-	ldr	r3, [fp, #-8]
+	add	r3, r7, #4096
+	add	r3, r3, #4
+	ldr	r3, [r3]
 	cmp	r3, #1024
 	blt	.L3
-	mov	r3, #0
+	movs	r3, #0
 	mov	r0, r3
-	sub	sp, fp, #0
+	add	r7, r7, #4096
+	adds	r7, r7, #12
+	mov	sp, r7
 	@ sp needed
-	ldr	fp, [sp], #4
+	pop	{r7}
 	bx	lr
+.L6:
+	.align	2
+.L5:
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)
+	.word	nums1k1(GOT)
+	.word	nums1k2(GOT)
 	.size	main, .-main
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"

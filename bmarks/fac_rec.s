@@ -1,4 +1,5 @@
-	.arch armv8-a
+	.syntax unified
+	.arch armv7-a
 	.fpu softvfp
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
@@ -9,55 +10,61 @@
 	.eabi_attribute 30, 6
 	.eabi_attribute 34, 1
 	.eabi_attribute 18, 4
-	.arm
-	.syntax divided
+	.thumb
+	.syntax unified
 	.file	"fac_rec.c"
 	.text
 	.align	2
 	.global	fac
+	.thumb
+	.thumb_func
 	.type	fac, %function
 fac:
 	@ args = 0, pretend = 0, frame = 8
 	@ frame_needed = 1, uses_anonymous_args = 0
-	stmfd	sp!, {fp, lr}
-	add	fp, sp, #4
+	push	{r7, lr}
 	sub	sp, sp, #8
-	str	r0, [fp, #-8]
-	ldr	r3, [fp, #-8]
+	add	r7, sp, #0
+	str	r0, [r7, #4]
+	ldr	r3, [r7, #4]
 	cmp	r3, #1
 	ble	.L2
-	ldr	r3, [fp, #-8]
-	sub	r3, r3, #1
+	ldr	r3, [r7, #4]
+	subs	r3, r3, #1
 	mov	r0, r3
-	bl	fac
+	bl	fac(PLT)
 	mov	r2, r0
-	ldr	r3, [fp, #-8]
+	ldr	r3, [r7, #4]
 	mul	r3, r3, r2
 	b	.L4
 .L2:
-	mov	r3, #1
+	movs	r3, #1
 .L4:
 	mov	r0, r3
-	sub	sp, fp, #4
+	adds	r7, r7, #8
+	mov	sp, r7
 	@ sp needed
-	ldmfd	sp!, {fp, pc}
+	pop	{r7, pc}
 	.size	fac, .-fac
 	.align	2
 	.global	main
+	.thumb
+	.thumb_func
 	.type	main, %function
 main:
 	@ args = 0, pretend = 0, frame = 8
 	@ frame_needed = 1, uses_anonymous_args = 0
-	stmfd	sp!, {fp, lr}
-	add	fp, sp, #4
+	push	{r7, lr}
 	sub	sp, sp, #8
-	mov	r0, #10
-	bl	fac
-	str	r0, [fp, #-8]
-	mov	r3, #0
+	add	r7, sp, #0
+	movs	r0, #10
+	bl	fac(PLT)
+	str	r0, [r7, #4]
+	movs	r3, #0
 	mov	r0, r3
-	sub	sp, fp, #4
+	adds	r7, r7, #8
+	mov	sp, r7
 	@ sp needed
-	ldmfd	sp!, {fp, pc}
+	pop	{r7, pc}
 	.size	main, .-main
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"

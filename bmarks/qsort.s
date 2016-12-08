@@ -1,4 +1,5 @@
-	.arch armv8-a
+	.syntax unified
+	.arch armv7-a
 	.fpu softvfp
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
@@ -9,8 +10,8 @@
 	.eabi_attribute 30, 6
 	.eabi_attribute 34, 1
 	.eabi_attribute 18, 4
-	.arm
-	.syntax divided
+	.thumb
+	.syntax unified
 	.file	"qsort.c"
 	.global	nums1k1
 	.data
@@ -2074,135 +2075,152 @@ nums1k2:
 	.text
 	.align	2
 	.global	swap
+	.thumb
+	.thumb_func
 	.type	swap, %function
 swap:
 	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 1, uses_anonymous_args = 0
 	@ link register save eliminated.
-	str	fp, [sp, #-4]!
-	add	fp, sp, #0
+	push	{r7}
 	sub	sp, sp, #20
-	str	r0, [fp, #-16]
-	str	r1, [fp, #-20]
-	ldr	r3, [fp, #-16]
+	add	r7, sp, #0
+	str	r0, [r7, #4]
+	str	r1, [r7]
+	ldr	r3, [r7, #4]
 	ldr	r3, [r3]
-	str	r3, [fp, #-8]
-	ldr	r3, [fp, #-20]
+	str	r3, [r7, #12]
+	ldr	r3, [r7]
 	ldr	r2, [r3]
-	ldr	r3, [fp, #-16]
+	ldr	r3, [r7, #4]
 	str	r2, [r3]
-	ldr	r3, [fp, #-20]
-	ldr	r2, [fp, #-8]
+	ldr	r3, [r7]
+	ldr	r2, [r7, #12]
 	str	r2, [r3]
-	mov	r0, r0	@ nop
-	sub	sp, fp, #0
+	nop
+	adds	r7, r7, #20
+	mov	sp, r7
 	@ sp needed
-	ldr	fp, [sp], #4
+	pop	{r7}
 	bx	lr
 	.size	swap, .-swap
 	.align	2
 	.global	sort
+	.thumb
+	.thumb_func
 	.type	sort, %function
 sort:
 	@ args = 0, pretend = 0, frame = 32
 	@ frame_needed = 1, uses_anonymous_args = 0
-	stmfd	sp!, {fp, lr}
-	add	fp, sp, #4
+	push	{r7, lr}
 	sub	sp, sp, #32
-	str	r0, [fp, #-24]
-	str	r1, [fp, #-28]
-	str	r2, [fp, #-32]
-	ldr	r3, [fp, #-28]
-	add	r2, r3, #1
-	ldr	r3, [fp, #-32]
+	add	r7, sp, #0
+	str	r0, [r7, #12]
+	str	r1, [r7, #8]
+	str	r2, [r7, #4]
+	ldr	r3, [r7, #8]
+	adds	r2, r3, #1
+	ldr	r3, [r7, #4]
 	cmp	r2, r3
 	bge	.L7
-	ldr	r3, [fp, #-28]
-	mov	r3, r3, asl #2
-	ldr	r2, [fp, #-24]
-	add	r3, r2, r3
+	ldr	r3, [r7, #8]
+	lsls	r3, r3, #2
+	ldr	r2, [r7, #12]
+	add	r3, r3, r2
 	ldr	r3, [r3]
-	str	r3, [fp, #-16]
-	ldr	r3, [fp, #-28]
-	add	r3, r3, #1
-	str	r3, [fp, #-8]
-	ldr	r3, [fp, #-32]
-	str	r3, [fp, #-12]
+	str	r3, [r7, #20]
+	ldr	r3, [r7, #8]
+	adds	r3, r3, #1
+	str	r3, [r7, #28]
+	ldr	r3, [r7, #4]
+	str	r3, [r7, #24]
 	b	.L4
 .L6:
-	ldr	r3, [fp, #-8]
-	mov	r3, r3, asl #2
-	ldr	r2, [fp, #-24]
-	add	r3, r2, r3
+	ldr	r3, [r7, #28]
+	lsls	r3, r3, #2
+	ldr	r2, [r7, #12]
+	add	r3, r3, r2
 	ldr	r2, [r3]
-	ldr	r3, [fp, #-16]
+	ldr	r3, [r7, #20]
 	cmp	r2, r3
 	bgt	.L5
-	ldr	r3, [fp, #-8]
-	add	r3, r3, #1
-	str	r3, [fp, #-8]
+	ldr	r3, [r7, #28]
+	adds	r3, r3, #1
+	str	r3, [r7, #28]
 	b	.L4
 .L5:
-	ldr	r3, [fp, #-8]
-	mov	r3, r3, asl #2
-	ldr	r2, [fp, #-24]
-	add	r0, r2, r3
-	ldr	r3, [fp, #-12]
-	sub	r3, r3, #1
-	str	r3, [fp, #-12]
-	ldr	r3, [fp, #-12]
-	mov	r3, r3, asl #2
-	ldr	r2, [fp, #-24]
-	add	r3, r2, r3
+	ldr	r3, [r7, #28]
+	lsls	r3, r3, #2
+	ldr	r2, [r7, #12]
+	adds	r0, r2, r3
+	ldr	r3, [r7, #24]
+	subs	r3, r3, #1
+	str	r3, [r7, #24]
+	ldr	r3, [r7, #24]
+	lsls	r3, r3, #2
+	ldr	r2, [r7, #12]
+	add	r3, r3, r2
 	mov	r1, r3
-	bl	swap
+	bl	swap(PLT)
 .L4:
-	ldr	r2, [fp, #-8]
-	ldr	r3, [fp, #-12]
+	ldr	r2, [r7, #28]
+	ldr	r3, [r7, #24]
 	cmp	r2, r3
 	blt	.L6
-	ldr	r3, [fp, #-8]
-	sub	r3, r3, #1
-	str	r3, [fp, #-8]
-	ldr	r3, [fp, #-8]
-	mov	r3, r3, asl #2
-	ldr	r2, [fp, #-24]
-	add	r0, r2, r3
-	ldr	r3, [fp, #-28]
-	mov	r3, r3, asl #2
-	ldr	r2, [fp, #-24]
-	add	r3, r2, r3
+	ldr	r3, [r7, #28]
+	subs	r3, r3, #1
+	str	r3, [r7, #28]
+	ldr	r3, [r7, #28]
+	lsls	r3, r3, #2
+	ldr	r2, [r7, #12]
+	adds	r0, r2, r3
+	ldr	r3, [r7, #8]
+	lsls	r3, r3, #2
+	ldr	r2, [r7, #12]
+	add	r3, r3, r2
 	mov	r1, r3
-	bl	swap
-	ldr	r2, [fp, #-8]
-	ldr	r1, [fp, #-28]
-	ldr	r0, [fp, #-24]
-	bl	sort
-	ldr	r2, [fp, #-32]
-	ldr	r1, [fp, #-12]
-	ldr	r0, [fp, #-24]
-	bl	sort
+	bl	swap(PLT)
+	ldr	r2, [r7, #28]
+	ldr	r1, [r7, #8]
+	ldr	r0, [r7, #12]
+	bl	sort(PLT)
+	ldr	r2, [r7, #4]
+	ldr	r1, [r7, #24]
+	ldr	r0, [r7, #12]
+	bl	sort(PLT)
 .L7:
-	mov	r0, r0	@ nop
-	sub	sp, fp, #4
+	nop
+	adds	r7, r7, #32
+	mov	sp, r7
 	@ sp needed
-	ldmfd	sp!, {fp, pc}
+	pop	{r7, pc}
 	.size	sort, .-sort
 	.align	2
 	.global	main
+	.thumb
+	.thumb_func
 	.type	main, %function
 main:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 1, uses_anonymous_args = 0
-	stmfd	sp!, {fp, lr}
-	add	fp, sp, #4
+	push	{r7, lr}
+	add	r7, sp, #0
+	ldr	r0, .L10
+.LPIC0:
+	add	r0, pc
 	mov	r2, #1024
-	mov	r1, #0
-	movw	r0, #:lower16:nums1k1
-	movt	r0, #:upper16:nums1k1
-	bl	sort
-	mov	r3, #0
+	movs	r1, #0
+	ldr	r3, .L10+4
+	ldr	r3, [r0, r3]
 	mov	r0, r3
-	ldmfd	sp!, {fp, pc}
+	bl	sort(PLT)
+	movs	r3, #0
+	mov	r0, r3
+	pop	{r7, pc}
+.L11:
+	.align	2
+.L10:
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)
+	.word	nums1k1(GOT)
 	.size	main, .-main
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"

@@ -1,4 +1,5 @@
-	.arch armv8-a
+	.syntax unified
+	.arch armv7-a
 	.fpu softvfp
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
@@ -9,20 +10,22 @@
 	.eabi_attribute 30, 6
 	.eabi_attribute 34, 1
 	.eabi_attribute 18, 4
-	.arm
-	.syntax divided
+	.thumb
+	.syntax unified
 	.file	"nops.c"
 	.text
 	.align	2
 	.global	main
+	.thumb
+	.thumb_func
 	.type	main, %function
 main:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 1, uses_anonymous_args = 0
 	@ link register save eliminated.
-	str	fp, [sp, #-4]!
-	add	fp, sp, #0
-	.syntax divided
+	push	{r7}
+	add	r7, sp, #0
+	.syntax unified
 @ 4 "nops.c" 1
 	nop
 @ 0 "" 2
@@ -215,13 +218,13 @@ main:
 @ 73 "nops.c" 1
 	nop
 @ 0 "" 2
-	.arm
-	.syntax divided
-	mov	r3, #0
+	.thumb
+	.syntax unified
+	movs	r3, #0
 	mov	r0, r3
-	sub	sp, fp, #0
+	mov	sp, r7
 	@ sp needed
-	ldr	fp, [sp], #4
+	pop	{r7}
 	bx	lr
 	.size	main, .-main
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"

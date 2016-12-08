@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "util.h"
-#include "krasm.h"
+#include "proc.h"
 
 using namespace std;
 string inputFile = "";
@@ -13,7 +13,7 @@ DECL_ARG_CALLBACK(setLogLevel) { set_log_level((Log_Level) parse_long(arg_in)); 
 DECL_ARG_CALLBACK(helpAndExit);
 
 const argument_bundle argbv[] = {
-    {"-i", "--input", "Set input file", true, setInputFile},
+    {"-i", "--input", "Set input binary", true, setInputFile},
     {"-h", "--help", "Print this help text and exit", false, helpAndExit},
     {"-lg", "--loglevel", "Set log level", true, setLogLevel}
 };
@@ -54,11 +54,8 @@ int main(int argc, const char *argv[])
 
     checkOptions();
 
-    // load ARM assembly into Krasm objects
-    vector<Krasm> prog = Krasm::parseFromFile(inputFile);
-
     // start simulation
-    //KrakenProc(prog).startSimulation();
+    KrakenProc(inputFile).startSimulation();
 
     return 0;
 }

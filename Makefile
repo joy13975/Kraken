@@ -29,7 +29,7 @@ else
 endif
 
 DEFS :=
-INCS := -I src/
+INCS := -I./src/
 CPPFLAGS := -MMD -O3 -std=c++11 $(DEBUG_FLAG) $(GOMP_FLAG) $(DEFS) $(INCS)
 COMPILE := $(CXX) $(CPPFLAGS)
 
@@ -52,7 +52,7 @@ $(EXE): $(OBJS)
 all: $(EXE)
 
 test: $(EXE)
-	./$(EXE) -i bmarks/vadd.s
+	./$(EXE) -i bmarks/vadd.o
 
 -include $(DEPS)
 
