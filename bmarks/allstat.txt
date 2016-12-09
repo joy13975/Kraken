@@ -1,46 +1,49 @@
 Stat: 
-   7 
- 105 add
-  17 adds
-   2 asrs
+  30 
+  42 //
+  64 //APP
+  64 //NO_APP
+  24 add
+   6 adrp
+   1 asr
   10 b
-   1 beq
-   1 bge
-   3 bgt
-   8 bl
-   1 ble
-   1 bls
-   3 blt
-   1 bmi
-   1 bne
-   7 bx
-   9 cmp
-  90 ldr
-   7 lsls
-  32 mov
-  16 movs
-   1 movt
-   3 movw
-   6 mul
-  67 nop
-   5 pop
-  12 push
+   1 b.ge
+   2 b.gt
+   1 b.hi
+   3 b.le
+   2 b.lt
+   1 b.mi
+   1 b.ne
+  11 bl
+   1 cbnz
+   8 cmp
+   1 fadd
+   3 fcmp
+   2 fcvt
+   3 fdiv
+   2 fmov
+   1 fsub
+  13 ldp
+  44 ldr
+   6 ldrsw
+  10 ldur
+   2 ldursw
+   2 lsl
+   1 lsr
+   1 madd
+  17 mov
+   1 movk
+   6 movz
+   2 msub
+   4 mul
+  64 nop
+   4 orr
+  12 ret
    2 sdiv
-   1 smull
-  41 str
-  11 sub
-  14 subs
-   1 vadd.f32
-   1 vcmpe.f32
-   2 vcmpe.f64
-   2 vcvt.f64.f32
-   3 vdiv.f32
-   9 vldr.32
-   2 vldr.64
-   1 vmov
-   3 vmov.f32
-   3 vmrs
-   4 vstr.32
-   1 vsub.f32
+  13 stp
+  40 str
+   5 stur
+  20 sub
+   1 sxtw
 Unique Insns: 
-      43
+      46

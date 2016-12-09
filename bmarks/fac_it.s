@@ -1,75 +1,51 @@
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"fac_it.c"
 	.text
+	.file	"fac_it.ll"
+	.globl	fac
 	.align	2
-	.global	fac
-	.thumb
-	.thumb_func
-	.type	fac, %function
-fac:
-	@ args = 0, pretend = 0, frame = 16
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	sub	sp, sp, #20
-	add	r7, sp, #0
-	str	r0, [r7, #4]
-	movs	r3, #1
-	str	r3, [r7, #12]
-	b	.L2
-.L3:
-	ldr	r3, [r7, #12]
-	ldr	r2, [r7, #4]
-	mul	r3, r2, r3
-	str	r3, [r7, #12]
-	ldr	r3, [r7, #4]
-	subs	r3, r3, #1
-	str	r3, [r7, #4]
-.L2:
-	ldr	r3, [r7, #4]
-	cmp	r3, #1
-	bne	.L3
-	ldr	r3, [r7, #12]
-	mov	r0, r3
-	adds	r7, r7, #20
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-	.size	fac, .-fac
+	.type	fac,@function
+fac:                                    // @fac
+// BB#0:                                // %entry
+	sub	sp, sp, #16             // =16
+	orr	w8, wzr, #0x1
+	stp	w8, w0, [sp, #8]
+	b	.LBB0_2
+.LBB0_1:                                // %while.body
+                                        //   in Loop: Header=BB0_2 Depth=1
+	ldp	w9, w8, [sp, #8]
+	ldr	w10, [sp, #12]
+	mul	 w8, w9, w8
+	sub	w9, w10, #1             // =1
+	stp	w8, w9, [sp, #8]
+.LBB0_2:                                // %while.cond
+                                        // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #12]
+	cmp	 w8, #1                 // =1
+	b.ne	.LBB0_1
+// BB#3:                                // %while.end
+	ldr	w0, [sp, #8]
+	add	sp, sp, #16             // =16
+	ret
+.Ltmp1:
+	.size	fac, .Ltmp1-fac
+
+	.globl	main
 	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	sub	sp, sp, #8
-	add	r7, sp, #0
-	movs	r0, #10
-	bl	fac(PLT)
-	str	r0, [r7, #4]
-	movs	r3, #0
-	mov	r0, r3
-	adds	r7, r7, #8
-	mov	sp, r7
-	@ sp needed
-	pop	{r7, pc}
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #16             // =16
+	stur	wzr, [x29, #-4]
+	movz	w0, #0xa
+	bl	fac
+	str	w0, [sp, #8]
+	mov	 w0, wzr
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
+	ret
+.Ltmp2:
+	.size	main, .Ltmp2-main
+
+
+	.ident	"clang version 3.5.0 "

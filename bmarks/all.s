@@ -1,5070 +1,4797 @@
 
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"fac_it.c"
 	.text
+	.file	"fac_it.ll"
+	.globl	fac
 	.align	2
-	.global	fac
-	.thumb
-	.thumb_func
-	.type	fac, %function
-fac:
-	@ args = 0, pretend = 0, frame = 16
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	sub	sp, sp, #20
-	add	r7, sp, #0
-	str	r0, [r7, #4]
-	movs	r3, #1
-	str	r3, [r7, #12]
-	b	.L2
-.L3:
-	ldr	r3, [r7, #12]
-	ldr	r2, [r7, #4]
-	mul	r3, r2, r3
-	str	r3, [r7, #12]
-	ldr	r3, [r7, #4]
-	subs	r3, r3, #1
-	str	r3, [r7, #4]
-.L2:
-	ldr	r3, [r7, #4]
-	cmp	r3, #1
-	bne	.L3
-	ldr	r3, [r7, #12]
-	mov	r0, r3
-	adds	r7, r7, #20
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-	.size	fac, .-fac
-	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	sub	sp, sp, #8
-	add	r7, sp, #0
-	movs	r0, #10
-	bl	fac(PLT)
-	str	r0, [r7, #4]
-	movs	r3, #0
-	mov	r0, r3
-	adds	r7, r7, #8
-	mov	sp, r7
-	@ sp needed
-	pop	{r7, pc}
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+	.type	fac,@function
+fac:                                    // @fac
+// BB#0:                                // %entry
+	sub	sp, sp, #16             // =16
+	orr	w8, wzr, #0x1
+	stp	w8, w0, [sp, #8]
+	b	.LBB0_2
+.LBB0_1:                                // %while.body
+                                        //   in Loop: Header=BB0_2 Depth=1
+	ldp	w9, w8, [sp, #8]
+	ldr	w10, [sp, #12]
+	mul	 w8, w9, w8
+	sub	w9, w10, #1             // =1
+	stp	w8, w9, [sp, #8]
+.LBB0_2:                                // %while.cond
+                                        // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #12]
+	cmp	 w8, #1                 // =1
+	b.ne	.LBB0_1
+// BB#3:                                // %while.end
+	ldr	w0, [sp, #8]
+	add	sp, sp, #16             // =16
+	ret
+.Ltmp1:
+	.size	fac, .Ltmp1-fac
 
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"fac_rec.c"
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #16             // =16
+	stur	wzr, [x29, #-4]
+	movz	w0, #0xa
+	bl	fac
+	str	w0, [sp, #8]
+	mov	 w0, wzr
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
+	ret
+.Ltmp2:
+	.size	main, .Ltmp2-main
+
+
+	.ident	"clang version 3.5.0 "
+
 	.text
+	.file	"fac_rec.ll"
+	.globl	fac
 	.align	2
-	.global	fac
-	.thumb
-	.thumb_func
-	.type	fac, %function
-fac:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	sub	sp, sp, #8
-	add	r7, sp, #0
-	str	r0, [r7, #4]
-	ldr	r3, [r7, #4]
-	cmp	r3, #1
-	ble	.L2
-	ldr	r3, [r7, #4]
-	subs	r3, r3, #1
-	mov	r0, r3
-	bl	fac(PLT)
-	mov	r2, r0
-	ldr	r3, [r7, #4]
-	mul	r3, r3, r2
-	b	.L4
-.L2:
-	movs	r3, #1
-.L4:
-	mov	r0, r3
-	adds	r7, r7, #8
-	mov	sp, r7
-	@ sp needed
-	pop	{r7, pc}
-	.size	fac, .-fac
-	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	sub	sp, sp, #8
-	add	r7, sp, #0
-	movs	r0, #10
-	bl	fac(PLT)
-	str	r0, [r7, #4]
-	movs	r3, #0
-	mov	r0, r3
-	adds	r7, r7, #8
-	mov	sp, r7
-	@ sp needed
-	pop	{r7, pc}
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+	.type	fac,@function
+fac:                                    // @fac
+// BB#0:                                // %entry
+	stp	x20, x19, [sp, #-32]!
+	stp	x29, x30, [sp, #16]
+	add	x29, sp, #16            // =16
+	sub	sp, sp, #16             // =16
+	str	w0, [sp, #12]
+	cmp	 w0, #2                 // =2
+	b.lt	.LBB0_2
+// BB#1:                                // %cond.true
+	ldr	w19, [sp, #12]
+	sub	w0, w19, #1             // =1
+	bl	fac
+	mul	 w0, w19, w0
+	b	.LBB0_3
+.LBB0_2:
+	orr	w0, wzr, #0x1
+.LBB0_3:                                // %cond.end
+	sub	sp, x29, #16            // =16
+	ldp	x29, x30, [sp, #16]
+	ldp	x20, x19, [sp], #32
+	ret
+.Ltmp0:
+	.size	fac, .Ltmp0-fac
 
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"nops.c"
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #16             // =16
+	stur	wzr, [x29, #-4]
+	movz	w0, #0xa
+	bl	fac
+	str	w0, [sp, #8]
+	mov	 w0, wzr
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
+	ret
+.Ltmp1:
+	.size	main, .Ltmp1-main
+
+
+	.ident	"clang version 3.5.0 "
+
 	.text
+	.file	"nops.ll"
+	.globl	main
 	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	add	r7, sp, #0
-	.syntax unified
-@ 4 "nops.c" 1
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	//APP
 	nop
-@ 0 "" 2
-@ 5 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 6 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 7 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 8 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 9 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 10 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 11 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 13 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 14 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 15 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 16 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 17 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 18 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 19 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 20 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 22 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 23 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 24 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 25 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 26 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 27 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 28 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 29 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 31 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 32 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 33 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 34 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 35 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 36 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 37 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 38 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 39 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 40 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 41 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 42 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 43 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 44 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 45 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 46 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 48 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 49 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 50 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 51 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 52 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 53 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 54 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 55 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 57 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 58 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 59 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 60 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 61 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 62 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 63 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 64 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 66 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 67 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 68 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 69 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 70 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 71 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 72 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-@ 73 "nops.c" 1
+	//NO_APP
+	//APP
 	nop
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	movs	r3, #0
-	mov	r0, r3
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+	//NO_APP
+	mov	 w0, wzr
+	ret
+.Ltmp1:
+	.size	main, .Ltmp1-main
 
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"pi_int.c"
+
+	.ident	"clang version 3.5.0 "
+
 	.text
+	.file	"pi_int.ll"
+	.globl	main
 	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 11224
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	sub	sp, sp, #11200
-	sub	sp, sp, #28
-	add	r7, sp, #0
-	movs	r3, #0
-	add	r2, r7, #11200
-	add	r2, r2, #8
-	str	r3, [r2]
-	movs	r3, #0
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	str	r3, [r2]
-	b	.L2
-.L3:
-	add	r3, r7, #24
-	subs	r3, r3, #24
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	ldr	r2, [r2]
-	mov	r1, #2000
-	str	r1, [r3, r2, lsl #2]
-	add	r3, r7, #11200
-	add	r3, r3, #20
-	ldr	r3, [r3]
-	adds	r3, r3, #1
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	str	r3, [r2]
-.L2:
-	add	r3, r7, #11200
-	add	r3, r3, #20
-	ldr	r3, [r3]
-	cmp	r3, #2800
-	blt	.L3
-	mov	r3, #2800
-	add	r2, r7, #11200
-	add	r2, r2, #16
-	str	r3, [r2]
-	b	.L4
-.L8:
-	movs	r3, #0
-	add	r2, r7, #11200
-	add	r2, r2, #12
-	str	r3, [r2]
-	add	r3, r7, #11200
-	add	r3, r3, #16
-	ldr	r3, [r3]
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	str	r3, [r2]
-.L7:
-	add	r3, r7, #24
-	subs	r3, r3, #24
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	ldr	r2, [r2]
-	ldr	r3, [r3, r2, lsl #2]
-	movw	r2, #10000
-	mul	r3, r2, r3
-	add	r2, r7, #11200
-	add	r2, r2, #12
-	ldr	r2, [r2]
-	add	r3, r3, r2
-	add	r2, r7, #11200
-	add	r2, r2, #12
-	str	r3, [r2]
-	add	r3, r7, #11200
-	add	r3, r3, #20
-	ldr	r3, [r3]
-	lsls	r3, r3, #1
-	subs	r3, r3, #1
-	add	r2, r7, #11200
-	add	r2, r2, #4
-	str	r3, [r2]
-	add	r3, r7, #11200
-	add	r3, r3, #12
-	ldr	r3, [r3]
-	add	r2, r7, #11200
-	add	r2, r2, #4
-	ldr	r2, [r2]
-	sdiv	r2, r3, r2
-	add	r1, r7, #11200
-	add	r1, r1, #4
-	ldr	r1, [r1]
-	mul	r2, r1, r2
-	subs	r1, r3, r2
-	add	r3, r7, #24
-	subs	r3, r3, #24
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	ldr	r2, [r2]
-	str	r1, [r3, r2, lsl #2]
-	add	r3, r7, #11200
-	add	r3, r3, #12
-	ldr	r2, [r3]
-	add	r3, r7, #11200
-	add	r3, r3, #4
-	ldr	r3, [r3]
-	sdiv	r3, r2, r3
-	add	r2, r7, #11200
-	add	r2, r2, #12
-	str	r3, [r2]
-	add	r3, r7, #11200
-	add	r3, r3, #20
-	ldr	r3, [r3]
-	subs	r3, r3, #1
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	str	r3, [r2]
-	add	r3, r7, #11200
-	add	r3, r3, #20
-	ldr	r3, [r3]
-	cmp	r3, #0
-	beq	.L11
-	add	r3, r7, #11200
-	add	r3, r3, #12
-	ldr	r3, [r3]
-	add	r2, r7, #11200
-	add	r2, r2, #20
-	ldr	r2, [r2]
-	mul	r3, r2, r3
-	add	r2, r7, #11200
-	add	r2, r2, #12
-	str	r3, [r2]
-	b	.L7
-.L11:
-	nop
-	add	r3, r7, #11200
-	add	r3, r3, #12
-	ldr	r3, [r3]
-	movw	r2, #35757
-	movt	r2, 26843
-	smull	r1, r2, r3, r2
-	asrs	r1, r2, #12
-	asrs	r2, r3, #31
-	subs	r2, r1, r2
-	movw	r1, #10000
-	mul	r2, r1, r2
-	subs	r3, r3, r2
-	add	r2, r7, #11200
-	add	r2, r2, #8
-	str	r3, [r2]
-	add	r3, r7, #11200
-	add	r3, r3, #16
-	ldr	r3, [r3]
-	subs	r3, r3, #14
-	add	r2, r7, #11200
-	add	r2, r2, #16
-	str	r3, [r2]
-.L4:
-	add	r3, r7, #11200
-	add	r3, r3, #16
-	ldr	r3, [r3]
-	cmp	r3, #0
-	bgt	.L8
-	movs	r3, #0
-	mov	r0, r3
-	add	r7, r7, #11200
-	adds	r7, r7, #28
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x28, x27, [sp, #-16]!
+	sub	sp, sp, #2, lsl #12     // =8192
+	sub	sp, sp, #3040           // =3040
+	str	wzr, [sp, #11228]
+	str	wzr, [sp, #4]
+	str	wzr, [sp, #20]
+	add	x8, sp, #24             // =24
+	movz	w9, #0x7d0
+	b	.LBB0_2
+.LBB0_1:                                // %for.body
+                                        //   in Loop: Header=BB0_2 Depth=1
+	ldr	w10, [sp, #20]
+	ldrsw	x11, [sp, #20]
+	str	w9, [x8, x11, lsl #2]
+	add	w10, w10, #1            // =1
+	str	w10, [sp, #20]
+.LBB0_2:                                // %for.cond
+                                        // =>This Inner Loop Header: Depth=1
+	ldr	w10, [sp, #20]
+	cmp	 w10, #2799             // =2799
+	b.le	.LBB0_1
+// BB#3:                                // %for.end
+	movz	w10, #0xaf0
+	movz	w9, #0x2710
+	str	w10, [sp, #16]
+	movz	w10, #0x68db, lsl #16
+	movk	w10, #0x8bad
+	b	.LBB0_5
+.LBB0_4:                                // %for.end12
+                                        //   in Loop: Header=BB0_5 Depth=1
+	ldr	w11, [sp, #8]
+	ldr	w12, [sp, #16]
+	sxtw	x13, w11
+	sub	w12, w12, #14           // =14
+	mul	 x13, x13, x10
+	lsr	x14, x13, #63
+	asr	x13, x13, #44
+	add	 w13, w13, w14
+	msub	w11, w13, w9, w11
+	str	w11, [sp, #4]
+	str	w12, [sp, #16]
+.LBB0_5:                                // %for.cond1
+                                        // =>This Loop Header: Depth=1
+                                        //     Child Loop BB0_8 Depth 2
+	ldr	w11, [sp, #16]
+	cmp	 w11, #1                // =1
+	b.lt	.LBB0_9
+// BB#6:                                // %for.body3
+                                        //   in Loop: Header=BB0_5 Depth=1
+	ldr	w11, [sp, #16]
+	str	wzr, [sp, #8]
+	str	w11, [sp, #20]
+	b	.LBB0_8
+.LBB0_7:                                // %if.end
+                                        //   in Loop: Header=BB0_8 Depth=2
+	ldr	w11, [sp, #20]
+	ldr	w12, [sp, #8]
+	mul	 w11, w12, w11
+	str	w11, [sp, #8]
+.LBB0_8:                                // %for.cond4
+                                        //   Parent Loop BB0_5 Depth=1
+                                        // =>  This Inner Loop Header: Depth=2
+	ldrsw	x11, [sp, #20]
+	ldr	w12, [sp, #8]
+	ldr	w13, [sp, #20]
+	ldr	w14, [sp, #20]
+	ldr	w11, [x8, x11, lsl #2]
+	lsl	w13, w13, #1
+	sub	w13, w13, #1            // =1
+	madd	w11, w11, w9, w12
+	stp	w11, w13, [sp, #8]
+	ldr	w11, [sp, #8]
+	sdiv	w12, w11, w13
+	msub	w11, w12, w13, w11
+	ldp	w13, w12, [sp, #8]
+	sdiv	w12, w13, w12
+	ldrsw	x13, [sp, #20]
+	str	w12, [sp, #8]
+	sub	w12, w14, #1            // =1
+	str	w11, [x8, x13, lsl #2]
+	str	w12, [sp, #20]
+	cbnz	w12, .LBB0_7
+	b	.LBB0_4
+.LBB0_9:                                // %for.end16
+	mov	 w0, wzr
+	add	sp, sp, #2, lsl #12     // =8192
+	add	sp, sp, #3040           // =3040
+	ldp	x28, x27, [sp], #16
+	ret
+.Ltmp0:
+	.size	main, .Ltmp0-main
 
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"qsort.c"
-	.global	nums1k1
+
+	.ident	"clang version 3.5.0 "
+
+	.text
+	.file	"qsort.ll"
+	.globl	swap
+	.align	2
+	.type	swap,@function
+swap:                                   // @swap
+// BB#0:                                // %entry
+	sub	sp, sp, #32             // =32
+	str	x0, [sp, #24]
+	ldr	x8, [sp, #24]
+	str	x1, [sp, #16]
+	ldr	 w8, [x8]
+	ldp	x9, x10, [sp, #16]
+	str	w8, [sp, #12]
+	ldr	 w8, [x9]
+	str	 w8, [x10]
+	ldr	w8, [sp, #12]
+	ldr	x9, [sp, #16]
+	str	 w8, [x9]
+	add	sp, sp, #32             // =32
+	ret
+.Ltmp1:
+	.size	swap, .Ltmp1-swap
+
+	.globl	sort
+	.align	2
+	.type	sort,@function
+sort:                                   // @sort
+// BB#0:                                // %entry
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #32             // =32
+	stur	w1, [x29, #-12]
+	ldur	w8, [x29, #-12]
+	stur	x0, [x29, #-8]
+	str	w2, [sp, #16]
+	add	w8, w8, #1              // =1
+	cmp	 w2, w8
+	b.le	.LBB1_7
+// BB#1:                                // %if.then
+	ldursw	x8, [x29, #-12]
+	ldur	x9, [x29, #-8]
+	ldur	w10, [x29, #-12]
+	ldr	w11, [sp, #16]
+	ldr	w8, [x9, x8, lsl #2]
+	add	w9, w10, #1             // =1
+	stp	w9, w8, [sp, #8]
+	str	w11, [sp, #4]
+	b	.LBB1_3
+.LBB1_2:                                // %if.else
+                                        //   in Loop: Header=BB1_3 Depth=1
+	ldur	x9, [x29, #-8]
+	ldr	w10, [sp, #4]
+	ldur	x11, [x29, #-8]
+	add	x0, x9, x8, lsl #2
+	sub	w8, w10, #1             // =1
+	str	w8, [sp, #4]
+	add	x1, x11, w8, sxtw #2
+	bl	swap
+.LBB1_3:                                // %while.cond
+                                        // =>This Inner Loop Header: Depth=1
+	ldrsw	x8, [sp, #8]
+	ldr	w9, [sp, #4]
+	cmp	 w8, w9
+	b.ge	.LBB1_6
+// BB#4:                                // %while.body
+                                        //   in Loop: Header=BB1_3 Depth=1
+	ldur	x9, [x29, #-8]
+	ldr	w9, [x9, x8, lsl #2]
+	ldr	w10, [sp, #12]
+	ldrsw	x8, [sp, #8]
+	cmp	 w9, w10
+	b.gt	.LBB1_2
+// BB#5:                                // %if.then6
+                                        //   in Loop: Header=BB1_3 Depth=1
+	add	w8, w8, #1              // =1
+	str	w8, [sp, #8]
+	b	.LBB1_3
+.LBB1_6:                                // %while.end
+	ldur	x9, [x29, #-8]
+	ldursw	x10, [x29, #-12]
+	sub	w8, w8, #1              // =1
+	str	w8, [sp, #8]
+	add	x0, x9, w8, sxtw #2
+	add	x1, x9, x10, lsl #2
+	bl	swap
+	ldur	x0, [x29, #-8]
+	ldur	w1, [x29, #-12]
+	ldr	w2, [sp, #8]
+	bl	sort
+	ldur	x0, [x29, #-8]
+	ldr	w1, [sp, #4]
+	ldr	w2, [sp, #16]
+	bl	sort
+.LBB1_7:                                // %if.end16
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
+	ret
+.Ltmp2:
+	.size	sort, .Ltmp2-sort
+
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	mov	 w1, wzr
+	adrp	x0, nums1k1
+	add	x0, x0, :lo12:nums1k1
+	orr	w2, wzr, #0x400
+	bl	sort
+	mov	 w0, wzr
+	ldp	x29, x30, [sp], #16
+	ret
+.Ltmp3:
+	.size	main, .Ltmp3-main
+
+	.type	nums1k1,@object         // @nums1k1
 	.data
+	.globl	nums1k1
 	.align	2
-	.type	nums1k1, %object
-	.size	nums1k1, 4096
 nums1k1:
-	.word	364
-	.word	286
-	.word	278
-	.word	283
-	.word	154
-	.word	477
-	.word	369
-	.word	480
-	.word	40
-	.word	382
-	.word	153
-	.word	293
-	.word	488
-	.word	35
-	.word	225
-	.word	172
-	.word	4
-	.word	443
-	.word	411
-	.word	429
-	.word	131
-	.word	490
-	.word	91
-	.word	89
-	.word	495
-	.word	426
-	.word	290
-	.word	411
-	.word	423
-	.word	493
-	.word	139
-	.word	414
-	.word	303
-	.word	485
-	.word	327
-	.word	44
-	.word	430
-	.word	129
-	.word	153
-	.word	331
-	.word	138
-	.word	206
-	.word	284
-	.word	461
-	.word	428
-	.word	473
-	.word	297
-	.word	90
-	.word	260
-	.word	317
-	.word	241
-	.word	135
-	.word	297
-	.word	386
-	.word	83
-	.word	481
-	.word	456
-	.word	116
-	.word	95
-	.word	47
-	.word	317
-	.word	31
-	.word	337
-	.word	29
-	.word	383
-	.word	417
-	.word	268
-	.word	134
-	.word	277
-	.word	402
-	.word	432
-	.word	493
-	.word	119
-	.word	352
-	.word	70
-	.word	459
-	.word	188
-	.word	329
-	.word	249
-	.word	287
-	.word	165
-	.word	384
-	.word	149
-	.word	371
-	.word	89
-	.word	285
-	.word	179
-	.word	133
-	.word	134
-	.word	219
-	.word	20
-	.word	11
-	.word	379
-	.word	295
-	.word	36
-	.word	380
-	.word	158
-	.word	80
-	.word	440
-	.word	335
-	.word	47
-	.word	182
-	.word	415
-	.word	452
-	.word	340
-	.word	57
-	.word	468
-	.word	182
-	.word	249
-	.word	106
-	.word	259
-	.word	276
-	.word	487
-	.word	175
-	.word	510
-	.word	63
-	.word	6
-	.word	122
-	.word	68
-	.word	34
-	.word	271
-	.word	74
-	.word	18
-	.word	126
-	.word	331
-	.word	435
-	.word	329
-	.word	60
-	.word	193
-	.word	75
-	.word	94
-	.word	128
-	.word	143
-	.word	143
-	.word	242
-	.word	423
-	.word	360
-	.word	249
-	.word	92
-	.word	342
-	.word	14
-	.word	270
-	.word	417
-	.word	110
-	.word	27
-	.word	160
-	.word	500
-	.word	428
-	.word	146
-	.word	103
-	.word	403
-	.word	304
-	.word	362
-	.word	331
-	.word	35
-	.word	392
-	.word	320
-	.word	330
-	.word	369
-	.word	34
-	.word	508
-	.word	405
-	.word	306
-	.word	338
-	.word	177
-	.word	220
-	.word	451
-	.word	369
-	.word	278
-	.word	37
-	.word	151
-	.word	378
-	.word	468
-	.word	486
-	.word	85
-	.word	206
-	.word	258
-	.word	169
-	.word	496
-	.word	505
-	.word	99
-	.word	216
-	.word	367
-	.word	99
-	.word	455
-	.word	301
-	.word	386
-	.word	447
-	.word	354
-	.word	430
-	.word	6
-	.word	266
-	.word	204
-	.word	59
-	.word	276
-	.word	11
-	.word	148
-	.word	506
-	.word	486
-	.word	459
-	.word	391
-	.word	36
-	.word	428
-	.word	54
-	.word	53
-	.word	453
-	.word	221
-	.word	503
-	.word	399
-	.word	330
-	.word	347
-	.word	487
-	.word	1
-	.word	278
-	.word	155
-	.word	221
-	.word	278
-	.word	328
-	.word	371
-	.word	150
-	.word	159
-	.word	228
-	.word	406
-	.word	101
-	.word	126
-	.word	215
-	.word	128
-	.word	26
-	.word	487
-	.word	339
-	.word	146
-	.word	24
-	.word	402
-	.word	97
-	.word	281
-	.word	320
-	.word	214
-	.word	151
-	.word	271
-	.word	363
-	.word	300
-	.word	501
-	.word	274
-	.word	41
-	.word	112
-	.word	306
-	.word	507
-	.word	293
-	.word	342
-	.word	282
-	.word	173
-	.word	477
-	.word	317
-	.word	176
-	.word	271
-	.word	327
-	.word	436
-	.word	117
-	.word	199
-	.word	276
-	.word	414
-	.word	485
-	.word	273
-	.word	76
-	.word	307
-	.word	267
-	.word	215
-	.word	327
-	.word	379
-	.word	315
-	.word	431
-	.word	313
-	.word	377
-	.word	261
-	.word	117
-	.word	195
-	.word	245
-	.word	153
-	.word	54
-	.word	427
-	.word	340
-	.word	485
-	.word	414
-	.word	318
-	.word	213
-	.word	491
-	.word	159
-	.word	511
-	.word	128
-	.word	312
-	.word	463
-	.word	297
-	.word	35
-	.word	273
-	.word	31
-	.word	272
-	.word	239
-	.word	101
-	.word	235
-	.word	234
-	.word	238
-	.word	308
-	.word	325
-	.word	397
-	.word	155
-	.word	163
-	.word	146
-	.word	499
-	.word	273
-	.word	28
-	.word	280
-	.word	374
-	.word	32
-	.word	400
-	.word	314
-	.word	21
-	.word	340
-	.word	7
-	.word	231
-	.word	390
-	.word	258
-	.word	431
-	.word	192
-	.word	469
-	.word	14
-	.word	293
-	.word	418
-	.word	140
-	.word	481
-	.word	302
-	.word	440
-	.word	68
-	.word	303
-	.word	499
-	.word	387
-	.word	169
-	.word	4
-	.word	166
-	.word	363
-	.word	388
-	.word	160
-	.word	428
-	.word	469
-	.word	361
-	.word	66
-	.word	458
-	.word	92
-	.word	315
-	.word	90
-	.word	331
-	.word	422
-	.word	249
-	.word	344
-	.word	496
-	.word	151
-	.word	295
-	.word	167
-	.word	297
-	.word	430
-	.word	309
-	.word	391
-	.word	158
-	.word	185
-	.word	91
-	.word	440
-	.word	275
-	.word	477
-	.word	362
-	.word	283
-	.word	88
-	.word	487
-	.word	341
-	.word	423
-	.word	96
-	.word	391
-	.word	419
-	.word	106
-	.word	110
-	.word	143
-	.word	319
-	.word	197
-	.word	330
-	.word	212
-	.word	403
-	.word	505
-	.word	1
-	.word	147
-	.word	223
-	.word	343
-	.word	41
-	.word	24
-	.word	357
-	.word	457
-	.word	90
-	.word	318
-	.word	21
-	.word	263
-	.word	371
-	.word	434
-	.word	82
-	.word	242
-	.word	7
-	.word	394
-	.word	245
-	.word	329
-	.word	352
-	.word	290
-	.word	241
-	.word	134
-	.word	35
-	.word	143
-	.word	429
-	.word	132
-	.word	328
-	.word	22
-	.word	298
-	.word	424
-	.word	258
-	.word	219
-	.word	355
-	.word	273
-	.word	101
-	.word	119
-	.word	55
-	.word	264
-	.word	188
-	.word	363
-	.word	413
-	.word	263
-	.word	11
-	.word	392
-	.word	285
-	.word	433
-	.word	322
-	.word	443
-	.word	502
-	.word	153
-	.word	304
-	.word	293
-	.word	42
-	.word	273
-	.word	450
-	.word	400
-	.word	147
-	.word	466
-	.word	61
-	.word	311
-	.word	204
-	.word	107
-	.word	233
-	.word	206
-	.word	373
-	.word	430
-	.word	374
-	.word	242
-	.word	498
-	.word	301
-	.word	391
-	.word	247
-	.word	120
-	.word	286
-	.word	261
-	.word	299
-	.word	395
-	.word	117
-	.word	457
-	.word	428
-	.word	386
-	.word	492
-	.word	213
-	.word	28
-	.word	231
-	.word	80
-	.word	181
-	.word	30
-	.word	498
-	.word	197
-	.word	71
-	.word	301
-	.word	144
-	.word	27
-	.word	209
-	.word	124
-	.word	82
-	.word	397
-	.word	22
-	.word	358
-	.word	296
-	.word	341
-	.word	468
-	.word	184
-	.word	140
-	.word	265
-	.word	448
-	.word	408
-	.word	185
-	.word	396
-	.word	193
-	.word	444
-	.word	439
-	.word	456
-	.word	152
-	.word	422
-	.word	32
-	.word	505
-	.word	46
-	.word	351
-	.word	67
-	.word	89
-	.word	136
-	.word	261
-	.word	64
-	.word	469
-	.word	174
-	.word	252
-	.word	431
-	.word	504
-	.word	486
-	.word	260
-	.word	7
-	.word	283
-	.word	313
-	.word	201
-	.word	226
-	.word	183
-	.word	396
-	.word	212
-	.word	340
-	.word	342
-	.word	178
-	.word	255
-	.word	78
-	.word	25
-	.word	18
-	.word	250
-	.word	57
-	.word	67
-	.word	96
-	.word	88
-	.word	477
-	.word	16
-	.word	379
-	.word	476
-	.word	241
-	.word	428
-	.word	124
-	.word	220
-	.word	6
-	.word	230
-	.word	34
-	.word	226
-	.word	409
-	.word	304
-	.word	501
-	.word	99
-	.word	265
-	.word	257
-	.word	351
-	.word	237
-	.word	326
-	.word	137
-	.word	312
-	.word	272
-	.word	471
-	.word	218
-	.word	154
-	.word	199
-	.word	212
-	.word	141
-	.word	93
-	.word	433
-	.word	210
-	.word	370
-	.word	506
-	.word	117
-	.word	499
-	.word	328
-	.word	357
-	.word	141
-	.word	27
-	.word	144
-	.word	162
-	.word	54
-	.word	435
-	.word	361
-	.word	447
-	.word	478
-	.word	400
-	.word	434
-	.word	2
-	.word	77
-	.word	401
-	.word	79
-	.word	313
-	.word	454
-	.word	177
-	.word	164
-	.word	415
-	.word	100
-	.word	87
-	.word	36
-	.word	101
-	.word	190
-	.word	294
-	.word	378
-	.word	471
-	.word	230
-	.word	49
-	.word	231
-	.word	56
-	.word	238
-	.word	45
-	.word	1
-	.word	73
-	.word	372
-	.word	322
-	.word	229
-	.word	336
-	.word	338
-	.word	53
-	.word	144
-	.word	491
-	.word	233
-	.word	440
-	.word	200
-	.word	35
-	.word	74
-	.word	108
-	.word	106
-	.word	448
-	.word	313
-	.word	324
-	.word	126
-	.word	157
-	.word	283
-	.word	405
-	.word	305
-	.word	237
-	.word	177
-	.word	354
-	.word	386
-	.word	318
-	.word	60
-	.word	145
-	.word	299
-	.word	468
-	.word	23
-	.word	314
-	.word	6
-	.word	145
-	.word	103
-	.word	482
-	.word	129
-	.word	98
-	.word	220
-	.word	67
-	.word	114
-	.word	211
-	.word	265
-	.word	83
-	.word	398
-	.word	168
-	.word	92
-	.word	200
-	.word	55
-	.word	71
-	.word	39
-	.word	459
-	.word	146
-	.word	252
-	.word	277
-	.word	376
-	.word	240
-	.word	232
-	.word	475
-	.word	297
-	.word	375
-	.word	385
-	.word	253
-	.word	388
-	.word	299
-	.word	174
-	.word	216
-	.word	243
-	.word	42
-	.word	144
-	.word	61
-	.word	336
-	.word	413
-	.word	338
-	.word	138
-	.word	133
-	.word	302
-	.word	202
-	.word	138
-	.word	78
-	.word	167
-	.word	101
-	.word	486
-	.word	131
-	.word	476
-	.word	282
-	.word	29
-	.word	402
-	.word	46
-	.word	57
-	.word	510
-	.word	418
-	.word	432
-	.word	78
-	.word	214
-	.word	224
-	.word	243
-	.word	121
-	.word	78
-	.word	378
-	.word	259
-	.word	314
-	.word	246
-	.word	291
-	.word	346
-	.word	239
-	.word	5
-	.word	162
-	.word	288
-	.word	42
-	.word	32
-	.word	286
-	.word	267
-	.word	67
-	.word	103
-	.word	244
-	.word	476
-	.word	172
-	.word	288
-	.word	124
-	.word	511
-	.word	226
-	.word	63
-	.word	103
-	.word	485
-	.word	488
-	.word	153
-	.word	453
-	.word	422
-	.word	461
-	.word	240
-	.word	169
-	.word	312
-	.word	290
-	.word	300
-	.word	99
-	.word	276
-	.word	102
-	.word	500
-	.word	300
-	.word	386
-	.word	247
-	.word	148
-	.word	120
-	.word	497
-	.word	17
-	.word	469
-	.word	441
-	.word	116
-	.word	357
-	.word	98
-	.word	31
-	.word	162
-	.word	213
-	.word	312
-	.word	100
-	.word	280
-	.word	89
-	.word	293
-	.word	324
-	.word	284
-	.word	205
-	.word	245
-	.word	317
-	.word	279
-	.word	95
-	.word	58
-	.word	3
-	.word	356
-	.word	36
-	.word	279
-	.word	499
-	.word	104
-	.word	240
-	.word	55
-	.word	61
-	.word	447
-	.word	441
-	.word	372
-	.word	176
-	.word	31
-	.word	165
-	.word	137
-	.word	498
-	.word	417
-	.word	54
-	.word	282
-	.word	288
-	.word	451
-	.word	367
-	.word	237
-	.word	23
-	.word	483
-	.word	164
-	.word	71
-	.word	430
-	.word	292
-	.word	136
-	.word	208
-	.word	415
-	.word	472
-	.word	376
-	.word	327
-	.word	195
-	.word	219
-	.word	419
-	.word	312
-	.word	14
-	.word	198
-	.word	347
-	.word	219
-	.word	358
-	.word	401
-	.word	159
-	.word	216
-	.word	94
-	.word	406
-	.word	349
-	.word	6
-	.word	340
-	.word	206
-	.word	35
-	.word	456
-	.word	363
-	.word	12
-	.word	37
-	.word	392
-	.word	178
-	.word	250
-	.word	142
-	.word	329
-	.word	389
-	.word	245
-	.word	327
-	.word	262
-	.word	81
-	.word	78
-	.word	62
-	.word	508
-	.word	512
-	.word	500
-	.word	122
-	.word	206
-	.word	77
-	.word	249
-	.word	377
-	.word	320
-	.word	209
-	.word	123
-	.word	416
-	.word	237
-	.word	253
-	.word	185
-	.word	154
-	.word	184
-	.word	353
-	.word	405
-	.word	143
-	.word	323
-	.word	132
-	.word	317
-	.word	155
-	.word	142
-	.word	250
-	.word	477
-	.word	250
-	.word	307
-	.word	417
-	.word	326
-	.word	190
-	.word	397
-	.word	71
-	.word	73
-	.word	326
-	.word	45
-	.word	192
-	.word	510
-	.word	376
-	.word	473
-	.word	61
-	.word	20
-	.word	286
-	.word	482
-	.word	178
-	.word	507
-	.word	301
-	.word	306
-	.word	319
-	.word	90
-	.word	197
-	.word	334
-	.word	119
-	.word	402
-	.word	66
-	.word	323
-	.word	445
-	.word	506
-	.word	473
-	.word	309
-	.word	236
-	.word	404
-	.word	245
-	.word	354
-	.word	325
-	.word	188
-	.word	387
-	.word	240
-	.word	86
-	.word	84
-	.word	223
-	.word	186
-	.word	14
-	.word	478
-	.word	251
-	.word	382
-	.word	444
-	.word	151
-	.word	417
-	.word	163
-	.word	490
-	.word	323
-	.word	253
-	.word	368
-	.word	187
-	.word	271
-	.word	445
-	.word	473
-	.word	19
-	.word	222
-	.word	290
-	.word	350
-	.word	285
-	.word	372
-	.word	421
-	.word	30
-	.word	380
-	.word	250
-	.word	75
-	.word	476
-	.word	168
-	.word	245
-	.word	390
-	.word	86
-	.word	20
-	.word	363
-	.word	165
-	.word	151
-	.word	423
-	.word	117
-	.word	163
-	.word	300
-	.word	82
-	.word	173
-	.word	237
-	.word	87
-	.word	208
-	.word	282
-	.word	87
-	.word	181
-	.word	481
-	.word	187
-	.word	112
-	.word	169
-	.word	69
-	.word	56
-	.word	131
-	.word	257
-	.word	24
-	.word	238
-	.word	78
-	.word	470
-	.word	154
-	.word	310
-	.word	197
-	.word	481
-	.word	398
-	.word	167
-	.word	386
-	.word	366
-	.word	49
-	.word	337
-	.word	66
-	.word	119
-	.word	490
-	.word	203
-	.word	39
-	.word	317
-	.word	97
-	.word	33
-	.word	414
-	.word	464
-	.word	210
-	.word	336
-	.word	489
-	.word	335
-	.word	378
-	.word	116
-	.word	363
-	.word	328
-	.word	191
-	.word	101
-	.word	407
-	.word	408
-	.word	259
-	.word	483
-	.word	51
-	.word	377
-	.word	223
-	.global	nums1k2
-	.align	2
-	.type	nums1k2, %object
-	.size	nums1k2, 4096
-nums1k2:
-	.word	348
-	.word	348
-	.word	4
-	.word	379
-	.word	124
-	.word	157
-	.word	325
-	.word	427
-	.word	423
-	.word	337
-	.word	460
-	.word	131
-	.word	240
-	.word	232
-	.word	165
-	.word	278
-	.word	158
-	.word	490
-	.word	101
-	.word	250
-	.word	109
-	.word	506
-	.word	332
-	.word	245
-	.word	462
-	.word	253
-	.word	165
-	.word	254
-	.word	321
-	.word	390
-	.word	107
-	.word	444
-	.word	498
-	.word	8
-	.word	360
-	.word	220
-	.word	79
-	.word	141
-	.word	474
-	.word	171
-	.word	271
-	.word	243
-	.word	96
-	.word	348
-	.word	297
-	.word	181
-	.word	466
-	.word	65
-	.word	100
-	.word	174
-	.word	360
-	.word	453
-	.word	207
-	.word	414
-	.word	190
-	.word	134
-	.word	92
-	.word	279
-	.word	464
-	.word	503
-	.word	158
-	.word	159
-	.word	98
-	.word	158
-	.word	302
-	.word	25
-	.word	188
-	.word	337
-	.word	8
-	.word	98
-	.word	393
-	.word	90
-	.word	396
-	.word	504
-	.word	205
-	.word	425
-	.word	175
-	.word	439
-	.word	58
-	.word	343
-	.word	247
-	.word	113
-	.word	249
-	.word	150
-	.word	348
-	.word	24
-	.word	174
-	.word	376
-	.word	331
-	.word	302
-	.word	280
-	.word	251
-	.word	510
-	.word	113
-	.word	241
-	.word	507
-	.word	9
-	.word	389
-	.word	172
-	.word	214
-	.word	253
-	.word	497
-	.word	401
-	.word	243
-	.word	7
-	.word	80
-	.word	499
-	.word	133
-	.word	208
-	.word	477
-	.word	456
-	.word	376
-	.word	350
-	.word	53
-	.word	466
-	.word	84
-	.word	261
-	.word	193
-	.word	215
-	.word	9
-	.word	509
-	.word	462
-	.word	378
-	.word	363
-	.word	154
-	.word	482
-	.word	72
-	.word	266
-	.word	465
-	.word	73
-	.word	460
-	.word	406
-	.word	454
-	.word	478
-	.word	447
-	.word	94
-	.word	283
-	.word	107
-	.word	483
-	.word	404
-	.word	48
-	.word	297
-	.word	207
-	.word	47
-	.word	435
-	.word	56
-	.word	416
-	.word	362
-	.word	181
-	.word	327
-	.word	36
-	.word	231
-	.word	273
-	.word	48
-	.word	123
-	.word	455
-	.word	319
-	.word	358
-	.word	21
-	.word	153
-	.word	161
-	.word	178
-	.word	382
-	.word	415
-	.word	362
-	.word	2
-	.word	116
-	.word	420
-	.word	197
-	.word	60
-	.word	205
-	.word	16
-	.word	506
-	.word	109
-	.word	60
-	.word	135
-	.word	491
-	.word	414
-	.word	150
-	.word	41
-	.word	342
-	.word	126
-	.word	188
-	.word	172
-	.word	348
-	.word	383
-	.word	475
-	.word	454
-	.word	236
-	.word	461
-	.word	370
-	.word	113
-	.word	158
-	.word	145
-	.word	157
-	.word	17
-	.word	90
-	.word	479
-	.word	497
-	.word	384
-	.word	18
-	.word	92
-	.word	471
-	.word	300
-	.word	137
-	.word	230
-	.word	105
-	.word	68
-	.word	128
-	.word	487
-	.word	125
-	.word	9
-	.word	158
-	.word	105
-	.word	4
-	.word	374
-	.word	202
-	.word	315
-	.word	295
-	.word	11
-	.word	512
-	.word	247
-	.word	276
-	.word	55
-	.word	52
-	.word	507
-	.word	390
-	.word	74
-	.word	470
-	.word	16
-	.word	332
-	.word	235
-	.word	455
-	.word	374
-	.word	175
-	.word	361
-	.word	414
-	.word	143
-	.word	481
-	.word	193
-	.word	409
-	.word	212
-	.word	361
-	.word	179
-	.word	189
-	.word	243
-	.word	330
-	.word	356
-	.word	503
-	.word	385
-	.word	397
-	.word	110
-	.word	486
-	.word	157
-	.word	169
-	.word	31
-	.word	276
-	.word	455
-	.word	499
-	.word	161
-	.word	43
-	.word	315
-	.word	264
-	.word	441
-	.word	242
-	.word	145
-	.word	204
-	.word	181
-	.word	206
-	.word	83
-	.word	354
-	.word	446
-	.word	86
-	.word	150
-	.word	338
-	.word	18
-	.word	488
-	.word	483
-	.word	297
-	.word	213
-	.word	479
-	.word	314
-	.word	439
-	.word	353
-	.word	272
-	.word	4
-	.word	75
-	.word	420
-	.word	143
-	.word	413
-	.word	153
-	.word	105
-	.word	376
-	.word	158
-	.word	101
-	.word	327
-	.word	396
-	.word	81
-	.word	427
-	.word	227
-	.word	404
-	.word	48
-	.word	302
-	.word	458
-	.word	446
-	.word	422
-	.word	134
-	.word	42
-	.word	132
-	.word	473
-	.word	197
-	.word	258
-	.word	146
-	.word	99
-	.word	220
-	.word	434
-	.word	381
-	.word	489
-	.word	365
-	.word	315
-	.word	280
-	.word	437
-	.word	284
-	.word	99
-	.word	388
-	.word	247
-	.word	494
-	.word	477
-	.word	122
-	.word	470
-	.word	42
-	.word	47
-	.word	130
-	.word	17
-	.word	484
-	.word	421
-	.word	268
-	.word	390
-	.word	490
-	.word	317
-	.word	417
-	.word	205
-	.word	220
-	.word	242
-	.word	477
-	.word	508
-	.word	196
-	.word	415
-	.word	5
-	.word	144
-	.word	479
-	.word	34
-	.word	117
-	.word	472
-	.word	309
-	.word	456
-	.word	72
-	.word	393
-	.word	51
-	.word	295
-	.word	407
-	.word	155
-	.word	128
-	.word	47
-	.word	400
-	.word	42
-	.word	424
-	.word	168
-	.word	231
-	.word	468
-	.word	24
-	.word	467
-	.word	226
-	.word	389
-	.word	68
-	.word	403
-	.word	502
-	.word	253
-	.word	409
-	.word	505
-	.word	333
-	.word	142
-	.word	203
-	.word	161
-	.word	426
-	.word	322
-	.word	329
-	.word	130
-	.word	114
-	.word	398
-	.word	302
-	.word	306
-	.word	268
-	.word	282
-	.word	168
-	.word	35
-	.word	214
-	.word	28
-	.word	355
-	.word	366
-	.word	208
-	.word	320
-	.word	418
-	.word	20
-	.word	239
-	.word	216
-	.word	277
-	.word	343
-	.word	33
-	.word	250
-	.word	28
-	.word	339
-	.word	151
-	.word	232
-	.word	336
-	.word	124
-	.word	36
-	.word	203
-	.word	376
-	.word	225
-	.word	114
-	.word	390
-	.word	241
-	.word	408
-	.word	246
-	.word	21
-	.word	246
-	.word	412
-	.word	421
-	.word	419
-	.word	472
-	.word	454
-	.word	239
-	.word	162
-	.word	482
-	.word	262
-	.word	132
-	.word	506
-	.word	305
-	.word	239
-	.word	341
-	.word	247
-	.word	253
-	.word	338
-	.word	200
-	.word	37
-	.word	86
-	.word	66
-	.word	49
-	.word	458
-	.word	21
-	.word	89
-	.word	54
-	.word	299
-	.word	86
-	.word	26
-	.word	417
-	.word	143
-	.word	275
-	.word	226
-	.word	325
-	.word	56
-	.word	183
-	.word	435
-	.word	262
-	.word	506
-	.word	181
-	.word	228
-	.word	197
-	.word	270
-	.word	339
-	.word	153
-	.word	364
-	.word	471
-	.word	283
-	.word	508
-	.word	510
-	.word	167
-	.word	337
-	.word	462
-	.word	41
-	.word	338
-	.word	388
-	.word	106
-	.word	162
-	.word	439
-	.word	473
-	.word	505
-	.word	16
-	.word	87
-	.word	338
-	.word	48
-	.word	504
-	.word	402
-	.word	261
-	.word	376
-	.word	317
-	.word	117
-	.word	345
-	.word	388
-	.word	374
-	.word	109
-	.word	272
-	.word	301
-	.word	398
-	.word	435
-	.word	348
-	.word	482
-	.word	438
-	.word	239
-	.word	272
-	.word	52
-	.word	85
-	.word	454
-	.word	349
-	.word	475
-	.word	46
-	.word	188
-	.word	85
-	.word	92
-	.word	246
-	.word	432
-	.word	398
-	.word	169
-	.word	477
-	.word	126
-	.word	291
-	.word	158
-	.word	141
-	.word	143
-	.word	199
-	.word	415
-	.word	144
-	.word	152
-	.word	329
-	.word	67
-	.word	286
-	.word	347
-	.word	126
-	.word	290
-	.word	148
-	.word	421
-	.word	273
-	.word	342
-	.word	13
-	.word	205
-	.word	424
-	.word	269
-	.word	117
-	.word	155
-	.word	42
-	.word	99
-	.word	262
-	.word	343
-	.word	359
-	.word	16
-	.word	320
-	.word	466
-	.word	182
-	.word	443
-	.word	412
-	.word	435
-	.word	335
-	.word	70
-	.word	494
-	.word	373
-	.word	463
-	.word	506
-	.word	66
-	.word	476
-	.word	338
-	.word	261
-	.word	223
-	.word	505
-	.word	432
-	.word	400
-	.word	478
-	.word	408
-	.word	99
-	.word	470
-	.word	331
-	.word	202
-	.word	272
-	.word	362
-	.word	430
-	.word	292
-	.word	243
-	.word	158
-	.word	499
-	.word	266
-	.word	200
-	.word	413
-	.word	94
-	.word	142
-	.word	451
-	.word	231
-	.word	414
-	.word	151
-	.word	294
-	.word	154
-	.word	264
-	.word	478
-	.word	10
-	.word	28
-	.word	150
-	.word	352
-	.word	390
-	.word	337
-	.word	67
-	.word	185
-	.word	30
-	.word	137
-	.word	410
-	.word	113
-	.word	258
-	.word	332
-	.word	174
-	.word	508
-	.word	296
-	.word	94
-	.word	132
-	.word	202
-	.word	306
-	.word	452
-	.word	185
-	.word	113
-	.word	409
-	.word	193
-	.word	364
-	.word	29
-	.word	210
-	.word	206
-	.word	127
-	.word	244
-	.word	177
-	.word	394
-	.word	282
-	.word	329
-	.word	317
-	.word	482
-	.word	384
-	.word	450
-	.word	150
-	.word	450
-	.word	295
-	.word	346
-	.word	191
-	.word	99
-	.word	63
-	.word	362
-	.word	59
-	.word	50
-	.word	470
-	.word	235
-	.word	360
-	.word	443
-	.word	352
-	.word	392
-	.word	134
-	.word	510
-	.word	511
-	.word	318
-	.word	303
-	.word	113
-	.word	79
-	.word	84
-	.word	170
-	.word	143
-	.word	135
-	.word	266
-	.word	326
-	.word	69
-	.word	12
-	.word	330
-	.word	82
-	.word	504
-	.word	492
-	.word	174
-	.word	455
-	.word	228
-	.word	175
-	.word	446
-	.word	61
-	.word	405
-	.word	444
-	.word	451
-	.word	97
-	.word	241
-	.word	498
-	.word	239
-	.word	278
-	.word	478
-	.word	401
-	.word	154
-	.word	223
-	.word	231
-	.word	445
-	.word	251
-	.word	83
-	.word	374
-	.word	121
-	.word	506
-	.word	16
-	.word	291
-	.word	202
-	.word	104
-	.word	456
-	.word	124
-	.word	445
-	.word	104
-	.word	223
-	.word	312
-	.word	437
-	.word	462
-	.word	491
-	.word	403
-	.word	229
-	.word	89
-	.word	466
-	.word	41
-	.word	427
-	.word	274
-	.word	380
-	.word	27
-	.word	484
-	.word	328
-	.word	341
-	.word	344
-	.word	5
-	.word	479
-	.word	137
-	.word	127
-	.word	86
-	.word	271
-	.word	94
-	.word	442
-	.word	140
-	.word	466
-	.word	431
-	.word	485
-	.word	427
-	.word	324
-	.word	297
-	.word	150
-	.word	237
-	.word	43
-	.word	271
-	.word	255
-	.word	24
-	.word	470
-	.word	10
-	.word	503
-	.word	344
-	.word	488
-	.word	511
-	.word	431
-	.word	490
-	.word	270
-	.word	317
-	.word	180
-	.word	334
-	.word	434
-	.word	254
-	.word	203
-	.word	110
-	.word	426
-	.word	450
-	.word	175
-	.word	145
-	.word	220
-	.word	411
-	.word	478
-	.word	156
-	.word	271
-	.word	483
-	.word	319
-	.word	81
-	.word	149
-	.word	175
-	.word	424
-	.word	165
-	.word	326
-	.word	512
-	.word	53
-	.word	108
-	.word	432
-	.word	217
-	.word	146
-	.word	107
-	.word	108
-	.word	401
-	.word	339
-	.word	412
-	.word	336
-	.word	211
-	.word	68
-	.word	120
-	.word	153
-	.word	415
-	.word	314
-	.word	307
-	.word	26
-	.word	374
-	.word	458
-	.word	8
-	.word	226
-	.word	49
-	.word	458
-	.word	8
-	.word	369
-	.word	43
-	.word	205
-	.word	241
-	.word	471
-	.word	73
-	.word	363
-	.word	203
-	.word	443
-	.word	457
-	.word	186
-	.word	102
-	.word	405
-	.word	343
-	.word	190
-	.word	84
-	.word	43
-	.word	13
-	.word	379
-	.word	89
-	.word	43
-	.word	435
-	.word	164
-	.word	89
-	.word	111
-	.word	135
-	.word	446
-	.word	186
-	.word	120
-	.word	149
-	.word	165
-	.word	264
-	.word	23
-	.word	15
-	.word	254
-	.word	309
-	.word	376
-	.word	301
-	.word	149
-	.word	93
-	.word	415
-	.word	205
-	.word	245
-	.word	74
-	.word	304
-	.word	163
-	.word	256
-	.word	7
-	.word	7
-	.word	188
-	.word	182
-	.word	316
-	.word	11
-	.word	52
-	.word	380
-	.word	246
-	.word	305
-	.word	228
-	.word	429
-	.word	87
-	.word	422
-	.word	368
-	.word	85
-	.word	28
-	.word	271
-	.word	423
-	.word	81
-	.word	44
-	.word	128
-	.word	456
-	.word	365
-	.word	353
-	.word	20
-	.word	75
-	.word	131
-	.word	376
-	.word	40
-	.word	495
-	.word	273
-	.word	143
-	.word	306
-	.word	352
-	.word	13
-	.word	491
-	.word	429
-	.word	391
-	.word	395
-	.word	502
-	.word	72
-	.word	391
-	.word	71
-	.word	271
-	.word	467
-	.word	397
-	.word	95
-	.word	438
-	.word	475
-	.word	118
-	.word	485
-	.word	427
-	.word	160
-	.word	34
-	.word	149
-	.word	165
-	.word	90
-	.word	377
-	.word	8
-	.word	405
-	.word	42
-	.word	50
-	.word	160
-	.word	501
-	.word	22
-	.word	24
-	.word	185
-	.word	172
-	.word	402
-	.word	123
-	.word	247
-	.word	479
-	.word	183
-	.word	10
-	.word	440
-	.word	403
-	.word	43
-	.word	103
-	.word	204
-	.word	428
-	.word	300
-	.word	253
-	.word	312
-	.word	217
-	.word	384
-	.word	254
-	.word	16
-	.word	375
-	.word	212
-	.word	418
-	.word	312
-	.word	301
-	.word	214
-	.word	55
-	.word	11
-	.word	509
-	.word	362
-	.word	200
-	.word	224
-	.word	484
-	.word	136
-	.word	475
-	.word	477
-	.word	266
-	.word	410
-	.word	244
-	.word	256
-	.word	217
-	.word	372
-	.word	460
-	.word	497
-	.word	3
-	.word	316
-	.word	477
-	.word	474
-	.word	61
-	.word	462
-	.word	332
-	.word	111
-	.word	183
-	.word	478
-	.word	29
-	.word	365
-	.word	511
-	.word	421
-	.word	453
-	.word	287
-	.word	141
-	.word	177
-	.word	100
-	.word	81
-	.word	266
-	.word	451
-	.word	235
-	.word	235
-	.word	198
-	.word	262
-	.word	409
-	.word	207
-	.word	269
-	.word	493
-	.word	192
-	.word	482
-	.word	43
-	.word	312
-	.word	492
-	.word	261
-	.word	10
-	.word	245
-	.word	221
-	.word	106
-	.word	288
-	.word	58
-	.word	444
-	.word	110
-	.word	6
-	.word	10
-	.word	373
-	.word	211
-	.word	323
-	.word	159
-	.word	274
-	.word	210
-	.word	209
-	.word	314
-	.word	78
-	.word	75
-	.text
-	.align	2
-	.global	swap
-	.thumb
-	.thumb_func
-	.type	swap, %function
-swap:
-	@ args = 0, pretend = 0, frame = 16
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	sub	sp, sp, #20
-	add	r7, sp, #0
-	str	r0, [r7, #4]
-	str	r1, [r7]
-	ldr	r3, [r7, #4]
-	ldr	r3, [r3]
-	str	r3, [r7, #12]
-	ldr	r3, [r7]
-	ldr	r2, [r3]
-	ldr	r3, [r7, #4]
-	str	r2, [r3]
-	ldr	r3, [r7]
-	ldr	r2, [r7, #12]
-	str	r2, [r3]
-	nop
-	adds	r7, r7, #20
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-	.size	swap, .-swap
-	.align	2
-	.global	sort
-	.thumb
-	.thumb_func
-	.type	sort, %function
-sort:
-	@ args = 0, pretend = 0, frame = 32
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	sub	sp, sp, #32
-	add	r7, sp, #0
-	str	r0, [r7, #12]
-	str	r1, [r7, #8]
-	str	r2, [r7, #4]
-	ldr	r3, [r7, #8]
-	adds	r2, r3, #1
-	ldr	r3, [r7, #4]
-	cmp	r2, r3
-	bge	.L7
-	ldr	r3, [r7, #8]
-	lsls	r3, r3, #2
-	ldr	r2, [r7, #12]
-	add	r3, r3, r2
-	ldr	r3, [r3]
-	str	r3, [r7, #20]
-	ldr	r3, [r7, #8]
-	adds	r3, r3, #1
-	str	r3, [r7, #28]
-	ldr	r3, [r7, #4]
-	str	r3, [r7, #24]
-	b	.L4
-.L6:
-	ldr	r3, [r7, #28]
-	lsls	r3, r3, #2
-	ldr	r2, [r7, #12]
-	add	r3, r3, r2
-	ldr	r2, [r3]
-	ldr	r3, [r7, #20]
-	cmp	r2, r3
-	bgt	.L5
-	ldr	r3, [r7, #28]
-	adds	r3, r3, #1
-	str	r3, [r7, #28]
-	b	.L4
-.L5:
-	ldr	r3, [r7, #28]
-	lsls	r3, r3, #2
-	ldr	r2, [r7, #12]
-	adds	r0, r2, r3
-	ldr	r3, [r7, #24]
-	subs	r3, r3, #1
-	str	r3, [r7, #24]
-	ldr	r3, [r7, #24]
-	lsls	r3, r3, #2
-	ldr	r2, [r7, #12]
-	add	r3, r3, r2
-	mov	r1, r3
-	bl	swap(PLT)
-.L4:
-	ldr	r2, [r7, #28]
-	ldr	r3, [r7, #24]
-	cmp	r2, r3
-	blt	.L6
-	ldr	r3, [r7, #28]
-	subs	r3, r3, #1
-	str	r3, [r7, #28]
-	ldr	r3, [r7, #28]
-	lsls	r3, r3, #2
-	ldr	r2, [r7, #12]
-	adds	r0, r2, r3
-	ldr	r3, [r7, #8]
-	lsls	r3, r3, #2
-	ldr	r2, [r7, #12]
-	add	r3, r3, r2
-	mov	r1, r3
-	bl	swap(PLT)
-	ldr	r2, [r7, #28]
-	ldr	r1, [r7, #8]
-	ldr	r0, [r7, #12]
-	bl	sort(PLT)
-	ldr	r2, [r7, #4]
-	ldr	r1, [r7, #24]
-	ldr	r0, [r7, #12]
-	bl	sort(PLT)
-.L7:
-	nop
-	adds	r7, r7, #32
-	mov	sp, r7
-	@ sp needed
-	pop	{r7, pc}
-	.size	sort, .-sort
-	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	add	r7, sp, #0
-	ldr	r0, .L10
-.LPIC0:
-	add	r0, pc
-	mov	r2, #1024
-	movs	r1, #0
-	ldr	r3, .L10+4
-	ldr	r3, [r0, r3]
-	mov	r0, r3
-	bl	sort(PLT)
-	movs	r3, #0
-	mov	r0, r3
-	pop	{r7, pc}
-.L11:
-	.align	2
-.L10:
-	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)
-	.word	nums1k1(GOT)
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+	.word	364                     // 0x16c
+	.word	286                     // 0x11e
+	.word	278                     // 0x116
+	.word	283                     // 0x11b
+	.word	154                     // 0x9a
+	.word	477                     // 0x1dd
+	.word	369                     // 0x171
+	.word	480                     // 0x1e0
+	.word	40                      // 0x28
+	.word	382                     // 0x17e
+	.word	153                     // 0x99
+	.word	293                     // 0x125
+	.word	488                     // 0x1e8
+	.word	35                      // 0x23
+	.word	225                     // 0xe1
+	.word	172                     // 0xac
+	.word	4                       // 0x4
+	.word	443                     // 0x1bb
+	.word	411                     // 0x19b
+	.word	429                     // 0x1ad
+	.word	131                     // 0x83
+	.word	490                     // 0x1ea
+	.word	91                      // 0x5b
+	.word	89                      // 0x59
+	.word	495                     // 0x1ef
+	.word	426                     // 0x1aa
+	.word	290                     // 0x122
+	.word	411                     // 0x19b
+	.word	423                     // 0x1a7
+	.word	493                     // 0x1ed
+	.word	139                     // 0x8b
+	.word	414                     // 0x19e
+	.word	303                     // 0x12f
+	.word	485                     // 0x1e5
+	.word	327                     // 0x147
+	.word	44                      // 0x2c
+	.word	430                     // 0x1ae
+	.word	129                     // 0x81
+	.word	153                     // 0x99
+	.word	331                     // 0x14b
+	.word	138                     // 0x8a
+	.word	206                     // 0xce
+	.word	284                     // 0x11c
+	.word	461                     // 0x1cd
+	.word	428                     // 0x1ac
+	.word	473                     // 0x1d9
+	.word	297                     // 0x129
+	.word	90                      // 0x5a
+	.word	260                     // 0x104
+	.word	317                     // 0x13d
+	.word	241                     // 0xf1
+	.word	135                     // 0x87
+	.word	297                     // 0x129
+	.word	386                     // 0x182
+	.word	83                      // 0x53
+	.word	481                     // 0x1e1
+	.word	456                     // 0x1c8
+	.word	116                     // 0x74
+	.word	95                      // 0x5f
+	.word	47                      // 0x2f
+	.word	317                     // 0x13d
+	.word	31                      // 0x1f
+	.word	337                     // 0x151
+	.word	29                      // 0x1d
+	.word	383                     // 0x17f
+	.word	417                     // 0x1a1
+	.word	268                     // 0x10c
+	.word	134                     // 0x86
+	.word	277                     // 0x115
+	.word	402                     // 0x192
+	.word	432                     // 0x1b0
+	.word	493                     // 0x1ed
+	.word	119                     // 0x77
+	.word	352                     // 0x160
+	.word	70                      // 0x46
+	.word	459                     // 0x1cb
+	.word	188                     // 0xbc
+	.word	329                     // 0x149
+	.word	249                     // 0xf9
+	.word	287                     // 0x11f
+	.word	165                     // 0xa5
+	.word	384                     // 0x180
+	.word	149                     // 0x95
+	.word	371                     // 0x173
+	.word	89                      // 0x59
+	.word	285                     // 0x11d
+	.word	179                     // 0xb3
+	.word	133                     // 0x85
+	.word	134                     // 0x86
+	.word	219                     // 0xdb
+	.word	20                      // 0x14
+	.word	11                      // 0xb
+	.word	379                     // 0x17b
+	.word	295                     // 0x127
+	.word	36                      // 0x24
+	.word	380                     // 0x17c
+	.word	158                     // 0x9e
+	.word	80                      // 0x50
+	.word	440                     // 0x1b8
+	.word	335                     // 0x14f
+	.word	47                      // 0x2f
+	.word	182                     // 0xb6
+	.word	415                     // 0x19f
+	.word	452                     // 0x1c4
+	.word	340                     // 0x154
+	.word	57                      // 0x39
+	.word	468                     // 0x1d4
+	.word	182                     // 0xb6
+	.word	249                     // 0xf9
+	.word	106                     // 0x6a
+	.word	259                     // 0x103
+	.word	276                     // 0x114
+	.word	487                     // 0x1e7
+	.word	175                     // 0xaf
+	.word	510                     // 0x1fe
+	.word	63                      // 0x3f
+	.word	6                       // 0x6
+	.word	122                     // 0x7a
+	.word	68                      // 0x44
+	.word	34                      // 0x22
+	.word	271                     // 0x10f
+	.word	74                      // 0x4a
+	.word	18                      // 0x12
+	.word	126                     // 0x7e
+	.word	331                     // 0x14b
+	.word	435                     // 0x1b3
+	.word	329                     // 0x149
+	.word	60                      // 0x3c
+	.word	193                     // 0xc1
+	.word	75                      // 0x4b
+	.word	94                      // 0x5e
+	.word	128                     // 0x80
+	.word	143                     // 0x8f
+	.word	143                     // 0x8f
+	.word	242                     // 0xf2
+	.word	423                     // 0x1a7
+	.word	360                     // 0x168
+	.word	249                     // 0xf9
+	.word	92                      // 0x5c
+	.word	342                     // 0x156
+	.word	14                      // 0xe
+	.word	270                     // 0x10e
+	.word	417                     // 0x1a1
+	.word	110                     // 0x6e
+	.word	27                      // 0x1b
+	.word	160                     // 0xa0
+	.word	500                     // 0x1f4
+	.word	428                     // 0x1ac
+	.word	146                     // 0x92
+	.word	103                     // 0x67
+	.word	403                     // 0x193
+	.word	304                     // 0x130
+	.word	362                     // 0x16a
+	.word	331                     // 0x14b
+	.word	35                      // 0x23
+	.word	392                     // 0x188
+	.word	320                     // 0x140
+	.word	330                     // 0x14a
+	.word	369                     // 0x171
+	.word	34                      // 0x22
+	.word	508                     // 0x1fc
+	.word	405                     // 0x195
+	.word	306                     // 0x132
+	.word	338                     // 0x152
+	.word	177                     // 0xb1
+	.word	220                     // 0xdc
+	.word	451                     // 0x1c3
+	.word	369                     // 0x171
+	.word	278                     // 0x116
+	.word	37                      // 0x25
+	.word	151                     // 0x97
+	.word	378                     // 0x17a
+	.word	468                     // 0x1d4
+	.word	486                     // 0x1e6
+	.word	85                      // 0x55
+	.word	206                     // 0xce
+	.word	258                     // 0x102
+	.word	169                     // 0xa9
+	.word	496                     // 0x1f0
+	.word	505                     // 0x1f9
+	.word	99                      // 0x63
+	.word	216                     // 0xd8
+	.word	367                     // 0x16f
+	.word	99                      // 0x63
+	.word	455                     // 0x1c7
+	.word	301                     // 0x12d
+	.word	386                     // 0x182
+	.word	447                     // 0x1bf
+	.word	354                     // 0x162
+	.word	430                     // 0x1ae
+	.word	6                       // 0x6
+	.word	266                     // 0x10a
+	.word	204                     // 0xcc
+	.word	59                      // 0x3b
+	.word	276                     // 0x114
+	.word	11                      // 0xb
+	.word	148                     // 0x94
+	.word	506                     // 0x1fa
+	.word	486                     // 0x1e6
+	.word	459                     // 0x1cb
+	.word	391                     // 0x187
+	.word	36                      // 0x24
+	.word	428                     // 0x1ac
+	.word	54                      // 0x36
+	.word	53                      // 0x35
+	.word	453                     // 0x1c5
+	.word	221                     // 0xdd
+	.word	503                     // 0x1f7
+	.word	399                     // 0x18f
+	.word	330                     // 0x14a
+	.word	347                     // 0x15b
+	.word	487                     // 0x1e7
+	.word	1                       // 0x1
+	.word	278                     // 0x116
+	.word	155                     // 0x9b
+	.word	221                     // 0xdd
+	.word	278                     // 0x116
+	.word	328                     // 0x148
+	.word	371                     // 0x173
+	.word	150                     // 0x96
+	.word	159                     // 0x9f
+	.word	228                     // 0xe4
+	.word	406                     // 0x196
+	.word	101                     // 0x65
+	.word	126                     // 0x7e
+	.word	215                     // 0xd7
+	.word	128                     // 0x80
+	.word	26                      // 0x1a
+	.word	487                     // 0x1e7
+	.word	339                     // 0x153
+	.word	146                     // 0x92
+	.word	24                      // 0x18
+	.word	402                     // 0x192
+	.word	97                      // 0x61
+	.word	281                     // 0x119
+	.word	320                     // 0x140
+	.word	214                     // 0xd6
+	.word	151                     // 0x97
+	.word	271                     // 0x10f
+	.word	363                     // 0x16b
+	.word	300                     // 0x12c
+	.word	501                     // 0x1f5
+	.word	274                     // 0x112
+	.word	41                      // 0x29
+	.word	112                     // 0x70
+	.word	306                     // 0x132
+	.word	507                     // 0x1fb
+	.word	293                     // 0x125
+	.word	342                     // 0x156
+	.word	282                     // 0x11a
+	.word	173                     // 0xad
+	.word	477                     // 0x1dd
+	.word	317                     // 0x13d
+	.word	176                     // 0xb0
+	.word	271                     // 0x10f
+	.word	327                     // 0x147
+	.word	436                     // 0x1b4
+	.word	117                     // 0x75
+	.word	199                     // 0xc7
+	.word	276                     // 0x114
+	.word	414                     // 0x19e
+	.word	485                     // 0x1e5
+	.word	273                     // 0x111
+	.word	76                      // 0x4c
+	.word	307                     // 0x133
+	.word	267                     // 0x10b
+	.word	215                     // 0xd7
+	.word	327                     // 0x147
+	.word	379                     // 0x17b
+	.word	315                     // 0x13b
+	.word	431                     // 0x1af
+	.word	313                     // 0x139
+	.word	377                     // 0x179
+	.word	261                     // 0x105
+	.word	117                     // 0x75
+	.word	195                     // 0xc3
+	.word	245                     // 0xf5
+	.word	153                     // 0x99
+	.word	54                      // 0x36
+	.word	427                     // 0x1ab
+	.word	340                     // 0x154
+	.word	485                     // 0x1e5
+	.word	414                     // 0x19e
+	.word	318                     // 0x13e
+	.word	213                     // 0xd5
+	.word	491                     // 0x1eb
+	.word	159                     // 0x9f
+	.word	511                     // 0x1ff
+	.word	128                     // 0x80
+	.word	312                     // 0x138
+	.word	463                     // 0x1cf
+	.word	297                     // 0x129
+	.word	35                      // 0x23
+	.word	273                     // 0x111
+	.word	31                      // 0x1f
+	.word	272                     // 0x110
+	.word	239                     // 0xef
+	.word	101                     // 0x65
+	.word	235                     // 0xeb
+	.word	234                     // 0xea
+	.word	238                     // 0xee
+	.word	308                     // 0x134
+	.word	325                     // 0x145
+	.word	397                     // 0x18d
+	.word	155                     // 0x9b
+	.word	163                     // 0xa3
+	.word	146                     // 0x92
+	.word	499                     // 0x1f3
+	.word	273                     // 0x111
+	.word	28                      // 0x1c
+	.word	280                     // 0x118
+	.word	374                     // 0x176
+	.word	32                      // 0x20
+	.word	400                     // 0x190
+	.word	314                     // 0x13a
+	.word	21                      // 0x15
+	.word	340                     // 0x154
+	.word	7                       // 0x7
+	.word	231                     // 0xe7
+	.word	390                     // 0x186
+	.word	258                     // 0x102
+	.word	431                     // 0x1af
+	.word	192                     // 0xc0
+	.word	469                     // 0x1d5
+	.word	14                      // 0xe
+	.word	293                     // 0x125
+	.word	418                     // 0x1a2
+	.word	140                     // 0x8c
+	.word	481                     // 0x1e1
+	.word	302                     // 0x12e
+	.word	440                     // 0x1b8
+	.word	68                      // 0x44
+	.word	303                     // 0x12f
+	.word	499                     // 0x1f3
+	.word	387                     // 0x183
+	.word	169                     // 0xa9
+	.word	4                       // 0x4
+	.word	166                     // 0xa6
+	.word	363                     // 0x16b
+	.word	388                     // 0x184
+	.word	160                     // 0xa0
+	.word	428                     // 0x1ac
+	.word	469                     // 0x1d5
+	.word	361                     // 0x169
+	.word	66                      // 0x42
+	.word	458                     // 0x1ca
+	.word	92                      // 0x5c
+	.word	315                     // 0x13b
+	.word	90                      // 0x5a
+	.word	331                     // 0x14b
+	.word	422                     // 0x1a6
+	.word	249                     // 0xf9
+	.word	344                     // 0x158
+	.word	496                     // 0x1f0
+	.word	151                     // 0x97
+	.word	295                     // 0x127
+	.word	167                     // 0xa7
+	.word	297                     // 0x129
+	.word	430                     // 0x1ae
+	.word	309                     // 0x135
+	.word	391                     // 0x187
+	.word	158                     // 0x9e
+	.word	185                     // 0xb9
+	.word	91                      // 0x5b
+	.word	440                     // 0x1b8
+	.word	275                     // 0x113
+	.word	477                     // 0x1dd
+	.word	362                     // 0x16a
+	.word	283                     // 0x11b
+	.word	88                      // 0x58
+	.word	487                     // 0x1e7
+	.word	341                     // 0x155
+	.word	423                     // 0x1a7
+	.word	96                      // 0x60
+	.word	391                     // 0x187
+	.word	419                     // 0x1a3
+	.word	106                     // 0x6a
+	.word	110                     // 0x6e
+	.word	143                     // 0x8f
+	.word	319                     // 0x13f
+	.word	197                     // 0xc5
+	.word	330                     // 0x14a
+	.word	212                     // 0xd4
+	.word	403                     // 0x193
+	.word	505                     // 0x1f9
+	.word	1                       // 0x1
+	.word	147                     // 0x93
+	.word	223                     // 0xdf
+	.word	343                     // 0x157
+	.word	41                      // 0x29
+	.word	24                      // 0x18
+	.word	357                     // 0x165
+	.word	457                     // 0x1c9
+	.word	90                      // 0x5a
+	.word	318                     // 0x13e
+	.word	21                      // 0x15
+	.word	263                     // 0x107
+	.word	371                     // 0x173
+	.word	434                     // 0x1b2
+	.word	82                      // 0x52
+	.word	242                     // 0xf2
+	.word	7                       // 0x7
+	.word	394                     // 0x18a
+	.word	245                     // 0xf5
+	.word	329                     // 0x149
+	.word	352                     // 0x160
+	.word	290                     // 0x122
+	.word	241                     // 0xf1
+	.word	134                     // 0x86
+	.word	35                      // 0x23
+	.word	143                     // 0x8f
+	.word	429                     // 0x1ad
+	.word	132                     // 0x84
+	.word	328                     // 0x148
+	.word	22                      // 0x16
+	.word	298                     // 0x12a
+	.word	424                     // 0x1a8
+	.word	258                     // 0x102
+	.word	219                     // 0xdb
+	.word	355                     // 0x163
+	.word	273                     // 0x111
+	.word	101                     // 0x65
+	.word	119                     // 0x77
+	.word	55                      // 0x37
+	.word	264                     // 0x108
+	.word	188                     // 0xbc
+	.word	363                     // 0x16b
+	.word	413                     // 0x19d
+	.word	263                     // 0x107
+	.word	11                      // 0xb
+	.word	392                     // 0x188
+	.word	285                     // 0x11d
+	.word	433                     // 0x1b1
+	.word	322                     // 0x142
+	.word	443                     // 0x1bb
+	.word	502                     // 0x1f6
+	.word	153                     // 0x99
+	.word	304                     // 0x130
+	.word	293                     // 0x125
+	.word	42                      // 0x2a
+	.word	273                     // 0x111
+	.word	450                     // 0x1c2
+	.word	400                     // 0x190
+	.word	147                     // 0x93
+	.word	466                     // 0x1d2
+	.word	61                      // 0x3d
+	.word	311                     // 0x137
+	.word	204                     // 0xcc
+	.word	107                     // 0x6b
+	.word	233                     // 0xe9
+	.word	206                     // 0xce
+	.word	373                     // 0x175
+	.word	430                     // 0x1ae
+	.word	374                     // 0x176
+	.word	242                     // 0xf2
+	.word	498                     // 0x1f2
+	.word	301                     // 0x12d
+	.word	391                     // 0x187
+	.word	247                     // 0xf7
+	.word	120                     // 0x78
+	.word	286                     // 0x11e
+	.word	261                     // 0x105
+	.word	299                     // 0x12b
+	.word	395                     // 0x18b
+	.word	117                     // 0x75
+	.word	457                     // 0x1c9
+	.word	428                     // 0x1ac
+	.word	386                     // 0x182
+	.word	492                     // 0x1ec
+	.word	213                     // 0xd5
+	.word	28                      // 0x1c
+	.word	231                     // 0xe7
+	.word	80                      // 0x50
+	.word	181                     // 0xb5
+	.word	30                      // 0x1e
+	.word	498                     // 0x1f2
+	.word	197                     // 0xc5
+	.word	71                      // 0x47
+	.word	301                     // 0x12d
+	.word	144                     // 0x90
+	.word	27                      // 0x1b
+	.word	209                     // 0xd1
+	.word	124                     // 0x7c
+	.word	82                      // 0x52
+	.word	397                     // 0x18d
+	.word	22                      // 0x16
+	.word	358                     // 0x166
+	.word	296                     // 0x128
+	.word	341                     // 0x155
+	.word	468                     // 0x1d4
+	.word	184                     // 0xb8
+	.word	140                     // 0x8c
+	.word	265                     // 0x109
+	.word	448                     // 0x1c0
+	.word	408                     // 0x198
+	.word	185                     // 0xb9
+	.word	396                     // 0x18c
+	.word	193                     // 0xc1
+	.word	444                     // 0x1bc
+	.word	439                     // 0x1b7
+	.word	456                     // 0x1c8
+	.word	152                     // 0x98
+	.word	422                     // 0x1a6
+	.word	32                      // 0x20
+	.word	505                     // 0x1f9
+	.word	46                      // 0x2e
+	.word	351                     // 0x15f
+	.word	67                      // 0x43
+	.word	89                      // 0x59
+	.word	136                     // 0x88
+	.word	261                     // 0x105
+	.word	64                      // 0x40
+	.word	469                     // 0x1d5
+	.word	174                     // 0xae
+	.word	252                     // 0xfc
+	.word	431                     // 0x1af
+	.word	504                     // 0x1f8
+	.word	486                     // 0x1e6
+	.word	260                     // 0x104
+	.word	7                       // 0x7
+	.word	283                     // 0x11b
+	.word	313                     // 0x139
+	.word	201                     // 0xc9
+	.word	226                     // 0xe2
+	.word	183                     // 0xb7
+	.word	396                     // 0x18c
+	.word	212                     // 0xd4
+	.word	340                     // 0x154
+	.word	342                     // 0x156
+	.word	178                     // 0xb2
+	.word	255                     // 0xff
+	.word	78                      // 0x4e
+	.word	25                      // 0x19
+	.word	18                      // 0x12
+	.word	250                     // 0xfa
+	.word	57                      // 0x39
+	.word	67                      // 0x43
+	.word	96                      // 0x60
+	.word	88                      // 0x58
+	.word	477                     // 0x1dd
+	.word	16                      // 0x10
+	.word	379                     // 0x17b
+	.word	476                     // 0x1dc
+	.word	241                     // 0xf1
+	.word	428                     // 0x1ac
+	.word	124                     // 0x7c
+	.word	220                     // 0xdc
+	.word	6                       // 0x6
+	.word	230                     // 0xe6
+	.word	34                      // 0x22
+	.word	226                     // 0xe2
+	.word	409                     // 0x199
+	.word	304                     // 0x130
+	.word	501                     // 0x1f5
+	.word	99                      // 0x63
+	.word	265                     // 0x109
+	.word	257                     // 0x101
+	.word	351                     // 0x15f
+	.word	237                     // 0xed
+	.word	326                     // 0x146
+	.word	137                     // 0x89
+	.word	312                     // 0x138
+	.word	272                     // 0x110
+	.word	471                     // 0x1d7
+	.word	218                     // 0xda
+	.word	154                     // 0x9a
+	.word	199                     // 0xc7
+	.word	212                     // 0xd4
+	.word	141                     // 0x8d
+	.word	93                      // 0x5d
+	.word	433                     // 0x1b1
+	.word	210                     // 0xd2
+	.word	370                     // 0x172
+	.word	506                     // 0x1fa
+	.word	117                     // 0x75
+	.word	499                     // 0x1f3
+	.word	328                     // 0x148
+	.word	357                     // 0x165
+	.word	141                     // 0x8d
+	.word	27                      // 0x1b
+	.word	144                     // 0x90
+	.word	162                     // 0xa2
+	.word	54                      // 0x36
+	.word	435                     // 0x1b3
+	.word	361                     // 0x169
+	.word	447                     // 0x1bf
+	.word	478                     // 0x1de
+	.word	400                     // 0x190
+	.word	434                     // 0x1b2
+	.word	2                       // 0x2
+	.word	77                      // 0x4d
+	.word	401                     // 0x191
+	.word	79                      // 0x4f
+	.word	313                     // 0x139
+	.word	454                     // 0x1c6
+	.word	177                     // 0xb1
+	.word	164                     // 0xa4
+	.word	415                     // 0x19f
+	.word	100                     // 0x64
+	.word	87                      // 0x57
+	.word	36                      // 0x24
+	.word	101                     // 0x65
+	.word	190                     // 0xbe
+	.word	294                     // 0x126
+	.word	378                     // 0x17a
+	.word	471                     // 0x1d7
+	.word	230                     // 0xe6
+	.word	49                      // 0x31
+	.word	231                     // 0xe7
+	.word	56                      // 0x38
+	.word	238                     // 0xee
+	.word	45                      // 0x2d
+	.word	1                       // 0x1
+	.word	73                      // 0x49
+	.word	372                     // 0x174
+	.word	322                     // 0x142
+	.word	229                     // 0xe5
+	.word	336                     // 0x150
+	.word	338                     // 0x152
+	.word	53                      // 0x35
+	.word	144                     // 0x90
+	.word	491                     // 0x1eb
+	.word	233                     // 0xe9
+	.word	440                     // 0x1b8
+	.word	200                     // 0xc8
+	.word	35                      // 0x23
+	.word	74                      // 0x4a
+	.word	108                     // 0x6c
+	.word	106                     // 0x6a
+	.word	448                     // 0x1c0
+	.word	313                     // 0x139
+	.word	324                     // 0x144
+	.word	126                     // 0x7e
+	.word	157                     // 0x9d
+	.word	283                     // 0x11b
+	.word	405                     // 0x195
+	.word	305                     // 0x131
+	.word	237                     // 0xed
+	.word	177                     // 0xb1
+	.word	354                     // 0x162
+	.word	386                     // 0x182
+	.word	318                     // 0x13e
+	.word	60                      // 0x3c
+	.word	145                     // 0x91
+	.word	299                     // 0x12b
+	.word	468                     // 0x1d4
+	.word	23                      // 0x17
+	.word	314                     // 0x13a
+	.word	6                       // 0x6
+	.word	145                     // 0x91
+	.word	103                     // 0x67
+	.word	482                     // 0x1e2
+	.word	129                     // 0x81
+	.word	98                      // 0x62
+	.word	220                     // 0xdc
+	.word	67                      // 0x43
+	.word	114                     // 0x72
+	.word	211                     // 0xd3
+	.word	265                     // 0x109
+	.word	83                      // 0x53
+	.word	398                     // 0x18e
+	.word	168                     // 0xa8
+	.word	92                      // 0x5c
+	.word	200                     // 0xc8
+	.word	55                      // 0x37
+	.word	71                      // 0x47
+	.word	39                      // 0x27
+	.word	459                     // 0x1cb
+	.word	146                     // 0x92
+	.word	252                     // 0xfc
+	.word	277                     // 0x115
+	.word	376                     // 0x178
+	.word	240                     // 0xf0
+	.word	232                     // 0xe8
+	.word	475                     // 0x1db
+	.word	297                     // 0x129
+	.word	375                     // 0x177
+	.word	385                     // 0x181
+	.word	253                     // 0xfd
+	.word	388                     // 0x184
+	.word	299                     // 0x12b
+	.word	174                     // 0xae
+	.word	216                     // 0xd8
+	.word	243                     // 0xf3
+	.word	42                      // 0x2a
+	.word	144                     // 0x90
+	.word	61                      // 0x3d
+	.word	336                     // 0x150
+	.word	413                     // 0x19d
+	.word	338                     // 0x152
+	.word	138                     // 0x8a
+	.word	133                     // 0x85
+	.word	302                     // 0x12e
+	.word	202                     // 0xca
+	.word	138                     // 0x8a
+	.word	78                      // 0x4e
+	.word	167                     // 0xa7
+	.word	101                     // 0x65
+	.word	486                     // 0x1e6
+	.word	131                     // 0x83
+	.word	476                     // 0x1dc
+	.word	282                     // 0x11a
+	.word	29                      // 0x1d
+	.word	402                     // 0x192
+	.word	46                      // 0x2e
+	.word	57                      // 0x39
+	.word	510                     // 0x1fe
+	.word	418                     // 0x1a2
+	.word	432                     // 0x1b0
+	.word	78                      // 0x4e
+	.word	214                     // 0xd6
+	.word	224                     // 0xe0
+	.word	243                     // 0xf3
+	.word	121                     // 0x79
+	.word	78                      // 0x4e
+	.word	378                     // 0x17a
+	.word	259                     // 0x103
+	.word	314                     // 0x13a
+	.word	246                     // 0xf6
+	.word	291                     // 0x123
+	.word	346                     // 0x15a
+	.word	239                     // 0xef
+	.word	5                       // 0x5
+	.word	162                     // 0xa2
+	.word	288                     // 0x120
+	.word	42                      // 0x2a
+	.word	32                      // 0x20
+	.word	286                     // 0x11e
+	.word	267                     // 0x10b
+	.word	67                      // 0x43
+	.word	103                     // 0x67
+	.word	244                     // 0xf4
+	.word	476                     // 0x1dc
+	.word	172                     // 0xac
+	.word	288                     // 0x120
+	.word	124                     // 0x7c
+	.word	511                     // 0x1ff
+	.word	226                     // 0xe2
+	.word	63                      // 0x3f
+	.word	103                     // 0x67
+	.word	485                     // 0x1e5
+	.word	488                     // 0x1e8
+	.word	153                     // 0x99
+	.word	453                     // 0x1c5
+	.word	422                     // 0x1a6
+	.word	461                     // 0x1cd
+	.word	240                     // 0xf0
+	.word	169                     // 0xa9
+	.word	312                     // 0x138
+	.word	290                     // 0x122
+	.word	300                     // 0x12c
+	.word	99                      // 0x63
+	.word	276                     // 0x114
+	.word	102                     // 0x66
+	.word	500                     // 0x1f4
+	.word	300                     // 0x12c
+	.word	386                     // 0x182
+	.word	247                     // 0xf7
+	.word	148                     // 0x94
+	.word	120                     // 0x78
+	.word	497                     // 0x1f1
+	.word	17                      // 0x11
+	.word	469                     // 0x1d5
+	.word	441                     // 0x1b9
+	.word	116                     // 0x74
+	.word	357                     // 0x165
+	.word	98                      // 0x62
+	.word	31                      // 0x1f
+	.word	162                     // 0xa2
+	.word	213                     // 0xd5
+	.word	312                     // 0x138
+	.word	100                     // 0x64
+	.word	280                     // 0x118
+	.word	89                      // 0x59
+	.word	293                     // 0x125
+	.word	324                     // 0x144
+	.word	284                     // 0x11c
+	.word	205                     // 0xcd
+	.word	245                     // 0xf5
+	.word	317                     // 0x13d
+	.word	279                     // 0x117
+	.word	95                      // 0x5f
+	.word	58                      // 0x3a
+	.word	3                       // 0x3
+	.word	356                     // 0x164
+	.word	36                      // 0x24
+	.word	279                     // 0x117
+	.word	499                     // 0x1f3
+	.word	104                     // 0x68
+	.word	240                     // 0xf0
+	.word	55                      // 0x37
+	.word	61                      // 0x3d
+	.word	447                     // 0x1bf
+	.word	441                     // 0x1b9
+	.word	372                     // 0x174
+	.word	176                     // 0xb0
+	.word	31                      // 0x1f
+	.word	165                     // 0xa5
+	.word	137                     // 0x89
+	.word	498                     // 0x1f2
+	.word	417                     // 0x1a1
+	.word	54                      // 0x36
+	.word	282                     // 0x11a
+	.word	288                     // 0x120
+	.word	451                     // 0x1c3
+	.word	367                     // 0x16f
+	.word	237                     // 0xed
+	.word	23                      // 0x17
+	.word	483                     // 0x1e3
+	.word	164                     // 0xa4
+	.word	71                      // 0x47
+	.word	430                     // 0x1ae
+	.word	292                     // 0x124
+	.word	136                     // 0x88
+	.word	208                     // 0xd0
+	.word	415                     // 0x19f
+	.word	472                     // 0x1d8
+	.word	376                     // 0x178
+	.word	327                     // 0x147
+	.word	195                     // 0xc3
+	.word	219                     // 0xdb
+	.word	419                     // 0x1a3
+	.word	312                     // 0x138
+	.word	14                      // 0xe
+	.word	198                     // 0xc6
+	.word	347                     // 0x15b
+	.word	219                     // 0xdb
+	.word	358                     // 0x166
+	.word	401                     // 0x191
+	.word	159                     // 0x9f
+	.word	216                     // 0xd8
+	.word	94                      // 0x5e
+	.word	406                     // 0x196
+	.word	349                     // 0x15d
+	.word	6                       // 0x6
+	.word	340                     // 0x154
+	.word	206                     // 0xce
+	.word	35                      // 0x23
+	.word	456                     // 0x1c8
+	.word	363                     // 0x16b
+	.word	12                      // 0xc
+	.word	37                      // 0x25
+	.word	392                     // 0x188
+	.word	178                     // 0xb2
+	.word	250                     // 0xfa
+	.word	142                     // 0x8e
+	.word	329                     // 0x149
+	.word	389                     // 0x185
+	.word	245                     // 0xf5
+	.word	327                     // 0x147
+	.word	262                     // 0x106
+	.word	81                      // 0x51
+	.word	78                      // 0x4e
+	.word	62                      // 0x3e
+	.word	508                     // 0x1fc
+	.word	512                     // 0x200
+	.word	500                     // 0x1f4
+	.word	122                     // 0x7a
+	.word	206                     // 0xce
+	.word	77                      // 0x4d
+	.word	249                     // 0xf9
+	.word	377                     // 0x179
+	.word	320                     // 0x140
+	.word	209                     // 0xd1
+	.word	123                     // 0x7b
+	.word	416                     // 0x1a0
+	.word	237                     // 0xed
+	.word	253                     // 0xfd
+	.word	185                     // 0xb9
+	.word	154                     // 0x9a
+	.word	184                     // 0xb8
+	.word	353                     // 0x161
+	.word	405                     // 0x195
+	.word	143                     // 0x8f
+	.word	323                     // 0x143
+	.word	132                     // 0x84
+	.word	317                     // 0x13d
+	.word	155                     // 0x9b
+	.word	142                     // 0x8e
+	.word	250                     // 0xfa
+	.word	477                     // 0x1dd
+	.word	250                     // 0xfa
+	.word	307                     // 0x133
+	.word	417                     // 0x1a1
+	.word	326                     // 0x146
+	.word	190                     // 0xbe
+	.word	397                     // 0x18d
+	.word	71                      // 0x47
+	.word	73                      // 0x49
+	.word	326                     // 0x146
+	.word	45                      // 0x2d
+	.word	192                     // 0xc0
+	.word	510                     // 0x1fe
+	.word	376                     // 0x178
+	.word	473                     // 0x1d9
+	.word	61                      // 0x3d
+	.word	20                      // 0x14
+	.word	286                     // 0x11e
+	.word	482                     // 0x1e2
+	.word	178                     // 0xb2
+	.word	507                     // 0x1fb
+	.word	301                     // 0x12d
+	.word	306                     // 0x132
+	.word	319                     // 0x13f
+	.word	90                      // 0x5a
+	.word	197                     // 0xc5
+	.word	334                     // 0x14e
+	.word	119                     // 0x77
+	.word	402                     // 0x192
+	.word	66                      // 0x42
+	.word	323                     // 0x143
+	.word	445                     // 0x1bd
+	.word	506                     // 0x1fa
+	.word	473                     // 0x1d9
+	.word	309                     // 0x135
+	.word	236                     // 0xec
+	.word	404                     // 0x194
+	.word	245                     // 0xf5
+	.word	354                     // 0x162
+	.word	325                     // 0x145
+	.word	188                     // 0xbc
+	.word	387                     // 0x183
+	.word	240                     // 0xf0
+	.word	86                      // 0x56
+	.word	84                      // 0x54
+	.word	223                     // 0xdf
+	.word	186                     // 0xba
+	.word	14                      // 0xe
+	.word	478                     // 0x1de
+	.word	251                     // 0xfb
+	.word	382                     // 0x17e
+	.word	444                     // 0x1bc
+	.word	151                     // 0x97
+	.word	417                     // 0x1a1
+	.word	163                     // 0xa3
+	.word	490                     // 0x1ea
+	.word	323                     // 0x143
+	.word	253                     // 0xfd
+	.word	368                     // 0x170
+	.word	187                     // 0xbb
+	.word	271                     // 0x10f
+	.word	445                     // 0x1bd
+	.word	473                     // 0x1d9
+	.word	19                      // 0x13
+	.word	222                     // 0xde
+	.word	290                     // 0x122
+	.word	350                     // 0x15e
+	.word	285                     // 0x11d
+	.word	372                     // 0x174
+	.word	421                     // 0x1a5
+	.word	30                      // 0x1e
+	.word	380                     // 0x17c
+	.word	250                     // 0xfa
+	.word	75                      // 0x4b
+	.word	476                     // 0x1dc
+	.word	168                     // 0xa8
+	.word	245                     // 0xf5
+	.word	390                     // 0x186
+	.word	86                      // 0x56
+	.word	20                      // 0x14
+	.word	363                     // 0x16b
+	.word	165                     // 0xa5
+	.word	151                     // 0x97
+	.word	423                     // 0x1a7
+	.word	117                     // 0x75
+	.word	163                     // 0xa3
+	.word	300                     // 0x12c
+	.word	82                      // 0x52
+	.word	173                     // 0xad
+	.word	237                     // 0xed
+	.word	87                      // 0x57
+	.word	208                     // 0xd0
+	.word	282                     // 0x11a
+	.word	87                      // 0x57
+	.word	181                     // 0xb5
+	.word	481                     // 0x1e1
+	.word	187                     // 0xbb
+	.word	112                     // 0x70
+	.word	169                     // 0xa9
+	.word	69                      // 0x45
+	.word	56                      // 0x38
+	.word	131                     // 0x83
+	.word	257                     // 0x101
+	.word	24                      // 0x18
+	.word	238                     // 0xee
+	.word	78                      // 0x4e
+	.word	470                     // 0x1d6
+	.word	154                     // 0x9a
+	.word	310                     // 0x136
+	.word	197                     // 0xc5
+	.word	481                     // 0x1e1
+	.word	398                     // 0x18e
+	.word	167                     // 0xa7
+	.word	386                     // 0x182
+	.word	366                     // 0x16e
+	.word	49                      // 0x31
+	.word	337                     // 0x151
+	.word	66                      // 0x42
+	.word	119                     // 0x77
+	.word	490                     // 0x1ea
+	.word	203                     // 0xcb
+	.word	39                      // 0x27
+	.word	317                     // 0x13d
+	.word	97                      // 0x61
+	.word	33                      // 0x21
+	.word	414                     // 0x19e
+	.word	464                     // 0x1d0
+	.word	210                     // 0xd2
+	.word	336                     // 0x150
+	.word	489                     // 0x1e9
+	.word	335                     // 0x14f
+	.word	378                     // 0x17a
+	.word	116                     // 0x74
+	.word	363                     // 0x16b
+	.word	328                     // 0x148
+	.word	191                     // 0xbf
+	.word	101                     // 0x65
+	.word	407                     // 0x197
+	.word	408                     // 0x198
+	.word	259                     // 0x103
+	.word	483                     // 0x1e3
+	.word	51                      // 0x33
+	.word	377                     // 0x179
+	.word	223                     // 0xdf
+	.size	nums1k1, 4096
 
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"sqrt.c"
-	.text
+	.type	nums1k2,@object         // @nums1k2
+	.globl	nums1k2
 	.align	2
-	.global	sqroot
-	.thumb
-	.thumb_func
-	.type	sqroot, %function
-sqroot:
-	@ args = 0, pretend = 0, frame = 24
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	sub	sp, sp, #28
-	add	r7, sp, #0
-	vstr.32	s0, [r7, #4]
-	vldr.32	s14, [r7, #4]
-	vmov.f32	s13, #3.0e+0
-	vdiv.f32	s15, s14, s13
-	vstr.32	s15, [r7, #20]
-	mov	r3, #1065353216
-	str	r3, [r7, #16]	@ float
-	vldr.32	s15, [r7, #4]
-	vcmpe.f32	s15, #0
-	vmrs	APSR_nzcv, FPSCR
-	bls	.L5
-	b	.L2
-.L5:
-	mov	r3, #0
-	b	.L4
-.L2:
-	ldr	r3, [r7, #20]	@ float
-	str	r3, [r7, #12]	@ float
-	vldr.32	s13, [r7, #4]
-	vldr.32	s15, [r7, #20]
-	vdiv.f32	s14, s13, s15
-	vldr.32	s15, [r7, #20]
-	vadd.f32	s14, s14, s15
-	vmov.f32	s13, #2.0e+0
-	vdiv.f32	s15, s14, s13
-	vstr.32	s15, [r7, #20]
-	vldr.32	s14, [r7, #20]
-	vldr.32	s15, [r7, #12]
-	vsub.f32	s15, s14, s15
-	vstr.32	s15, [r7, #16]
-	vldr.32	s15, [r7, #16]
-	vcvt.f64.f32	d16, s15
-	vldr.64	d17, .L6
-	vcmpe.f64	d16, d17
-	vmrs	APSR_nzcv, FPSCR
-	bgt	.L2
-	vldr.32	s15, [r7, #16]
-	vcvt.f64.f32	d16, s15
-	vldr.64	d17, .L6+8
-	vcmpe.f64	d16, d17
-	vmrs	APSR_nzcv, FPSCR
-	bmi	.L2
-	ldr	r3, [r7, #20]	@ float
-.L4:
-	vmov	s15, r3
-	vmov.f32	s0, s15
-	adds	r7, r7, #28
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-.L7:
+nums1k2:
+	.word	348                     // 0x15c
+	.word	348                     // 0x15c
+	.word	4                       // 0x4
+	.word	379                     // 0x17b
+	.word	124                     // 0x7c
+	.word	157                     // 0x9d
+	.word	325                     // 0x145
+	.word	427                     // 0x1ab
+	.word	423                     // 0x1a7
+	.word	337                     // 0x151
+	.word	460                     // 0x1cc
+	.word	131                     // 0x83
+	.word	240                     // 0xf0
+	.word	232                     // 0xe8
+	.word	165                     // 0xa5
+	.word	278                     // 0x116
+	.word	158                     // 0x9e
+	.word	490                     // 0x1ea
+	.word	101                     // 0x65
+	.word	250                     // 0xfa
+	.word	109                     // 0x6d
+	.word	506                     // 0x1fa
+	.word	332                     // 0x14c
+	.word	245                     // 0xf5
+	.word	462                     // 0x1ce
+	.word	253                     // 0xfd
+	.word	165                     // 0xa5
+	.word	254                     // 0xfe
+	.word	321                     // 0x141
+	.word	390                     // 0x186
+	.word	107                     // 0x6b
+	.word	444                     // 0x1bc
+	.word	498                     // 0x1f2
+	.word	8                       // 0x8
+	.word	360                     // 0x168
+	.word	220                     // 0xdc
+	.word	79                      // 0x4f
+	.word	141                     // 0x8d
+	.word	474                     // 0x1da
+	.word	171                     // 0xab
+	.word	271                     // 0x10f
+	.word	243                     // 0xf3
+	.word	96                      // 0x60
+	.word	348                     // 0x15c
+	.word	297                     // 0x129
+	.word	181                     // 0xb5
+	.word	466                     // 0x1d2
+	.word	65                      // 0x41
+	.word	100                     // 0x64
+	.word	174                     // 0xae
+	.word	360                     // 0x168
+	.word	453                     // 0x1c5
+	.word	207                     // 0xcf
+	.word	414                     // 0x19e
+	.word	190                     // 0xbe
+	.word	134                     // 0x86
+	.word	92                      // 0x5c
+	.word	279                     // 0x117
+	.word	464                     // 0x1d0
+	.word	503                     // 0x1f7
+	.word	158                     // 0x9e
+	.word	159                     // 0x9f
+	.word	98                      // 0x62
+	.word	158                     // 0x9e
+	.word	302                     // 0x12e
+	.word	25                      // 0x19
+	.word	188                     // 0xbc
+	.word	337                     // 0x151
+	.word	8                       // 0x8
+	.word	98                      // 0x62
+	.word	393                     // 0x189
+	.word	90                      // 0x5a
+	.word	396                     // 0x18c
+	.word	504                     // 0x1f8
+	.word	205                     // 0xcd
+	.word	425                     // 0x1a9
+	.word	175                     // 0xaf
+	.word	439                     // 0x1b7
+	.word	58                      // 0x3a
+	.word	343                     // 0x157
+	.word	247                     // 0xf7
+	.word	113                     // 0x71
+	.word	249                     // 0xf9
+	.word	150                     // 0x96
+	.word	348                     // 0x15c
+	.word	24                      // 0x18
+	.word	174                     // 0xae
+	.word	376                     // 0x178
+	.word	331                     // 0x14b
+	.word	302                     // 0x12e
+	.word	280                     // 0x118
+	.word	251                     // 0xfb
+	.word	510                     // 0x1fe
+	.word	113                     // 0x71
+	.word	241                     // 0xf1
+	.word	507                     // 0x1fb
+	.word	9                       // 0x9
+	.word	389                     // 0x185
+	.word	172                     // 0xac
+	.word	214                     // 0xd6
+	.word	253                     // 0xfd
+	.word	497                     // 0x1f1
+	.word	401                     // 0x191
+	.word	243                     // 0xf3
+	.word	7                       // 0x7
+	.word	80                      // 0x50
+	.word	499                     // 0x1f3
+	.word	133                     // 0x85
+	.word	208                     // 0xd0
+	.word	477                     // 0x1dd
+	.word	456                     // 0x1c8
+	.word	376                     // 0x178
+	.word	350                     // 0x15e
+	.word	53                      // 0x35
+	.word	466                     // 0x1d2
+	.word	84                      // 0x54
+	.word	261                     // 0x105
+	.word	193                     // 0xc1
+	.word	215                     // 0xd7
+	.word	9                       // 0x9
+	.word	509                     // 0x1fd
+	.word	462                     // 0x1ce
+	.word	378                     // 0x17a
+	.word	363                     // 0x16b
+	.word	154                     // 0x9a
+	.word	482                     // 0x1e2
+	.word	72                      // 0x48
+	.word	266                     // 0x10a
+	.word	465                     // 0x1d1
+	.word	73                      // 0x49
+	.word	460                     // 0x1cc
+	.word	406                     // 0x196
+	.word	454                     // 0x1c6
+	.word	478                     // 0x1de
+	.word	447                     // 0x1bf
+	.word	94                      // 0x5e
+	.word	283                     // 0x11b
+	.word	107                     // 0x6b
+	.word	483                     // 0x1e3
+	.word	404                     // 0x194
+	.word	48                      // 0x30
+	.word	297                     // 0x129
+	.word	207                     // 0xcf
+	.word	47                      // 0x2f
+	.word	435                     // 0x1b3
+	.word	56                      // 0x38
+	.word	416                     // 0x1a0
+	.word	362                     // 0x16a
+	.word	181                     // 0xb5
+	.word	327                     // 0x147
+	.word	36                      // 0x24
+	.word	231                     // 0xe7
+	.word	273                     // 0x111
+	.word	48                      // 0x30
+	.word	123                     // 0x7b
+	.word	455                     // 0x1c7
+	.word	319                     // 0x13f
+	.word	358                     // 0x166
+	.word	21                      // 0x15
+	.word	153                     // 0x99
+	.word	161                     // 0xa1
+	.word	178                     // 0xb2
+	.word	382                     // 0x17e
+	.word	415                     // 0x19f
+	.word	362                     // 0x16a
+	.word	2                       // 0x2
+	.word	116                     // 0x74
+	.word	420                     // 0x1a4
+	.word	197                     // 0xc5
+	.word	60                      // 0x3c
+	.word	205                     // 0xcd
+	.word	16                      // 0x10
+	.word	506                     // 0x1fa
+	.word	109                     // 0x6d
+	.word	60                      // 0x3c
+	.word	135                     // 0x87
+	.word	491                     // 0x1eb
+	.word	414                     // 0x19e
+	.word	150                     // 0x96
+	.word	41                      // 0x29
+	.word	342                     // 0x156
+	.word	126                     // 0x7e
+	.word	188                     // 0xbc
+	.word	172                     // 0xac
+	.word	348                     // 0x15c
+	.word	383                     // 0x17f
+	.word	475                     // 0x1db
+	.word	454                     // 0x1c6
+	.word	236                     // 0xec
+	.word	461                     // 0x1cd
+	.word	370                     // 0x172
+	.word	113                     // 0x71
+	.word	158                     // 0x9e
+	.word	145                     // 0x91
+	.word	157                     // 0x9d
+	.word	17                      // 0x11
+	.word	90                      // 0x5a
+	.word	479                     // 0x1df
+	.word	497                     // 0x1f1
+	.word	384                     // 0x180
+	.word	18                      // 0x12
+	.word	92                      // 0x5c
+	.word	471                     // 0x1d7
+	.word	300                     // 0x12c
+	.word	137                     // 0x89
+	.word	230                     // 0xe6
+	.word	105                     // 0x69
+	.word	68                      // 0x44
+	.word	128                     // 0x80
+	.word	487                     // 0x1e7
+	.word	125                     // 0x7d
+	.word	9                       // 0x9
+	.word	158                     // 0x9e
+	.word	105                     // 0x69
+	.word	4                       // 0x4
+	.word	374                     // 0x176
+	.word	202                     // 0xca
+	.word	315                     // 0x13b
+	.word	295                     // 0x127
+	.word	11                      // 0xb
+	.word	512                     // 0x200
+	.word	247                     // 0xf7
+	.word	276                     // 0x114
+	.word	55                      // 0x37
+	.word	52                      // 0x34
+	.word	507                     // 0x1fb
+	.word	390                     // 0x186
+	.word	74                      // 0x4a
+	.word	470                     // 0x1d6
+	.word	16                      // 0x10
+	.word	332                     // 0x14c
+	.word	235                     // 0xeb
+	.word	455                     // 0x1c7
+	.word	374                     // 0x176
+	.word	175                     // 0xaf
+	.word	361                     // 0x169
+	.word	414                     // 0x19e
+	.word	143                     // 0x8f
+	.word	481                     // 0x1e1
+	.word	193                     // 0xc1
+	.word	409                     // 0x199
+	.word	212                     // 0xd4
+	.word	361                     // 0x169
+	.word	179                     // 0xb3
+	.word	189                     // 0xbd
+	.word	243                     // 0xf3
+	.word	330                     // 0x14a
+	.word	356                     // 0x164
+	.word	503                     // 0x1f7
+	.word	385                     // 0x181
+	.word	397                     // 0x18d
+	.word	110                     // 0x6e
+	.word	486                     // 0x1e6
+	.word	157                     // 0x9d
+	.word	169                     // 0xa9
+	.word	31                      // 0x1f
+	.word	276                     // 0x114
+	.word	455                     // 0x1c7
+	.word	499                     // 0x1f3
+	.word	161                     // 0xa1
+	.word	43                      // 0x2b
+	.word	315                     // 0x13b
+	.word	264                     // 0x108
+	.word	441                     // 0x1b9
+	.word	242                     // 0xf2
+	.word	145                     // 0x91
+	.word	204                     // 0xcc
+	.word	181                     // 0xb5
+	.word	206                     // 0xce
+	.word	83                      // 0x53
+	.word	354                     // 0x162
+	.word	446                     // 0x1be
+	.word	86                      // 0x56
+	.word	150                     // 0x96
+	.word	338                     // 0x152
+	.word	18                      // 0x12
+	.word	488                     // 0x1e8
+	.word	483                     // 0x1e3
+	.word	297                     // 0x129
+	.word	213                     // 0xd5
+	.word	479                     // 0x1df
+	.word	314                     // 0x13a
+	.word	439                     // 0x1b7
+	.word	353                     // 0x161
+	.word	272                     // 0x110
+	.word	4                       // 0x4
+	.word	75                      // 0x4b
+	.word	420                     // 0x1a4
+	.word	143                     // 0x8f
+	.word	413                     // 0x19d
+	.word	153                     // 0x99
+	.word	105                     // 0x69
+	.word	376                     // 0x178
+	.word	158                     // 0x9e
+	.word	101                     // 0x65
+	.word	327                     // 0x147
+	.word	396                     // 0x18c
+	.word	81                      // 0x51
+	.word	427                     // 0x1ab
+	.word	227                     // 0xe3
+	.word	404                     // 0x194
+	.word	48                      // 0x30
+	.word	302                     // 0x12e
+	.word	458                     // 0x1ca
+	.word	446                     // 0x1be
+	.word	422                     // 0x1a6
+	.word	134                     // 0x86
+	.word	42                      // 0x2a
+	.word	132                     // 0x84
+	.word	473                     // 0x1d9
+	.word	197                     // 0xc5
+	.word	258                     // 0x102
+	.word	146                     // 0x92
+	.word	99                      // 0x63
+	.word	220                     // 0xdc
+	.word	434                     // 0x1b2
+	.word	381                     // 0x17d
+	.word	489                     // 0x1e9
+	.word	365                     // 0x16d
+	.word	315                     // 0x13b
+	.word	280                     // 0x118
+	.word	437                     // 0x1b5
+	.word	284                     // 0x11c
+	.word	99                      // 0x63
+	.word	388                     // 0x184
+	.word	247                     // 0xf7
+	.word	494                     // 0x1ee
+	.word	477                     // 0x1dd
+	.word	122                     // 0x7a
+	.word	470                     // 0x1d6
+	.word	42                      // 0x2a
+	.word	47                      // 0x2f
+	.word	130                     // 0x82
+	.word	17                      // 0x11
+	.word	484                     // 0x1e4
+	.word	421                     // 0x1a5
+	.word	268                     // 0x10c
+	.word	390                     // 0x186
+	.word	490                     // 0x1ea
+	.word	317                     // 0x13d
+	.word	417                     // 0x1a1
+	.word	205                     // 0xcd
+	.word	220                     // 0xdc
+	.word	242                     // 0xf2
+	.word	477                     // 0x1dd
+	.word	508                     // 0x1fc
+	.word	196                     // 0xc4
+	.word	415                     // 0x19f
+	.word	5                       // 0x5
+	.word	144                     // 0x90
+	.word	479                     // 0x1df
+	.word	34                      // 0x22
+	.word	117                     // 0x75
+	.word	472                     // 0x1d8
+	.word	309                     // 0x135
+	.word	456                     // 0x1c8
+	.word	72                      // 0x48
+	.word	393                     // 0x189
+	.word	51                      // 0x33
+	.word	295                     // 0x127
+	.word	407                     // 0x197
+	.word	155                     // 0x9b
+	.word	128                     // 0x80
+	.word	47                      // 0x2f
+	.word	400                     // 0x190
+	.word	42                      // 0x2a
+	.word	424                     // 0x1a8
+	.word	168                     // 0xa8
+	.word	231                     // 0xe7
+	.word	468                     // 0x1d4
+	.word	24                      // 0x18
+	.word	467                     // 0x1d3
+	.word	226                     // 0xe2
+	.word	389                     // 0x185
+	.word	68                      // 0x44
+	.word	403                     // 0x193
+	.word	502                     // 0x1f6
+	.word	253                     // 0xfd
+	.word	409                     // 0x199
+	.word	505                     // 0x1f9
+	.word	333                     // 0x14d
+	.word	142                     // 0x8e
+	.word	203                     // 0xcb
+	.word	161                     // 0xa1
+	.word	426                     // 0x1aa
+	.word	322                     // 0x142
+	.word	329                     // 0x149
+	.word	130                     // 0x82
+	.word	114                     // 0x72
+	.word	398                     // 0x18e
+	.word	302                     // 0x12e
+	.word	306                     // 0x132
+	.word	268                     // 0x10c
+	.word	282                     // 0x11a
+	.word	168                     // 0xa8
+	.word	35                      // 0x23
+	.word	214                     // 0xd6
+	.word	28                      // 0x1c
+	.word	355                     // 0x163
+	.word	366                     // 0x16e
+	.word	208                     // 0xd0
+	.word	320                     // 0x140
+	.word	418                     // 0x1a2
+	.word	20                      // 0x14
+	.word	239                     // 0xef
+	.word	216                     // 0xd8
+	.word	277                     // 0x115
+	.word	343                     // 0x157
+	.word	33                      // 0x21
+	.word	250                     // 0xfa
+	.word	28                      // 0x1c
+	.word	339                     // 0x153
+	.word	151                     // 0x97
+	.word	232                     // 0xe8
+	.word	336                     // 0x150
+	.word	124                     // 0x7c
+	.word	36                      // 0x24
+	.word	203                     // 0xcb
+	.word	376                     // 0x178
+	.word	225                     // 0xe1
+	.word	114                     // 0x72
+	.word	390                     // 0x186
+	.word	241                     // 0xf1
+	.word	408                     // 0x198
+	.word	246                     // 0xf6
+	.word	21                      // 0x15
+	.word	246                     // 0xf6
+	.word	412                     // 0x19c
+	.word	421                     // 0x1a5
+	.word	419                     // 0x1a3
+	.word	472                     // 0x1d8
+	.word	454                     // 0x1c6
+	.word	239                     // 0xef
+	.word	162                     // 0xa2
+	.word	482                     // 0x1e2
+	.word	262                     // 0x106
+	.word	132                     // 0x84
+	.word	506                     // 0x1fa
+	.word	305                     // 0x131
+	.word	239                     // 0xef
+	.word	341                     // 0x155
+	.word	247                     // 0xf7
+	.word	253                     // 0xfd
+	.word	338                     // 0x152
+	.word	200                     // 0xc8
+	.word	37                      // 0x25
+	.word	86                      // 0x56
+	.word	66                      // 0x42
+	.word	49                      // 0x31
+	.word	458                     // 0x1ca
+	.word	21                      // 0x15
+	.word	89                      // 0x59
+	.word	54                      // 0x36
+	.word	299                     // 0x12b
+	.word	86                      // 0x56
+	.word	26                      // 0x1a
+	.word	417                     // 0x1a1
+	.word	143                     // 0x8f
+	.word	275                     // 0x113
+	.word	226                     // 0xe2
+	.word	325                     // 0x145
+	.word	56                      // 0x38
+	.word	183                     // 0xb7
+	.word	435                     // 0x1b3
+	.word	262                     // 0x106
+	.word	506                     // 0x1fa
+	.word	181                     // 0xb5
+	.word	228                     // 0xe4
+	.word	197                     // 0xc5
+	.word	270                     // 0x10e
+	.word	339                     // 0x153
+	.word	153                     // 0x99
+	.word	364                     // 0x16c
+	.word	471                     // 0x1d7
+	.word	283                     // 0x11b
+	.word	508                     // 0x1fc
+	.word	510                     // 0x1fe
+	.word	167                     // 0xa7
+	.word	337                     // 0x151
+	.word	462                     // 0x1ce
+	.word	41                      // 0x29
+	.word	338                     // 0x152
+	.word	388                     // 0x184
+	.word	106                     // 0x6a
+	.word	162                     // 0xa2
+	.word	439                     // 0x1b7
+	.word	473                     // 0x1d9
+	.word	505                     // 0x1f9
+	.word	16                      // 0x10
+	.word	87                      // 0x57
+	.word	338                     // 0x152
+	.word	48                      // 0x30
+	.word	504                     // 0x1f8
+	.word	402                     // 0x192
+	.word	261                     // 0x105
+	.word	376                     // 0x178
+	.word	317                     // 0x13d
+	.word	117                     // 0x75
+	.word	345                     // 0x159
+	.word	388                     // 0x184
+	.word	374                     // 0x176
+	.word	109                     // 0x6d
+	.word	272                     // 0x110
+	.word	301                     // 0x12d
+	.word	398                     // 0x18e
+	.word	435                     // 0x1b3
+	.word	348                     // 0x15c
+	.word	482                     // 0x1e2
+	.word	438                     // 0x1b6
+	.word	239                     // 0xef
+	.word	272                     // 0x110
+	.word	52                      // 0x34
+	.word	85                      // 0x55
+	.word	454                     // 0x1c6
+	.word	349                     // 0x15d
+	.word	475                     // 0x1db
+	.word	46                      // 0x2e
+	.word	188                     // 0xbc
+	.word	85                      // 0x55
+	.word	92                      // 0x5c
+	.word	246                     // 0xf6
+	.word	432                     // 0x1b0
+	.word	398                     // 0x18e
+	.word	169                     // 0xa9
+	.word	477                     // 0x1dd
+	.word	126                     // 0x7e
+	.word	291                     // 0x123
+	.word	158                     // 0x9e
+	.word	141                     // 0x8d
+	.word	143                     // 0x8f
+	.word	199                     // 0xc7
+	.word	415                     // 0x19f
+	.word	144                     // 0x90
+	.word	152                     // 0x98
+	.word	329                     // 0x149
+	.word	67                      // 0x43
+	.word	286                     // 0x11e
+	.word	347                     // 0x15b
+	.word	126                     // 0x7e
+	.word	290                     // 0x122
+	.word	148                     // 0x94
+	.word	421                     // 0x1a5
+	.word	273                     // 0x111
+	.word	342                     // 0x156
+	.word	13                      // 0xd
+	.word	205                     // 0xcd
+	.word	424                     // 0x1a8
+	.word	269                     // 0x10d
+	.word	117                     // 0x75
+	.word	155                     // 0x9b
+	.word	42                      // 0x2a
+	.word	99                      // 0x63
+	.word	262                     // 0x106
+	.word	343                     // 0x157
+	.word	359                     // 0x167
+	.word	16                      // 0x10
+	.word	320                     // 0x140
+	.word	466                     // 0x1d2
+	.word	182                     // 0xb6
+	.word	443                     // 0x1bb
+	.word	412                     // 0x19c
+	.word	435                     // 0x1b3
+	.word	335                     // 0x14f
+	.word	70                      // 0x46
+	.word	494                     // 0x1ee
+	.word	373                     // 0x175
+	.word	463                     // 0x1cf
+	.word	506                     // 0x1fa
+	.word	66                      // 0x42
+	.word	476                     // 0x1dc
+	.word	338                     // 0x152
+	.word	261                     // 0x105
+	.word	223                     // 0xdf
+	.word	505                     // 0x1f9
+	.word	432                     // 0x1b0
+	.word	400                     // 0x190
+	.word	478                     // 0x1de
+	.word	408                     // 0x198
+	.word	99                      // 0x63
+	.word	470                     // 0x1d6
+	.word	331                     // 0x14b
+	.word	202                     // 0xca
+	.word	272                     // 0x110
+	.word	362                     // 0x16a
+	.word	430                     // 0x1ae
+	.word	292                     // 0x124
+	.word	243                     // 0xf3
+	.word	158                     // 0x9e
+	.word	499                     // 0x1f3
+	.word	266                     // 0x10a
+	.word	200                     // 0xc8
+	.word	413                     // 0x19d
+	.word	94                      // 0x5e
+	.word	142                     // 0x8e
+	.word	451                     // 0x1c3
+	.word	231                     // 0xe7
+	.word	414                     // 0x19e
+	.word	151                     // 0x97
+	.word	294                     // 0x126
+	.word	154                     // 0x9a
+	.word	264                     // 0x108
+	.word	478                     // 0x1de
+	.word	10                      // 0xa
+	.word	28                      // 0x1c
+	.word	150                     // 0x96
+	.word	352                     // 0x160
+	.word	390                     // 0x186
+	.word	337                     // 0x151
+	.word	67                      // 0x43
+	.word	185                     // 0xb9
+	.word	30                      // 0x1e
+	.word	137                     // 0x89
+	.word	410                     // 0x19a
+	.word	113                     // 0x71
+	.word	258                     // 0x102
+	.word	332                     // 0x14c
+	.word	174                     // 0xae
+	.word	508                     // 0x1fc
+	.word	296                     // 0x128
+	.word	94                      // 0x5e
+	.word	132                     // 0x84
+	.word	202                     // 0xca
+	.word	306                     // 0x132
+	.word	452                     // 0x1c4
+	.word	185                     // 0xb9
+	.word	113                     // 0x71
+	.word	409                     // 0x199
+	.word	193                     // 0xc1
+	.word	364                     // 0x16c
+	.word	29                      // 0x1d
+	.word	210                     // 0xd2
+	.word	206                     // 0xce
+	.word	127                     // 0x7f
+	.word	244                     // 0xf4
+	.word	177                     // 0xb1
+	.word	394                     // 0x18a
+	.word	282                     // 0x11a
+	.word	329                     // 0x149
+	.word	317                     // 0x13d
+	.word	482                     // 0x1e2
+	.word	384                     // 0x180
+	.word	450                     // 0x1c2
+	.word	150                     // 0x96
+	.word	450                     // 0x1c2
+	.word	295                     // 0x127
+	.word	346                     // 0x15a
+	.word	191                     // 0xbf
+	.word	99                      // 0x63
+	.word	63                      // 0x3f
+	.word	362                     // 0x16a
+	.word	59                      // 0x3b
+	.word	50                      // 0x32
+	.word	470                     // 0x1d6
+	.word	235                     // 0xeb
+	.word	360                     // 0x168
+	.word	443                     // 0x1bb
+	.word	352                     // 0x160
+	.word	392                     // 0x188
+	.word	134                     // 0x86
+	.word	510                     // 0x1fe
+	.word	511                     // 0x1ff
+	.word	318                     // 0x13e
+	.word	303                     // 0x12f
+	.word	113                     // 0x71
+	.word	79                      // 0x4f
+	.word	84                      // 0x54
+	.word	170                     // 0xaa
+	.word	143                     // 0x8f
+	.word	135                     // 0x87
+	.word	266                     // 0x10a
+	.word	326                     // 0x146
+	.word	69                      // 0x45
+	.word	12                      // 0xc
+	.word	330                     // 0x14a
+	.word	82                      // 0x52
+	.word	504                     // 0x1f8
+	.word	492                     // 0x1ec
+	.word	174                     // 0xae
+	.word	455                     // 0x1c7
+	.word	228                     // 0xe4
+	.word	175                     // 0xaf
+	.word	446                     // 0x1be
+	.word	61                      // 0x3d
+	.word	405                     // 0x195
+	.word	444                     // 0x1bc
+	.word	451                     // 0x1c3
+	.word	97                      // 0x61
+	.word	241                     // 0xf1
+	.word	498                     // 0x1f2
+	.word	239                     // 0xef
+	.word	278                     // 0x116
+	.word	478                     // 0x1de
+	.word	401                     // 0x191
+	.word	154                     // 0x9a
+	.word	223                     // 0xdf
+	.word	231                     // 0xe7
+	.word	445                     // 0x1bd
+	.word	251                     // 0xfb
+	.word	83                      // 0x53
+	.word	374                     // 0x176
+	.word	121                     // 0x79
+	.word	506                     // 0x1fa
+	.word	16                      // 0x10
+	.word	291                     // 0x123
+	.word	202                     // 0xca
+	.word	104                     // 0x68
+	.word	456                     // 0x1c8
+	.word	124                     // 0x7c
+	.word	445                     // 0x1bd
+	.word	104                     // 0x68
+	.word	223                     // 0xdf
+	.word	312                     // 0x138
+	.word	437                     // 0x1b5
+	.word	462                     // 0x1ce
+	.word	491                     // 0x1eb
+	.word	403                     // 0x193
+	.word	229                     // 0xe5
+	.word	89                      // 0x59
+	.word	466                     // 0x1d2
+	.word	41                      // 0x29
+	.word	427                     // 0x1ab
+	.word	274                     // 0x112
+	.word	380                     // 0x17c
+	.word	27                      // 0x1b
+	.word	484                     // 0x1e4
+	.word	328                     // 0x148
+	.word	341                     // 0x155
+	.word	344                     // 0x158
+	.word	5                       // 0x5
+	.word	479                     // 0x1df
+	.word	137                     // 0x89
+	.word	127                     // 0x7f
+	.word	86                      // 0x56
+	.word	271                     // 0x10f
+	.word	94                      // 0x5e
+	.word	442                     // 0x1ba
+	.word	140                     // 0x8c
+	.word	466                     // 0x1d2
+	.word	431                     // 0x1af
+	.word	485                     // 0x1e5
+	.word	427                     // 0x1ab
+	.word	324                     // 0x144
+	.word	297                     // 0x129
+	.word	150                     // 0x96
+	.word	237                     // 0xed
+	.word	43                      // 0x2b
+	.word	271                     // 0x10f
+	.word	255                     // 0xff
+	.word	24                      // 0x18
+	.word	470                     // 0x1d6
+	.word	10                      // 0xa
+	.word	503                     // 0x1f7
+	.word	344                     // 0x158
+	.word	488                     // 0x1e8
+	.word	511                     // 0x1ff
+	.word	431                     // 0x1af
+	.word	490                     // 0x1ea
+	.word	270                     // 0x10e
+	.word	317                     // 0x13d
+	.word	180                     // 0xb4
+	.word	334                     // 0x14e
+	.word	434                     // 0x1b2
+	.word	254                     // 0xfe
+	.word	203                     // 0xcb
+	.word	110                     // 0x6e
+	.word	426                     // 0x1aa
+	.word	450                     // 0x1c2
+	.word	175                     // 0xaf
+	.word	145                     // 0x91
+	.word	220                     // 0xdc
+	.word	411                     // 0x19b
+	.word	478                     // 0x1de
+	.word	156                     // 0x9c
+	.word	271                     // 0x10f
+	.word	483                     // 0x1e3
+	.word	319                     // 0x13f
+	.word	81                      // 0x51
+	.word	149                     // 0x95
+	.word	175                     // 0xaf
+	.word	424                     // 0x1a8
+	.word	165                     // 0xa5
+	.word	326                     // 0x146
+	.word	512                     // 0x200
+	.word	53                      // 0x35
+	.word	108                     // 0x6c
+	.word	432                     // 0x1b0
+	.word	217                     // 0xd9
+	.word	146                     // 0x92
+	.word	107                     // 0x6b
+	.word	108                     // 0x6c
+	.word	401                     // 0x191
+	.word	339                     // 0x153
+	.word	412                     // 0x19c
+	.word	336                     // 0x150
+	.word	211                     // 0xd3
+	.word	68                      // 0x44
+	.word	120                     // 0x78
+	.word	153                     // 0x99
+	.word	415                     // 0x19f
+	.word	314                     // 0x13a
+	.word	307                     // 0x133
+	.word	26                      // 0x1a
+	.word	374                     // 0x176
+	.word	458                     // 0x1ca
+	.word	8                       // 0x8
+	.word	226                     // 0xe2
+	.word	49                      // 0x31
+	.word	458                     // 0x1ca
+	.word	8                       // 0x8
+	.word	369                     // 0x171
+	.word	43                      // 0x2b
+	.word	205                     // 0xcd
+	.word	241                     // 0xf1
+	.word	471                     // 0x1d7
+	.word	73                      // 0x49
+	.word	363                     // 0x16b
+	.word	203                     // 0xcb
+	.word	443                     // 0x1bb
+	.word	457                     // 0x1c9
+	.word	186                     // 0xba
+	.word	102                     // 0x66
+	.word	405                     // 0x195
+	.word	343                     // 0x157
+	.word	190                     // 0xbe
+	.word	84                      // 0x54
+	.word	43                      // 0x2b
+	.word	13                      // 0xd
+	.word	379                     // 0x17b
+	.word	89                      // 0x59
+	.word	43                      // 0x2b
+	.word	435                     // 0x1b3
+	.word	164                     // 0xa4
+	.word	89                      // 0x59
+	.word	111                     // 0x6f
+	.word	135                     // 0x87
+	.word	446                     // 0x1be
+	.word	186                     // 0xba
+	.word	120                     // 0x78
+	.word	149                     // 0x95
+	.word	165                     // 0xa5
+	.word	264                     // 0x108
+	.word	23                      // 0x17
+	.word	15                      // 0xf
+	.word	254                     // 0xfe
+	.word	309                     // 0x135
+	.word	376                     // 0x178
+	.word	301                     // 0x12d
+	.word	149                     // 0x95
+	.word	93                      // 0x5d
+	.word	415                     // 0x19f
+	.word	205                     // 0xcd
+	.word	245                     // 0xf5
+	.word	74                      // 0x4a
+	.word	304                     // 0x130
+	.word	163                     // 0xa3
+	.word	256                     // 0x100
+	.word	7                       // 0x7
+	.word	7                       // 0x7
+	.word	188                     // 0xbc
+	.word	182                     // 0xb6
+	.word	316                     // 0x13c
+	.word	11                      // 0xb
+	.word	52                      // 0x34
+	.word	380                     // 0x17c
+	.word	246                     // 0xf6
+	.word	305                     // 0x131
+	.word	228                     // 0xe4
+	.word	429                     // 0x1ad
+	.word	87                      // 0x57
+	.word	422                     // 0x1a6
+	.word	368                     // 0x170
+	.word	85                      // 0x55
+	.word	28                      // 0x1c
+	.word	271                     // 0x10f
+	.word	423                     // 0x1a7
+	.word	81                      // 0x51
+	.word	44                      // 0x2c
+	.word	128                     // 0x80
+	.word	456                     // 0x1c8
+	.word	365                     // 0x16d
+	.word	353                     // 0x161
+	.word	20                      // 0x14
+	.word	75                      // 0x4b
+	.word	131                     // 0x83
+	.word	376                     // 0x178
+	.word	40                      // 0x28
+	.word	495                     // 0x1ef
+	.word	273                     // 0x111
+	.word	143                     // 0x8f
+	.word	306                     // 0x132
+	.word	352                     // 0x160
+	.word	13                      // 0xd
+	.word	491                     // 0x1eb
+	.word	429                     // 0x1ad
+	.word	391                     // 0x187
+	.word	395                     // 0x18b
+	.word	502                     // 0x1f6
+	.word	72                      // 0x48
+	.word	391                     // 0x187
+	.word	71                      // 0x47
+	.word	271                     // 0x10f
+	.word	467                     // 0x1d3
+	.word	397                     // 0x18d
+	.word	95                      // 0x5f
+	.word	438                     // 0x1b6
+	.word	475                     // 0x1db
+	.word	118                     // 0x76
+	.word	485                     // 0x1e5
+	.word	427                     // 0x1ab
+	.word	160                     // 0xa0
+	.word	34                      // 0x22
+	.word	149                     // 0x95
+	.word	165                     // 0xa5
+	.word	90                      // 0x5a
+	.word	377                     // 0x179
+	.word	8                       // 0x8
+	.word	405                     // 0x195
+	.word	42                      // 0x2a
+	.word	50                      // 0x32
+	.word	160                     // 0xa0
+	.word	501                     // 0x1f5
+	.word	22                      // 0x16
+	.word	24                      // 0x18
+	.word	185                     // 0xb9
+	.word	172                     // 0xac
+	.word	402                     // 0x192
+	.word	123                     // 0x7b
+	.word	247                     // 0xf7
+	.word	479                     // 0x1df
+	.word	183                     // 0xb7
+	.word	10                      // 0xa
+	.word	440                     // 0x1b8
+	.word	403                     // 0x193
+	.word	43                      // 0x2b
+	.word	103                     // 0x67
+	.word	204                     // 0xcc
+	.word	428                     // 0x1ac
+	.word	300                     // 0x12c
+	.word	253                     // 0xfd
+	.word	312                     // 0x138
+	.word	217                     // 0xd9
+	.word	384                     // 0x180
+	.word	254                     // 0xfe
+	.word	16                      // 0x10
+	.word	375                     // 0x177
+	.word	212                     // 0xd4
+	.word	418                     // 0x1a2
+	.word	312                     // 0x138
+	.word	301                     // 0x12d
+	.word	214                     // 0xd6
+	.word	55                      // 0x37
+	.word	11                      // 0xb
+	.word	509                     // 0x1fd
+	.word	362                     // 0x16a
+	.word	200                     // 0xc8
+	.word	224                     // 0xe0
+	.word	484                     // 0x1e4
+	.word	136                     // 0x88
+	.word	475                     // 0x1db
+	.word	477                     // 0x1dd
+	.word	266                     // 0x10a
+	.word	410                     // 0x19a
+	.word	244                     // 0xf4
+	.word	256                     // 0x100
+	.word	217                     // 0xd9
+	.word	372                     // 0x174
+	.word	460                     // 0x1cc
+	.word	497                     // 0x1f1
+	.word	3                       // 0x3
+	.word	316                     // 0x13c
+	.word	477                     // 0x1dd
+	.word	474                     // 0x1da
+	.word	61                      // 0x3d
+	.word	462                     // 0x1ce
+	.word	332                     // 0x14c
+	.word	111                     // 0x6f
+	.word	183                     // 0xb7
+	.word	478                     // 0x1de
+	.word	29                      // 0x1d
+	.word	365                     // 0x16d
+	.word	511                     // 0x1ff
+	.word	421                     // 0x1a5
+	.word	453                     // 0x1c5
+	.word	287                     // 0x11f
+	.word	141                     // 0x8d
+	.word	177                     // 0xb1
+	.word	100                     // 0x64
+	.word	81                      // 0x51
+	.word	266                     // 0x10a
+	.word	451                     // 0x1c3
+	.word	235                     // 0xeb
+	.word	235                     // 0xeb
+	.word	198                     // 0xc6
+	.word	262                     // 0x106
+	.word	409                     // 0x199
+	.word	207                     // 0xcf
+	.word	269                     // 0x10d
+	.word	493                     // 0x1ed
+	.word	192                     // 0xc0
+	.word	482                     // 0x1e2
+	.word	43                      // 0x2b
+	.word	312                     // 0x138
+	.word	492                     // 0x1ec
+	.word	261                     // 0x105
+	.word	10                      // 0xa
+	.word	245                     // 0xf5
+	.word	221                     // 0xdd
+	.word	106                     // 0x6a
+	.word	288                     // 0x120
+	.word	58                      // 0x3a
+	.word	444                     // 0x1bc
+	.word	110                     // 0x6e
+	.word	6                       // 0x6
+	.word	10                      // 0xa
+	.word	373                     // 0x175
+	.word	211                     // 0xd3
+	.word	323                     // 0x143
+	.word	159                     // 0x9f
+	.word	274                     // 0x112
+	.word	210                     // 0xd2
+	.word	209                     // 0xd1
+	.word	314                     // 0x13a
+	.word	78                      // 0x4e
+	.word	75                      // 0x4b
+	.size	nums1k2, 4096
+
+
+	.ident	"clang version 3.5.0 "
+
+	.text
+	.file	"sqrt.ll"
+	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
-.L6:
-	.word	2386185177
-	.word	1060322
-	.word	2386185177
-	.word	-2146423326
-	.size	sqroot, .-sqroot
-	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r7, lr}
-	sub	sp, sp, #8
-	add	r7, sp, #0
-	vldr.32	s0, .L10
-	bl	sqroot(PLT)
-	vmov.f32	s15, s0
-	vmov.f32	s0, s15
-	bl	sqroot(PLT)
-	vmov.f32	s15, s0
-	vmov.f32	s0, s15
-	bl	sqroot(PLT)
-	vstr.32	s0, [r7, #4]
-	movs	r3, #0
-	mov	r0, r3
-	adds	r7, r7, #8
-	mov	sp, r7
-	@ sp needed
-	pop	{r7, pc}
-.L11:
-	.align	2
-.L10:
-	.word	1078529622
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
-
-	.syntax unified
-	.arch armv8-a
-	.eabi_attribute 28, 1
-	.fpu fp-armv8
-	.eabi_attribute 20, 1
-	.eabi_attribute 21, 1
-	.eabi_attribute 23, 3
-	.eabi_attribute 24, 1
-	.eabi_attribute 25, 1
-	.eabi_attribute 26, 1
-	.eabi_attribute 30, 6
-	.eabi_attribute 34, 1
-	.eabi_attribute 18, 4
-	.thumb
-	.syntax unified
-	.file	"vadd.c"
-	.global	nums1k1
-	.data
-	.align	2
-	.type	nums1k1, %object
-	.size	nums1k1, 4096
-nums1k1:
-	.word	364
-	.word	286
-	.word	278
-	.word	283
-	.word	154
-	.word	477
-	.word	369
-	.word	480
-	.word	40
-	.word	382
-	.word	153
-	.word	293
-	.word	488
-	.word	35
-	.word	225
-	.word	172
-	.word	4
-	.word	443
-	.word	411
-	.word	429
-	.word	131
-	.word	490
-	.word	91
-	.word	89
-	.word	495
-	.word	426
-	.word	290
-	.word	411
-	.word	423
-	.word	493
-	.word	139
-	.word	414
-	.word	303
-	.word	485
-	.word	327
-	.word	44
-	.word	430
-	.word	129
-	.word	153
-	.word	331
-	.word	138
-	.word	206
-	.word	284
-	.word	461
-	.word	428
-	.word	473
-	.word	297
-	.word	90
-	.word	260
-	.word	317
-	.word	241
-	.word	135
-	.word	297
-	.word	386
-	.word	83
-	.word	481
-	.word	456
-	.word	116
-	.word	95
-	.word	47
-	.word	317
-	.word	31
-	.word	337
-	.word	29
-	.word	383
-	.word	417
-	.word	268
-	.word	134
-	.word	277
-	.word	402
-	.word	432
-	.word	493
-	.word	119
-	.word	352
-	.word	70
-	.word	459
-	.word	188
-	.word	329
-	.word	249
-	.word	287
-	.word	165
-	.word	384
-	.word	149
-	.word	371
-	.word	89
-	.word	285
-	.word	179
-	.word	133
-	.word	134
-	.word	219
-	.word	20
-	.word	11
-	.word	379
-	.word	295
-	.word	36
-	.word	380
-	.word	158
-	.word	80
-	.word	440
-	.word	335
-	.word	47
-	.word	182
-	.word	415
-	.word	452
-	.word	340
-	.word	57
-	.word	468
-	.word	182
-	.word	249
-	.word	106
-	.word	259
-	.word	276
-	.word	487
-	.word	175
-	.word	510
-	.word	63
-	.word	6
-	.word	122
-	.word	68
-	.word	34
-	.word	271
-	.word	74
-	.word	18
-	.word	126
-	.word	331
-	.word	435
-	.word	329
-	.word	60
-	.word	193
-	.word	75
-	.word	94
-	.word	128
-	.word	143
-	.word	143
-	.word	242
-	.word	423
-	.word	360
-	.word	249
-	.word	92
-	.word	342
-	.word	14
-	.word	270
-	.word	417
-	.word	110
-	.word	27
-	.word	160
-	.word	500
-	.word	428
-	.word	146
-	.word	103
-	.word	403
-	.word	304
-	.word	362
-	.word	331
-	.word	35
-	.word	392
-	.word	320
-	.word	330
-	.word	369
-	.word	34
-	.word	508
-	.word	405
-	.word	306
-	.word	338
-	.word	177
-	.word	220
-	.word	451
-	.word	369
-	.word	278
-	.word	37
-	.word	151
-	.word	378
-	.word	468
-	.word	486
-	.word	85
-	.word	206
-	.word	258
-	.word	169
-	.word	496
-	.word	505
-	.word	99
-	.word	216
-	.word	367
-	.word	99
-	.word	455
-	.word	301
-	.word	386
-	.word	447
-	.word	354
-	.word	430
-	.word	6
-	.word	266
-	.word	204
-	.word	59
-	.word	276
-	.word	11
-	.word	148
-	.word	506
-	.word	486
-	.word	459
-	.word	391
-	.word	36
-	.word	428
-	.word	54
-	.word	53
-	.word	453
-	.word	221
-	.word	503
-	.word	399
-	.word	330
-	.word	347
-	.word	487
-	.word	1
-	.word	278
-	.word	155
-	.word	221
-	.word	278
-	.word	328
-	.word	371
-	.word	150
-	.word	159
-	.word	228
-	.word	406
-	.word	101
-	.word	126
-	.word	215
-	.word	128
-	.word	26
-	.word	487
-	.word	339
-	.word	146
-	.word	24
-	.word	402
-	.word	97
-	.word	281
-	.word	320
-	.word	214
-	.word	151
-	.word	271
-	.word	363
-	.word	300
-	.word	501
-	.word	274
-	.word	41
-	.word	112
-	.word	306
-	.word	507
-	.word	293
-	.word	342
-	.word	282
-	.word	173
-	.word	477
-	.word	317
-	.word	176
-	.word	271
-	.word	327
-	.word	436
-	.word	117
-	.word	199
-	.word	276
-	.word	414
-	.word	485
-	.word	273
-	.word	76
-	.word	307
-	.word	267
-	.word	215
-	.word	327
-	.word	379
-	.word	315
-	.word	431
-	.word	313
-	.word	377
-	.word	261
-	.word	117
-	.word	195
-	.word	245
-	.word	153
-	.word	54
-	.word	427
-	.word	340
-	.word	485
-	.word	414
-	.word	318
-	.word	213
-	.word	491
-	.word	159
-	.word	511
-	.word	128
-	.word	312
-	.word	463
-	.word	297
-	.word	35
-	.word	273
-	.word	31
-	.word	272
-	.word	239
-	.word	101
-	.word	235
-	.word	234
-	.word	238
-	.word	308
-	.word	325
-	.word	397
-	.word	155
-	.word	163
-	.word	146
-	.word	499
-	.word	273
-	.word	28
-	.word	280
-	.word	374
-	.word	32
-	.word	400
-	.word	314
-	.word	21
-	.word	340
-	.word	7
-	.word	231
-	.word	390
-	.word	258
-	.word	431
-	.word	192
-	.word	469
-	.word	14
-	.word	293
-	.word	418
-	.word	140
-	.word	481
-	.word	302
-	.word	440
-	.word	68
-	.word	303
-	.word	499
-	.word	387
-	.word	169
-	.word	4
-	.word	166
-	.word	363
-	.word	388
-	.word	160
-	.word	428
-	.word	469
-	.word	361
-	.word	66
-	.word	458
-	.word	92
-	.word	315
-	.word	90
-	.word	331
-	.word	422
-	.word	249
-	.word	344
-	.word	496
-	.word	151
-	.word	295
-	.word	167
-	.word	297
-	.word	430
-	.word	309
-	.word	391
-	.word	158
-	.word	185
-	.word	91
-	.word	440
-	.word	275
-	.word	477
-	.word	362
-	.word	283
-	.word	88
-	.word	487
-	.word	341
-	.word	423
-	.word	96
-	.word	391
-	.word	419
-	.word	106
-	.word	110
-	.word	143
-	.word	319
-	.word	197
-	.word	330
-	.word	212
-	.word	403
-	.word	505
-	.word	1
-	.word	147
-	.word	223
-	.word	343
-	.word	41
-	.word	24
-	.word	357
-	.word	457
-	.word	90
-	.word	318
-	.word	21
-	.word	263
-	.word	371
-	.word	434
-	.word	82
-	.word	242
-	.word	7
-	.word	394
-	.word	245
-	.word	329
-	.word	352
-	.word	290
-	.word	241
-	.word	134
-	.word	35
-	.word	143
-	.word	429
-	.word	132
-	.word	328
-	.word	22
-	.word	298
-	.word	424
-	.word	258
-	.word	219
-	.word	355
-	.word	273
-	.word	101
-	.word	119
-	.word	55
-	.word	264
-	.word	188
-	.word	363
-	.word	413
-	.word	263
-	.word	11
-	.word	392
-	.word	285
-	.word	433
-	.word	322
-	.word	443
-	.word	502
-	.word	153
-	.word	304
-	.word	293
-	.word	42
-	.word	273
-	.word	450
-	.word	400
-	.word	147
-	.word	466
-	.word	61
-	.word	311
-	.word	204
-	.word	107
-	.word	233
-	.word	206
-	.word	373
-	.word	430
-	.word	374
-	.word	242
-	.word	498
-	.word	301
-	.word	391
-	.word	247
-	.word	120
-	.word	286
-	.word	261
-	.word	299
-	.word	395
-	.word	117
-	.word	457
-	.word	428
-	.word	386
-	.word	492
-	.word	213
-	.word	28
-	.word	231
-	.word	80
-	.word	181
-	.word	30
-	.word	498
-	.word	197
-	.word	71
-	.word	301
-	.word	144
-	.word	27
-	.word	209
-	.word	124
-	.word	82
-	.word	397
-	.word	22
-	.word	358
-	.word	296
-	.word	341
-	.word	468
-	.word	184
-	.word	140
-	.word	265
-	.word	448
-	.word	408
-	.word	185
-	.word	396
-	.word	193
-	.word	444
-	.word	439
-	.word	456
-	.word	152
-	.word	422
-	.word	32
-	.word	505
-	.word	46
-	.word	351
-	.word	67
-	.word	89
-	.word	136
-	.word	261
-	.word	64
-	.word	469
-	.word	174
-	.word	252
-	.word	431
-	.word	504
-	.word	486
-	.word	260
-	.word	7
-	.word	283
-	.word	313
-	.word	201
-	.word	226
-	.word	183
-	.word	396
-	.word	212
-	.word	340
-	.word	342
-	.word	178
-	.word	255
-	.word	78
-	.word	25
-	.word	18
-	.word	250
-	.word	57
-	.word	67
-	.word	96
-	.word	88
-	.word	477
-	.word	16
-	.word	379
-	.word	476
-	.word	241
-	.word	428
-	.word	124
-	.word	220
-	.word	6
-	.word	230
-	.word	34
-	.word	226
-	.word	409
-	.word	304
-	.word	501
-	.word	99
-	.word	265
-	.word	257
-	.word	351
-	.word	237
-	.word	326
-	.word	137
-	.word	312
-	.word	272
-	.word	471
-	.word	218
-	.word	154
-	.word	199
-	.word	212
-	.word	141
-	.word	93
-	.word	433
-	.word	210
-	.word	370
-	.word	506
-	.word	117
-	.word	499
-	.word	328
-	.word	357
-	.word	141
-	.word	27
-	.word	144
-	.word	162
-	.word	54
-	.word	435
-	.word	361
-	.word	447
-	.word	478
-	.word	400
-	.word	434
-	.word	2
-	.word	77
-	.word	401
-	.word	79
-	.word	313
-	.word	454
-	.word	177
-	.word	164
-	.word	415
-	.word	100
-	.word	87
-	.word	36
-	.word	101
-	.word	190
-	.word	294
-	.word	378
-	.word	471
-	.word	230
-	.word	49
-	.word	231
-	.word	56
-	.word	238
-	.word	45
-	.word	1
-	.word	73
-	.word	372
-	.word	322
-	.word	229
-	.word	336
-	.word	338
-	.word	53
-	.word	144
-	.word	491
-	.word	233
-	.word	440
-	.word	200
-	.word	35
-	.word	74
-	.word	108
-	.word	106
-	.word	448
-	.word	313
-	.word	324
-	.word	126
-	.word	157
-	.word	283
-	.word	405
-	.word	305
-	.word	237
-	.word	177
-	.word	354
-	.word	386
-	.word	318
-	.word	60
-	.word	145
-	.word	299
-	.word	468
-	.word	23
-	.word	314
-	.word	6
-	.word	145
-	.word	103
-	.word	482
-	.word	129
-	.word	98
-	.word	220
-	.word	67
-	.word	114
-	.word	211
-	.word	265
-	.word	83
-	.word	398
-	.word	168
-	.word	92
-	.word	200
-	.word	55
-	.word	71
-	.word	39
-	.word	459
-	.word	146
-	.word	252
-	.word	277
-	.word	376
-	.word	240
-	.word	232
-	.word	475
-	.word	297
-	.word	375
-	.word	385
-	.word	253
-	.word	388
-	.word	299
-	.word	174
-	.word	216
-	.word	243
-	.word	42
-	.word	144
-	.word	61
-	.word	336
-	.word	413
-	.word	338
-	.word	138
-	.word	133
-	.word	302
-	.word	202
-	.word	138
-	.word	78
-	.word	167
-	.word	101
-	.word	486
-	.word	131
-	.word	476
-	.word	282
-	.word	29
-	.word	402
-	.word	46
-	.word	57
-	.word	510
-	.word	418
-	.word	432
-	.word	78
-	.word	214
-	.word	224
-	.word	243
-	.word	121
-	.word	78
-	.word	378
-	.word	259
-	.word	314
-	.word	246
-	.word	291
-	.word	346
-	.word	239
-	.word	5
-	.word	162
-	.word	288
-	.word	42
-	.word	32
-	.word	286
-	.word	267
-	.word	67
-	.word	103
-	.word	244
-	.word	476
-	.word	172
-	.word	288
-	.word	124
-	.word	511
-	.word	226
-	.word	63
-	.word	103
-	.word	485
-	.word	488
-	.word	153
-	.word	453
-	.word	422
-	.word	461
-	.word	240
-	.word	169
-	.word	312
-	.word	290
-	.word	300
-	.word	99
-	.word	276
-	.word	102
-	.word	500
-	.word	300
-	.word	386
-	.word	247
-	.word	148
-	.word	120
-	.word	497
-	.word	17
-	.word	469
-	.word	441
-	.word	116
-	.word	357
-	.word	98
-	.word	31
-	.word	162
-	.word	213
-	.word	312
-	.word	100
-	.word	280
-	.word	89
-	.word	293
-	.word	324
-	.word	284
-	.word	205
-	.word	245
-	.word	317
-	.word	279
-	.word	95
-	.word	58
-	.word	3
-	.word	356
-	.word	36
-	.word	279
-	.word	499
-	.word	104
-	.word	240
-	.word	55
-	.word	61
-	.word	447
-	.word	441
-	.word	372
-	.word	176
-	.word	31
-	.word	165
-	.word	137
-	.word	498
-	.word	417
-	.word	54
-	.word	282
-	.word	288
-	.word	451
-	.word	367
-	.word	237
-	.word	23
-	.word	483
-	.word	164
-	.word	71
-	.word	430
-	.word	292
-	.word	136
-	.word	208
-	.word	415
-	.word	472
-	.word	376
-	.word	327
-	.word	195
-	.word	219
-	.word	419
-	.word	312
-	.word	14
-	.word	198
-	.word	347
-	.word	219
-	.word	358
-	.word	401
-	.word	159
-	.word	216
-	.word	94
-	.word	406
-	.word	349
-	.word	6
-	.word	340
-	.word	206
-	.word	35
-	.word	456
-	.word	363
-	.word	12
-	.word	37
-	.word	392
-	.word	178
-	.word	250
-	.word	142
-	.word	329
-	.word	389
-	.word	245
-	.word	327
-	.word	262
-	.word	81
-	.word	78
-	.word	62
-	.word	508
-	.word	512
-	.word	500
-	.word	122
-	.word	206
-	.word	77
-	.word	249
-	.word	377
-	.word	320
-	.word	209
-	.word	123
-	.word	416
-	.word	237
-	.word	253
-	.word	185
-	.word	154
-	.word	184
-	.word	353
-	.word	405
-	.word	143
-	.word	323
-	.word	132
-	.word	317
-	.word	155
-	.word	142
-	.word	250
-	.word	477
-	.word	250
-	.word	307
-	.word	417
-	.word	326
-	.word	190
-	.word	397
-	.word	71
-	.word	73
-	.word	326
-	.word	45
-	.word	192
-	.word	510
-	.word	376
-	.word	473
-	.word	61
-	.word	20
-	.word	286
-	.word	482
-	.word	178
-	.word	507
-	.word	301
-	.word	306
-	.word	319
-	.word	90
-	.word	197
-	.word	334
-	.word	119
-	.word	402
-	.word	66
-	.word	323
-	.word	445
-	.word	506
-	.word	473
-	.word	309
-	.word	236
-	.word	404
-	.word	245
-	.word	354
-	.word	325
-	.word	188
-	.word	387
-	.word	240
-	.word	86
-	.word	84
-	.word	223
-	.word	186
-	.word	14
-	.word	478
-	.word	251
-	.word	382
-	.word	444
-	.word	151
-	.word	417
-	.word	163
-	.word	490
-	.word	323
-	.word	253
-	.word	368
-	.word	187
-	.word	271
-	.word	445
-	.word	473
-	.word	19
-	.word	222
-	.word	290
-	.word	350
-	.word	285
-	.word	372
-	.word	421
-	.word	30
-	.word	380
-	.word	250
-	.word	75
-	.word	476
-	.word	168
-	.word	245
-	.word	390
-	.word	86
-	.word	20
-	.word	363
-	.word	165
-	.word	151
-	.word	423
-	.word	117
-	.word	163
-	.word	300
-	.word	82
-	.word	173
-	.word	237
-	.word	87
-	.word	208
-	.word	282
-	.word	87
-	.word	181
-	.word	481
-	.word	187
-	.word	112
-	.word	169
-	.word	69
-	.word	56
-	.word	131
-	.word	257
-	.word	24
-	.word	238
-	.word	78
-	.word	470
-	.word	154
-	.word	310
-	.word	197
-	.word	481
-	.word	398
-	.word	167
-	.word	386
-	.word	366
-	.word	49
-	.word	337
-	.word	66
-	.word	119
-	.word	490
-	.word	203
-	.word	39
-	.word	317
-	.word	97
-	.word	33
-	.word	414
-	.word	464
-	.word	210
-	.word	336
-	.word	489
-	.word	335
-	.word	378
-	.word	116
-	.word	363
-	.word	328
-	.word	191
-	.word	101
-	.word	407
-	.word	408
-	.word	259
-	.word	483
-	.word	51
-	.word	377
-	.word	223
-	.global	nums1k2
-	.align	2
-	.type	nums1k2, %object
-	.size	nums1k2, 4096
-nums1k2:
-	.word	348
-	.word	348
-	.word	4
-	.word	379
-	.word	124
-	.word	157
-	.word	325
-	.word	427
-	.word	423
-	.word	337
-	.word	460
-	.word	131
-	.word	240
-	.word	232
-	.word	165
-	.word	278
-	.word	158
-	.word	490
-	.word	101
-	.word	250
-	.word	109
-	.word	506
-	.word	332
-	.word	245
-	.word	462
-	.word	253
-	.word	165
-	.word	254
-	.word	321
-	.word	390
-	.word	107
-	.word	444
-	.word	498
-	.word	8
-	.word	360
-	.word	220
-	.word	79
-	.word	141
-	.word	474
-	.word	171
-	.word	271
-	.word	243
-	.word	96
-	.word	348
-	.word	297
-	.word	181
-	.word	466
-	.word	65
-	.word	100
-	.word	174
-	.word	360
-	.word	453
-	.word	207
-	.word	414
-	.word	190
-	.word	134
-	.word	92
-	.word	279
-	.word	464
-	.word	503
-	.word	158
-	.word	159
-	.word	98
-	.word	158
-	.word	302
-	.word	25
-	.word	188
-	.word	337
-	.word	8
-	.word	98
-	.word	393
-	.word	90
-	.word	396
-	.word	504
-	.word	205
-	.word	425
-	.word	175
-	.word	439
-	.word	58
-	.word	343
-	.word	247
-	.word	113
-	.word	249
-	.word	150
-	.word	348
-	.word	24
-	.word	174
-	.word	376
-	.word	331
-	.word	302
-	.word	280
-	.word	251
-	.word	510
-	.word	113
-	.word	241
-	.word	507
-	.word	9
-	.word	389
-	.word	172
-	.word	214
-	.word	253
-	.word	497
-	.word	401
-	.word	243
-	.word	7
-	.word	80
-	.word	499
-	.word	133
-	.word	208
-	.word	477
-	.word	456
-	.word	376
-	.word	350
-	.word	53
-	.word	466
-	.word	84
-	.word	261
-	.word	193
-	.word	215
-	.word	9
-	.word	509
-	.word	462
-	.word	378
-	.word	363
-	.word	154
-	.word	482
-	.word	72
-	.word	266
-	.word	465
-	.word	73
-	.word	460
-	.word	406
-	.word	454
-	.word	478
-	.word	447
-	.word	94
-	.word	283
-	.word	107
-	.word	483
-	.word	404
-	.word	48
-	.word	297
-	.word	207
-	.word	47
-	.word	435
-	.word	56
-	.word	416
-	.word	362
-	.word	181
-	.word	327
-	.word	36
-	.word	231
-	.word	273
-	.word	48
-	.word	123
-	.word	455
-	.word	319
-	.word	358
-	.word	21
-	.word	153
-	.word	161
-	.word	178
-	.word	382
-	.word	415
-	.word	362
-	.word	2
-	.word	116
-	.word	420
-	.word	197
-	.word	60
-	.word	205
-	.word	16
-	.word	506
-	.word	109
-	.word	60
-	.word	135
-	.word	491
-	.word	414
-	.word	150
-	.word	41
-	.word	342
-	.word	126
-	.word	188
-	.word	172
-	.word	348
-	.word	383
-	.word	475
-	.word	454
-	.word	236
-	.word	461
-	.word	370
-	.word	113
-	.word	158
-	.word	145
-	.word	157
-	.word	17
-	.word	90
-	.word	479
-	.word	497
-	.word	384
-	.word	18
-	.word	92
-	.word	471
-	.word	300
-	.word	137
-	.word	230
-	.word	105
-	.word	68
-	.word	128
-	.word	487
-	.word	125
-	.word	9
-	.word	158
-	.word	105
-	.word	4
-	.word	374
-	.word	202
-	.word	315
-	.word	295
-	.word	11
-	.word	512
-	.word	247
-	.word	276
-	.word	55
-	.word	52
-	.word	507
-	.word	390
-	.word	74
-	.word	470
-	.word	16
-	.word	332
-	.word	235
-	.word	455
-	.word	374
-	.word	175
-	.word	361
-	.word	414
-	.word	143
-	.word	481
-	.word	193
-	.word	409
-	.word	212
-	.word	361
-	.word	179
-	.word	189
-	.word	243
-	.word	330
-	.word	356
-	.word	503
-	.word	385
-	.word	397
-	.word	110
-	.word	486
-	.word	157
-	.word	169
-	.word	31
-	.word	276
-	.word	455
-	.word	499
-	.word	161
-	.word	43
-	.word	315
-	.word	264
-	.word	441
-	.word	242
-	.word	145
-	.word	204
-	.word	181
-	.word	206
-	.word	83
-	.word	354
-	.word	446
-	.word	86
-	.word	150
-	.word	338
-	.word	18
-	.word	488
-	.word	483
-	.word	297
-	.word	213
-	.word	479
-	.word	314
-	.word	439
-	.word	353
-	.word	272
-	.word	4
-	.word	75
-	.word	420
-	.word	143
-	.word	413
-	.word	153
-	.word	105
-	.word	376
-	.word	158
-	.word	101
-	.word	327
-	.word	396
-	.word	81
-	.word	427
-	.word	227
-	.word	404
-	.word	48
-	.word	302
-	.word	458
-	.word	446
-	.word	422
-	.word	134
-	.word	42
-	.word	132
-	.word	473
-	.word	197
-	.word	258
-	.word	146
-	.word	99
-	.word	220
-	.word	434
-	.word	381
-	.word	489
-	.word	365
-	.word	315
-	.word	280
-	.word	437
-	.word	284
-	.word	99
-	.word	388
-	.word	247
-	.word	494
-	.word	477
-	.word	122
-	.word	470
-	.word	42
-	.word	47
-	.word	130
-	.word	17
-	.word	484
-	.word	421
-	.word	268
-	.word	390
-	.word	490
-	.word	317
-	.word	417
-	.word	205
-	.word	220
-	.word	242
-	.word	477
-	.word	508
-	.word	196
-	.word	415
-	.word	5
-	.word	144
-	.word	479
-	.word	34
-	.word	117
-	.word	472
-	.word	309
-	.word	456
-	.word	72
-	.word	393
-	.word	51
-	.word	295
-	.word	407
-	.word	155
-	.word	128
-	.word	47
-	.word	400
-	.word	42
-	.word	424
-	.word	168
-	.word	231
-	.word	468
-	.word	24
-	.word	467
-	.word	226
-	.word	389
-	.word	68
-	.word	403
-	.word	502
-	.word	253
-	.word	409
-	.word	505
-	.word	333
-	.word	142
-	.word	203
-	.word	161
-	.word	426
-	.word	322
-	.word	329
-	.word	130
-	.word	114
-	.word	398
-	.word	302
-	.word	306
-	.word	268
-	.word	282
-	.word	168
-	.word	35
-	.word	214
-	.word	28
-	.word	355
-	.word	366
-	.word	208
-	.word	320
-	.word	418
-	.word	20
-	.word	239
-	.word	216
-	.word	277
-	.word	343
-	.word	33
-	.word	250
-	.word	28
-	.word	339
-	.word	151
-	.word	232
-	.word	336
-	.word	124
-	.word	36
-	.word	203
-	.word	376
-	.word	225
-	.word	114
-	.word	390
-	.word	241
-	.word	408
-	.word	246
-	.word	21
-	.word	246
-	.word	412
-	.word	421
-	.word	419
-	.word	472
-	.word	454
-	.word	239
-	.word	162
-	.word	482
-	.word	262
-	.word	132
-	.word	506
-	.word	305
-	.word	239
-	.word	341
-	.word	247
-	.word	253
-	.word	338
-	.word	200
-	.word	37
-	.word	86
-	.word	66
-	.word	49
-	.word	458
-	.word	21
-	.word	89
-	.word	54
-	.word	299
-	.word	86
-	.word	26
-	.word	417
-	.word	143
-	.word	275
-	.word	226
-	.word	325
-	.word	56
-	.word	183
-	.word	435
-	.word	262
-	.word	506
-	.word	181
-	.word	228
-	.word	197
-	.word	270
-	.word	339
-	.word	153
-	.word	364
-	.word	471
-	.word	283
-	.word	508
-	.word	510
-	.word	167
-	.word	337
-	.word	462
-	.word	41
-	.word	338
-	.word	388
-	.word	106
-	.word	162
-	.word	439
-	.word	473
-	.word	505
-	.word	16
-	.word	87
-	.word	338
-	.word	48
-	.word	504
-	.word	402
-	.word	261
-	.word	376
-	.word	317
-	.word	117
-	.word	345
-	.word	388
-	.word	374
-	.word	109
-	.word	272
-	.word	301
-	.word	398
-	.word	435
-	.word	348
-	.word	482
-	.word	438
-	.word	239
-	.word	272
-	.word	52
-	.word	85
-	.word	454
-	.word	349
-	.word	475
-	.word	46
-	.word	188
-	.word	85
-	.word	92
-	.word	246
-	.word	432
-	.word	398
-	.word	169
-	.word	477
-	.word	126
-	.word	291
-	.word	158
-	.word	141
-	.word	143
-	.word	199
-	.word	415
-	.word	144
-	.word	152
-	.word	329
-	.word	67
-	.word	286
-	.word	347
-	.word	126
-	.word	290
-	.word	148
-	.word	421
-	.word	273
-	.word	342
-	.word	13
-	.word	205
-	.word	424
-	.word	269
-	.word	117
-	.word	155
-	.word	42
-	.word	99
-	.word	262
-	.word	343
-	.word	359
-	.word	16
-	.word	320
-	.word	466
-	.word	182
-	.word	443
-	.word	412
-	.word	435
-	.word	335
-	.word	70
-	.word	494
-	.word	373
-	.word	463
-	.word	506
-	.word	66
-	.word	476
-	.word	338
-	.word	261
-	.word	223
-	.word	505
-	.word	432
-	.word	400
-	.word	478
-	.word	408
-	.word	99
-	.word	470
-	.word	331
-	.word	202
-	.word	272
-	.word	362
-	.word	430
-	.word	292
-	.word	243
-	.word	158
-	.word	499
-	.word	266
-	.word	200
-	.word	413
-	.word	94
-	.word	142
-	.word	451
-	.word	231
-	.word	414
-	.word	151
-	.word	294
-	.word	154
-	.word	264
-	.word	478
-	.word	10
-	.word	28
-	.word	150
-	.word	352
-	.word	390
-	.word	337
-	.word	67
-	.word	185
-	.word	30
-	.word	137
-	.word	410
-	.word	113
-	.word	258
-	.word	332
-	.word	174
-	.word	508
-	.word	296
-	.word	94
-	.word	132
-	.word	202
-	.word	306
-	.word	452
-	.word	185
-	.word	113
-	.word	409
-	.word	193
-	.word	364
-	.word	29
-	.word	210
-	.word	206
-	.word	127
-	.word	244
-	.word	177
-	.word	394
-	.word	282
-	.word	329
-	.word	317
-	.word	482
-	.word	384
-	.word	450
-	.word	150
-	.word	450
-	.word	295
-	.word	346
-	.word	191
-	.word	99
-	.word	63
-	.word	362
-	.word	59
-	.word	50
-	.word	470
-	.word	235
-	.word	360
-	.word	443
-	.word	352
-	.word	392
-	.word	134
-	.word	510
-	.word	511
-	.word	318
-	.word	303
-	.word	113
-	.word	79
-	.word	84
-	.word	170
-	.word	143
-	.word	135
-	.word	266
-	.word	326
-	.word	69
-	.word	12
-	.word	330
-	.word	82
-	.word	504
-	.word	492
-	.word	174
-	.word	455
-	.word	228
-	.word	175
-	.word	446
-	.word	61
-	.word	405
-	.word	444
-	.word	451
-	.word	97
-	.word	241
-	.word	498
-	.word	239
-	.word	278
-	.word	478
-	.word	401
-	.word	154
-	.word	223
-	.word	231
-	.word	445
-	.word	251
-	.word	83
-	.word	374
-	.word	121
-	.word	506
-	.word	16
-	.word	291
-	.word	202
-	.word	104
-	.word	456
-	.word	124
-	.word	445
-	.word	104
-	.word	223
-	.word	312
-	.word	437
-	.word	462
-	.word	491
-	.word	403
-	.word	229
-	.word	89
-	.word	466
-	.word	41
-	.word	427
-	.word	274
-	.word	380
-	.word	27
-	.word	484
-	.word	328
-	.word	341
-	.word	344
-	.word	5
-	.word	479
-	.word	137
-	.word	127
-	.word	86
-	.word	271
-	.word	94
-	.word	442
-	.word	140
-	.word	466
-	.word	431
-	.word	485
-	.word	427
-	.word	324
-	.word	297
-	.word	150
-	.word	237
-	.word	43
-	.word	271
-	.word	255
-	.word	24
-	.word	470
-	.word	10
-	.word	503
-	.word	344
-	.word	488
-	.word	511
-	.word	431
-	.word	490
-	.word	270
-	.word	317
-	.word	180
-	.word	334
-	.word	434
-	.word	254
-	.word	203
-	.word	110
-	.word	426
-	.word	450
-	.word	175
-	.word	145
-	.word	220
-	.word	411
-	.word	478
-	.word	156
-	.word	271
-	.word	483
-	.word	319
-	.word	81
-	.word	149
-	.word	175
-	.word	424
-	.word	165
-	.word	326
-	.word	512
-	.word	53
-	.word	108
-	.word	432
-	.word	217
-	.word	146
-	.word	107
-	.word	108
-	.word	401
-	.word	339
-	.word	412
-	.word	336
-	.word	211
-	.word	68
-	.word	120
-	.word	153
-	.word	415
-	.word	314
-	.word	307
-	.word	26
-	.word	374
-	.word	458
-	.word	8
-	.word	226
-	.word	49
-	.word	458
-	.word	8
-	.word	369
-	.word	43
-	.word	205
-	.word	241
-	.word	471
-	.word	73
-	.word	363
-	.word	203
-	.word	443
-	.word	457
-	.word	186
-	.word	102
-	.word	405
-	.word	343
-	.word	190
-	.word	84
-	.word	43
-	.word	13
-	.word	379
-	.word	89
-	.word	43
-	.word	435
-	.word	164
-	.word	89
-	.word	111
-	.word	135
-	.word	446
-	.word	186
-	.word	120
-	.word	149
-	.word	165
-	.word	264
-	.word	23
-	.word	15
-	.word	254
-	.word	309
-	.word	376
-	.word	301
-	.word	149
-	.word	93
-	.word	415
-	.word	205
-	.word	245
-	.word	74
-	.word	304
-	.word	163
-	.word	256
-	.word	7
-	.word	7
-	.word	188
-	.word	182
-	.word	316
-	.word	11
-	.word	52
-	.word	380
-	.word	246
-	.word	305
-	.word	228
-	.word	429
-	.word	87
-	.word	422
-	.word	368
-	.word	85
-	.word	28
-	.word	271
-	.word	423
-	.word	81
-	.word	44
-	.word	128
-	.word	456
-	.word	365
-	.word	353
-	.word	20
-	.word	75
-	.word	131
-	.word	376
-	.word	40
-	.word	495
-	.word	273
-	.word	143
-	.word	306
-	.word	352
-	.word	13
-	.word	491
-	.word	429
-	.word	391
-	.word	395
-	.word	502
-	.word	72
-	.word	391
-	.word	71
-	.word	271
-	.word	467
-	.word	397
-	.word	95
-	.word	438
-	.word	475
-	.word	118
-	.word	485
-	.word	427
-	.word	160
-	.word	34
-	.word	149
-	.word	165
-	.word	90
-	.word	377
-	.word	8
-	.word	405
-	.word	42
-	.word	50
-	.word	160
-	.word	501
-	.word	22
-	.word	24
-	.word	185
-	.word	172
-	.word	402
-	.word	123
-	.word	247
-	.word	479
-	.word	183
-	.word	10
-	.word	440
-	.word	403
-	.word	43
-	.word	103
-	.word	204
-	.word	428
-	.word	300
-	.word	253
-	.word	312
-	.word	217
-	.word	384
-	.word	254
-	.word	16
-	.word	375
-	.word	212
-	.word	418
-	.word	312
-	.word	301
-	.word	214
-	.word	55
-	.word	11
-	.word	509
-	.word	362
-	.word	200
-	.word	224
-	.word	484
-	.word	136
-	.word	475
-	.word	477
-	.word	266
-	.word	410
-	.word	244
-	.word	256
-	.word	217
-	.word	372
-	.word	460
-	.word	497
-	.word	3
-	.word	316
-	.word	477
-	.word	474
-	.word	61
-	.word	462
-	.word	332
-	.word	111
-	.word	183
-	.word	478
-	.word	29
-	.word	365
-	.word	511
-	.word	421
-	.word	453
-	.word	287
-	.word	141
-	.word	177
-	.word	100
-	.word	81
-	.word	266
-	.word	451
-	.word	235
-	.word	235
-	.word	198
-	.word	262
-	.word	409
-	.word	207
-	.word	269
-	.word	493
-	.word	192
-	.word	482
-	.word	43
-	.word	312
-	.word	492
-	.word	261
-	.word	10
-	.word	245
-	.word	221
-	.word	106
-	.word	288
-	.word	58
-	.word	444
-	.word	110
-	.word	6
-	.word	10
-	.word	373
-	.word	211
-	.word	323
-	.word	159
-	.word	274
-	.word	210
-	.word	209
-	.word	314
-	.word	78
-	.word	75
+.LCPI0_0:
+	.xword	4554050699414489        // double 2.25E-308
+.LCPI0_1:
+	.xword	-9218817986155361319    // double -2.25E-308
 	.text
+	.globl	sqroot
 	.align	2
-	.global	main
-	.thumb
-	.thumb_func
-	.type	main, %function
-main:
-	@ args = 0, pretend = 0, frame = 4104
-	@ frame_needed = 1, uses_anonymous_args = 0
-	@ link register save eliminated.
-	push	{r7}
-	sub	sp, sp, #4096
-	sub	sp, sp, #12
-	add	r7, sp, #0
-	ldr	r2, .L5
-.LPIC0:
-	add	r2, pc
-	movs	r3, #0
-	add	r1, r7, #4096
-	add	r1, r1, #4
-	str	r3, [r1]
-	b	.L2
-.L3:
-	ldr	r3, .L5+4
-	ldr	r3, [r2, r3]
-	mov	r1, r3
-	add	r3, r7, #4096
-	add	r3, r3, #4
-	ldr	r3, [r3]
-	ldr	r1, [r1, r3, lsl #2]
-	ldr	r3, .L5+8
-	ldr	r3, [r2, r3]
-	mov	r0, r3
-	add	r3, r7, #4096
-	add	r3, r3, #4
-	ldr	r3, [r3]
-	ldr	r3, [r0, r3, lsl #2]
-	adds	r0, r1, r3
-	add	r3, r7, #8
-	subs	r3, r3, #4
-	add	r1, r7, #4096
-	add	r1, r1, #4
-	ldr	r1, [r1]
-	str	r0, [r3, r1, lsl #2]
-	add	r3, r7, #4096
-	add	r3, r3, #4
-	ldr	r3, [r3]
-	adds	r3, r3, #1
-	add	r1, r7, #4096
-	add	r1, r1, #4
-	str	r3, [r1]
-.L2:
-	add	r3, r7, #4096
-	add	r3, r3, #4
-	ldr	r3, [r3]
-	cmp	r3, #1024
-	blt	.L3
-	movs	r3, #0
-	mov	r0, r3
-	add	r7, r7, #4096
-	adds	r7, r7, #12
-	mov	sp, r7
-	@ sp needed
-	ldr	r7, [sp], #4
-	bx	lr
-.L6:
+	.type	sqroot,@function
+sqroot:                                 // @sqroot
+// BB#0:                                // %entry
+	sub	sp, sp, #32             // =32
+	str	s0, [sp, #24]
+	fmov	s1, #3.00000000
+	fdiv	s0, s0, s1
+	ldr	s1, [sp, #24]
+	str	s0, [sp, #20]
+	orr	w8, wzr, #0x3f800000
+	str	w8, [sp, #12]
+	fcmp	s1, #0.0
+	b.hi	.LBB0_2
+// BB#1:                                // %if.then
+	str	wzr, [sp, #28]
+	b	.LBB0_6
+.LBB0_2:
+	adrp	x8, .LCPI0_0
+	adrp	x9, .LCPI0_1
+	ldr	d0, [x8, :lo12:.LCPI0_0]
+	ldr	d1, [x9, :lo12:.LCPI0_1]
+	fmov	s2, #2.00000000
+.LBB0_3:                                // %do.body
+                                        // =>This Inner Loop Header: Depth=1
+	ldp	s3, s5, [sp, #20]
+	ldr	s4, [sp, #20]
+	str	s3, [sp, #16]
+	fdiv	s3, s5, s4
+	fadd	s3, s4, s3
+	ldr	s4, [sp, #16]
+	fdiv	s3, s3, s2
+	str	s3, [sp, #20]
+	fsub	s3, s3, s4
+	str	s3, [sp, #12]
+	fcvt	d3, s3
+	fcmp	d3, d0
+	b.gt	.LBB0_3
+// BB#4:                                // %lor.rhs
+                                        //   in Loop: Header=BB0_3 Depth=1
+	ldr	s3, [sp, #12]
+	fcvt	d3, s3
+	fcmp	d3, d1
+	b.mi	.LBB0_3
+// BB#5:                                // %do.end
+	ldr	s0, [sp, #20]
+	str	s0, [sp, #28]
+.LBB0_6:                                // %return
+	ldr	s0, [sp, #28]
+	add	sp, sp, #32             // =32
+	ret
+.Ltmp1:
+	.size	sqroot, .Ltmp1-sqroot
+
+	.section	.rodata.cst4,"aM",@progbits,4
 	.align	2
-.L5:
-	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)
-	.word	nums1k1(GOT)
-	.word	nums1k2(GOT)
-	.size	main, .-main
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+.LCPI1_0:
+	.word	1078529622              // float 3.1415
+	.text
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #16             // =16
+	stur	wzr, [x29, #-4]
+	adrp	x8, .LCPI1_0
+	ldr	s0, [x8, :lo12:.LCPI1_0]
+	bl	sqroot
+	bl	sqroot
+	bl	sqroot
+	str	s0, [sp, #8]
+	mov	 w0, wzr
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
+	ret
+.Ltmp2:
+	.size	main, .Ltmp2-main
+
+
+	.ident	"clang version 3.5.0 "
+
+	.text
+	.file	"vadd.ll"
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	stp	x28, x27, [sp, #-16]!
+	sub	sp, sp, #1, lsl #12     // =4096
+	sub	sp, sp, #16             // =16
+	str	wzr, [sp, #4108]
+	str	wzr, [sp, #8]
+	adrp	x8, nums1k1
+	add	x8, x8, :lo12:nums1k1
+	adrp	x9, nums1k2
+	add	x9, x9, :lo12:nums1k2
+	add	x10, sp, #12            // =12
+	b	.LBB0_2
+.LBB0_1:                                // %for.body
+                                        //   in Loop: Header=BB0_2 Depth=1
+	ldrsw	x11, [sp, #8]
+	ldr	w12, [sp, #8]
+	lsl	x11, x11, #2
+	ldr	 w13, [x8, x11]
+	ldr	 w14, [x9, x11]
+	add	w12, w12, #1            // =1
+	add	 w13, w13, w14
+	str	 w13, [x10, x11]
+	str	w12, [sp, #8]
+.LBB0_2:                                // %for.cond
+                                        // =>This Inner Loop Header: Depth=1
+	ldr	w11, [sp, #8]
+	cmp	 w11, #1023             // =1023
+	b.le	.LBB0_1
+// BB#3:                                // %for.end
+	mov	 w0, wzr
+	add	sp, sp, #1, lsl #12     // =4096
+	add	sp, sp, #16             // =16
+	ldp	x28, x27, [sp], #16
+	ret
+.Ltmp0:
+	.size	main, .Ltmp0-main
+
+	.type	nums1k1,@object         // @nums1k1
+	.data
+	.globl	nums1k1
+	.align	2
+nums1k1:
+	.word	364                     // 0x16c
+	.word	286                     // 0x11e
+	.word	278                     // 0x116
+	.word	283                     // 0x11b
+	.word	154                     // 0x9a
+	.word	477                     // 0x1dd
+	.word	369                     // 0x171
+	.word	480                     // 0x1e0
+	.word	40                      // 0x28
+	.word	382                     // 0x17e
+	.word	153                     // 0x99
+	.word	293                     // 0x125
+	.word	488                     // 0x1e8
+	.word	35                      // 0x23
+	.word	225                     // 0xe1
+	.word	172                     // 0xac
+	.word	4                       // 0x4
+	.word	443                     // 0x1bb
+	.word	411                     // 0x19b
+	.word	429                     // 0x1ad
+	.word	131                     // 0x83
+	.word	490                     // 0x1ea
+	.word	91                      // 0x5b
+	.word	89                      // 0x59
+	.word	495                     // 0x1ef
+	.word	426                     // 0x1aa
+	.word	290                     // 0x122
+	.word	411                     // 0x19b
+	.word	423                     // 0x1a7
+	.word	493                     // 0x1ed
+	.word	139                     // 0x8b
+	.word	414                     // 0x19e
+	.word	303                     // 0x12f
+	.word	485                     // 0x1e5
+	.word	327                     // 0x147
+	.word	44                      // 0x2c
+	.word	430                     // 0x1ae
+	.word	129                     // 0x81
+	.word	153                     // 0x99
+	.word	331                     // 0x14b
+	.word	138                     // 0x8a
+	.word	206                     // 0xce
+	.word	284                     // 0x11c
+	.word	461                     // 0x1cd
+	.word	428                     // 0x1ac
+	.word	473                     // 0x1d9
+	.word	297                     // 0x129
+	.word	90                      // 0x5a
+	.word	260                     // 0x104
+	.word	317                     // 0x13d
+	.word	241                     // 0xf1
+	.word	135                     // 0x87
+	.word	297                     // 0x129
+	.word	386                     // 0x182
+	.word	83                      // 0x53
+	.word	481                     // 0x1e1
+	.word	456                     // 0x1c8
+	.word	116                     // 0x74
+	.word	95                      // 0x5f
+	.word	47                      // 0x2f
+	.word	317                     // 0x13d
+	.word	31                      // 0x1f
+	.word	337                     // 0x151
+	.word	29                      // 0x1d
+	.word	383                     // 0x17f
+	.word	417                     // 0x1a1
+	.word	268                     // 0x10c
+	.word	134                     // 0x86
+	.word	277                     // 0x115
+	.word	402                     // 0x192
+	.word	432                     // 0x1b0
+	.word	493                     // 0x1ed
+	.word	119                     // 0x77
+	.word	352                     // 0x160
+	.word	70                      // 0x46
+	.word	459                     // 0x1cb
+	.word	188                     // 0xbc
+	.word	329                     // 0x149
+	.word	249                     // 0xf9
+	.word	287                     // 0x11f
+	.word	165                     // 0xa5
+	.word	384                     // 0x180
+	.word	149                     // 0x95
+	.word	371                     // 0x173
+	.word	89                      // 0x59
+	.word	285                     // 0x11d
+	.word	179                     // 0xb3
+	.word	133                     // 0x85
+	.word	134                     // 0x86
+	.word	219                     // 0xdb
+	.word	20                      // 0x14
+	.word	11                      // 0xb
+	.word	379                     // 0x17b
+	.word	295                     // 0x127
+	.word	36                      // 0x24
+	.word	380                     // 0x17c
+	.word	158                     // 0x9e
+	.word	80                      // 0x50
+	.word	440                     // 0x1b8
+	.word	335                     // 0x14f
+	.word	47                      // 0x2f
+	.word	182                     // 0xb6
+	.word	415                     // 0x19f
+	.word	452                     // 0x1c4
+	.word	340                     // 0x154
+	.word	57                      // 0x39
+	.word	468                     // 0x1d4
+	.word	182                     // 0xb6
+	.word	249                     // 0xf9
+	.word	106                     // 0x6a
+	.word	259                     // 0x103
+	.word	276                     // 0x114
+	.word	487                     // 0x1e7
+	.word	175                     // 0xaf
+	.word	510                     // 0x1fe
+	.word	63                      // 0x3f
+	.word	6                       // 0x6
+	.word	122                     // 0x7a
+	.word	68                      // 0x44
+	.word	34                      // 0x22
+	.word	271                     // 0x10f
+	.word	74                      // 0x4a
+	.word	18                      // 0x12
+	.word	126                     // 0x7e
+	.word	331                     // 0x14b
+	.word	435                     // 0x1b3
+	.word	329                     // 0x149
+	.word	60                      // 0x3c
+	.word	193                     // 0xc1
+	.word	75                      // 0x4b
+	.word	94                      // 0x5e
+	.word	128                     // 0x80
+	.word	143                     // 0x8f
+	.word	143                     // 0x8f
+	.word	242                     // 0xf2
+	.word	423                     // 0x1a7
+	.word	360                     // 0x168
+	.word	249                     // 0xf9
+	.word	92                      // 0x5c
+	.word	342                     // 0x156
+	.word	14                      // 0xe
+	.word	270                     // 0x10e
+	.word	417                     // 0x1a1
+	.word	110                     // 0x6e
+	.word	27                      // 0x1b
+	.word	160                     // 0xa0
+	.word	500                     // 0x1f4
+	.word	428                     // 0x1ac
+	.word	146                     // 0x92
+	.word	103                     // 0x67
+	.word	403                     // 0x193
+	.word	304                     // 0x130
+	.word	362                     // 0x16a
+	.word	331                     // 0x14b
+	.word	35                      // 0x23
+	.word	392                     // 0x188
+	.word	320                     // 0x140
+	.word	330                     // 0x14a
+	.word	369                     // 0x171
+	.word	34                      // 0x22
+	.word	508                     // 0x1fc
+	.word	405                     // 0x195
+	.word	306                     // 0x132
+	.word	338                     // 0x152
+	.word	177                     // 0xb1
+	.word	220                     // 0xdc
+	.word	451                     // 0x1c3
+	.word	369                     // 0x171
+	.word	278                     // 0x116
+	.word	37                      // 0x25
+	.word	151                     // 0x97
+	.word	378                     // 0x17a
+	.word	468                     // 0x1d4
+	.word	486                     // 0x1e6
+	.word	85                      // 0x55
+	.word	206                     // 0xce
+	.word	258                     // 0x102
+	.word	169                     // 0xa9
+	.word	496                     // 0x1f0
+	.word	505                     // 0x1f9
+	.word	99                      // 0x63
+	.word	216                     // 0xd8
+	.word	367                     // 0x16f
+	.word	99                      // 0x63
+	.word	455                     // 0x1c7
+	.word	301                     // 0x12d
+	.word	386                     // 0x182
+	.word	447                     // 0x1bf
+	.word	354                     // 0x162
+	.word	430                     // 0x1ae
+	.word	6                       // 0x6
+	.word	266                     // 0x10a
+	.word	204                     // 0xcc
+	.word	59                      // 0x3b
+	.word	276                     // 0x114
+	.word	11                      // 0xb
+	.word	148                     // 0x94
+	.word	506                     // 0x1fa
+	.word	486                     // 0x1e6
+	.word	459                     // 0x1cb
+	.word	391                     // 0x187
+	.word	36                      // 0x24
+	.word	428                     // 0x1ac
+	.word	54                      // 0x36
+	.word	53                      // 0x35
+	.word	453                     // 0x1c5
+	.word	221                     // 0xdd
+	.word	503                     // 0x1f7
+	.word	399                     // 0x18f
+	.word	330                     // 0x14a
+	.word	347                     // 0x15b
+	.word	487                     // 0x1e7
+	.word	1                       // 0x1
+	.word	278                     // 0x116
+	.word	155                     // 0x9b
+	.word	221                     // 0xdd
+	.word	278                     // 0x116
+	.word	328                     // 0x148
+	.word	371                     // 0x173
+	.word	150                     // 0x96
+	.word	159                     // 0x9f
+	.word	228                     // 0xe4
+	.word	406                     // 0x196
+	.word	101                     // 0x65
+	.word	126                     // 0x7e
+	.word	215                     // 0xd7
+	.word	128                     // 0x80
+	.word	26                      // 0x1a
+	.word	487                     // 0x1e7
+	.word	339                     // 0x153
+	.word	146                     // 0x92
+	.word	24                      // 0x18
+	.word	402                     // 0x192
+	.word	97                      // 0x61
+	.word	281                     // 0x119
+	.word	320                     // 0x140
+	.word	214                     // 0xd6
+	.word	151                     // 0x97
+	.word	271                     // 0x10f
+	.word	363                     // 0x16b
+	.word	300                     // 0x12c
+	.word	501                     // 0x1f5
+	.word	274                     // 0x112
+	.word	41                      // 0x29
+	.word	112                     // 0x70
+	.word	306                     // 0x132
+	.word	507                     // 0x1fb
+	.word	293                     // 0x125
+	.word	342                     // 0x156
+	.word	282                     // 0x11a
+	.word	173                     // 0xad
+	.word	477                     // 0x1dd
+	.word	317                     // 0x13d
+	.word	176                     // 0xb0
+	.word	271                     // 0x10f
+	.word	327                     // 0x147
+	.word	436                     // 0x1b4
+	.word	117                     // 0x75
+	.word	199                     // 0xc7
+	.word	276                     // 0x114
+	.word	414                     // 0x19e
+	.word	485                     // 0x1e5
+	.word	273                     // 0x111
+	.word	76                      // 0x4c
+	.word	307                     // 0x133
+	.word	267                     // 0x10b
+	.word	215                     // 0xd7
+	.word	327                     // 0x147
+	.word	379                     // 0x17b
+	.word	315                     // 0x13b
+	.word	431                     // 0x1af
+	.word	313                     // 0x139
+	.word	377                     // 0x179
+	.word	261                     // 0x105
+	.word	117                     // 0x75
+	.word	195                     // 0xc3
+	.word	245                     // 0xf5
+	.word	153                     // 0x99
+	.word	54                      // 0x36
+	.word	427                     // 0x1ab
+	.word	340                     // 0x154
+	.word	485                     // 0x1e5
+	.word	414                     // 0x19e
+	.word	318                     // 0x13e
+	.word	213                     // 0xd5
+	.word	491                     // 0x1eb
+	.word	159                     // 0x9f
+	.word	511                     // 0x1ff
+	.word	128                     // 0x80
+	.word	312                     // 0x138
+	.word	463                     // 0x1cf
+	.word	297                     // 0x129
+	.word	35                      // 0x23
+	.word	273                     // 0x111
+	.word	31                      // 0x1f
+	.word	272                     // 0x110
+	.word	239                     // 0xef
+	.word	101                     // 0x65
+	.word	235                     // 0xeb
+	.word	234                     // 0xea
+	.word	238                     // 0xee
+	.word	308                     // 0x134
+	.word	325                     // 0x145
+	.word	397                     // 0x18d
+	.word	155                     // 0x9b
+	.word	163                     // 0xa3
+	.word	146                     // 0x92
+	.word	499                     // 0x1f3
+	.word	273                     // 0x111
+	.word	28                      // 0x1c
+	.word	280                     // 0x118
+	.word	374                     // 0x176
+	.word	32                      // 0x20
+	.word	400                     // 0x190
+	.word	314                     // 0x13a
+	.word	21                      // 0x15
+	.word	340                     // 0x154
+	.word	7                       // 0x7
+	.word	231                     // 0xe7
+	.word	390                     // 0x186
+	.word	258                     // 0x102
+	.word	431                     // 0x1af
+	.word	192                     // 0xc0
+	.word	469                     // 0x1d5
+	.word	14                      // 0xe
+	.word	293                     // 0x125
+	.word	418                     // 0x1a2
+	.word	140                     // 0x8c
+	.word	481                     // 0x1e1
+	.word	302                     // 0x12e
+	.word	440                     // 0x1b8
+	.word	68                      // 0x44
+	.word	303                     // 0x12f
+	.word	499                     // 0x1f3
+	.word	387                     // 0x183
+	.word	169                     // 0xa9
+	.word	4                       // 0x4
+	.word	166                     // 0xa6
+	.word	363                     // 0x16b
+	.word	388                     // 0x184
+	.word	160                     // 0xa0
+	.word	428                     // 0x1ac
+	.word	469                     // 0x1d5
+	.word	361                     // 0x169
+	.word	66                      // 0x42
+	.word	458                     // 0x1ca
+	.word	92                      // 0x5c
+	.word	315                     // 0x13b
+	.word	90                      // 0x5a
+	.word	331                     // 0x14b
+	.word	422                     // 0x1a6
+	.word	249                     // 0xf9
+	.word	344                     // 0x158
+	.word	496                     // 0x1f0
+	.word	151                     // 0x97
+	.word	295                     // 0x127
+	.word	167                     // 0xa7
+	.word	297                     // 0x129
+	.word	430                     // 0x1ae
+	.word	309                     // 0x135
+	.word	391                     // 0x187
+	.word	158                     // 0x9e
+	.word	185                     // 0xb9
+	.word	91                      // 0x5b
+	.word	440                     // 0x1b8
+	.word	275                     // 0x113
+	.word	477                     // 0x1dd
+	.word	362                     // 0x16a
+	.word	283                     // 0x11b
+	.word	88                      // 0x58
+	.word	487                     // 0x1e7
+	.word	341                     // 0x155
+	.word	423                     // 0x1a7
+	.word	96                      // 0x60
+	.word	391                     // 0x187
+	.word	419                     // 0x1a3
+	.word	106                     // 0x6a
+	.word	110                     // 0x6e
+	.word	143                     // 0x8f
+	.word	319                     // 0x13f
+	.word	197                     // 0xc5
+	.word	330                     // 0x14a
+	.word	212                     // 0xd4
+	.word	403                     // 0x193
+	.word	505                     // 0x1f9
+	.word	1                       // 0x1
+	.word	147                     // 0x93
+	.word	223                     // 0xdf
+	.word	343                     // 0x157
+	.word	41                      // 0x29
+	.word	24                      // 0x18
+	.word	357                     // 0x165
+	.word	457                     // 0x1c9
+	.word	90                      // 0x5a
+	.word	318                     // 0x13e
+	.word	21                      // 0x15
+	.word	263                     // 0x107
+	.word	371                     // 0x173
+	.word	434                     // 0x1b2
+	.word	82                      // 0x52
+	.word	242                     // 0xf2
+	.word	7                       // 0x7
+	.word	394                     // 0x18a
+	.word	245                     // 0xf5
+	.word	329                     // 0x149
+	.word	352                     // 0x160
+	.word	290                     // 0x122
+	.word	241                     // 0xf1
+	.word	134                     // 0x86
+	.word	35                      // 0x23
+	.word	143                     // 0x8f
+	.word	429                     // 0x1ad
+	.word	132                     // 0x84
+	.word	328                     // 0x148
+	.word	22                      // 0x16
+	.word	298                     // 0x12a
+	.word	424                     // 0x1a8
+	.word	258                     // 0x102
+	.word	219                     // 0xdb
+	.word	355                     // 0x163
+	.word	273                     // 0x111
+	.word	101                     // 0x65
+	.word	119                     // 0x77
+	.word	55                      // 0x37
+	.word	264                     // 0x108
+	.word	188                     // 0xbc
+	.word	363                     // 0x16b
+	.word	413                     // 0x19d
+	.word	263                     // 0x107
+	.word	11                      // 0xb
+	.word	392                     // 0x188
+	.word	285                     // 0x11d
+	.word	433                     // 0x1b1
+	.word	322                     // 0x142
+	.word	443                     // 0x1bb
+	.word	502                     // 0x1f6
+	.word	153                     // 0x99
+	.word	304                     // 0x130
+	.word	293                     // 0x125
+	.word	42                      // 0x2a
+	.word	273                     // 0x111
+	.word	450                     // 0x1c2
+	.word	400                     // 0x190
+	.word	147                     // 0x93
+	.word	466                     // 0x1d2
+	.word	61                      // 0x3d
+	.word	311                     // 0x137
+	.word	204                     // 0xcc
+	.word	107                     // 0x6b
+	.word	233                     // 0xe9
+	.word	206                     // 0xce
+	.word	373                     // 0x175
+	.word	430                     // 0x1ae
+	.word	374                     // 0x176
+	.word	242                     // 0xf2
+	.word	498                     // 0x1f2
+	.word	301                     // 0x12d
+	.word	391                     // 0x187
+	.word	247                     // 0xf7
+	.word	120                     // 0x78
+	.word	286                     // 0x11e
+	.word	261                     // 0x105
+	.word	299                     // 0x12b
+	.word	395                     // 0x18b
+	.word	117                     // 0x75
+	.word	457                     // 0x1c9
+	.word	428                     // 0x1ac
+	.word	386                     // 0x182
+	.word	492                     // 0x1ec
+	.word	213                     // 0xd5
+	.word	28                      // 0x1c
+	.word	231                     // 0xe7
+	.word	80                      // 0x50
+	.word	181                     // 0xb5
+	.word	30                      // 0x1e
+	.word	498                     // 0x1f2
+	.word	197                     // 0xc5
+	.word	71                      // 0x47
+	.word	301                     // 0x12d
+	.word	144                     // 0x90
+	.word	27                      // 0x1b
+	.word	209                     // 0xd1
+	.word	124                     // 0x7c
+	.word	82                      // 0x52
+	.word	397                     // 0x18d
+	.word	22                      // 0x16
+	.word	358                     // 0x166
+	.word	296                     // 0x128
+	.word	341                     // 0x155
+	.word	468                     // 0x1d4
+	.word	184                     // 0xb8
+	.word	140                     // 0x8c
+	.word	265                     // 0x109
+	.word	448                     // 0x1c0
+	.word	408                     // 0x198
+	.word	185                     // 0xb9
+	.word	396                     // 0x18c
+	.word	193                     // 0xc1
+	.word	444                     // 0x1bc
+	.word	439                     // 0x1b7
+	.word	456                     // 0x1c8
+	.word	152                     // 0x98
+	.word	422                     // 0x1a6
+	.word	32                      // 0x20
+	.word	505                     // 0x1f9
+	.word	46                      // 0x2e
+	.word	351                     // 0x15f
+	.word	67                      // 0x43
+	.word	89                      // 0x59
+	.word	136                     // 0x88
+	.word	261                     // 0x105
+	.word	64                      // 0x40
+	.word	469                     // 0x1d5
+	.word	174                     // 0xae
+	.word	252                     // 0xfc
+	.word	431                     // 0x1af
+	.word	504                     // 0x1f8
+	.word	486                     // 0x1e6
+	.word	260                     // 0x104
+	.word	7                       // 0x7
+	.word	283                     // 0x11b
+	.word	313                     // 0x139
+	.word	201                     // 0xc9
+	.word	226                     // 0xe2
+	.word	183                     // 0xb7
+	.word	396                     // 0x18c
+	.word	212                     // 0xd4
+	.word	340                     // 0x154
+	.word	342                     // 0x156
+	.word	178                     // 0xb2
+	.word	255                     // 0xff
+	.word	78                      // 0x4e
+	.word	25                      // 0x19
+	.word	18                      // 0x12
+	.word	250                     // 0xfa
+	.word	57                      // 0x39
+	.word	67                      // 0x43
+	.word	96                      // 0x60
+	.word	88                      // 0x58
+	.word	477                     // 0x1dd
+	.word	16                      // 0x10
+	.word	379                     // 0x17b
+	.word	476                     // 0x1dc
+	.word	241                     // 0xf1
+	.word	428                     // 0x1ac
+	.word	124                     // 0x7c
+	.word	220                     // 0xdc
+	.word	6                       // 0x6
+	.word	230                     // 0xe6
+	.word	34                      // 0x22
+	.word	226                     // 0xe2
+	.word	409                     // 0x199
+	.word	304                     // 0x130
+	.word	501                     // 0x1f5
+	.word	99                      // 0x63
+	.word	265                     // 0x109
+	.word	257                     // 0x101
+	.word	351                     // 0x15f
+	.word	237                     // 0xed
+	.word	326                     // 0x146
+	.word	137                     // 0x89
+	.word	312                     // 0x138
+	.word	272                     // 0x110
+	.word	471                     // 0x1d7
+	.word	218                     // 0xda
+	.word	154                     // 0x9a
+	.word	199                     // 0xc7
+	.word	212                     // 0xd4
+	.word	141                     // 0x8d
+	.word	93                      // 0x5d
+	.word	433                     // 0x1b1
+	.word	210                     // 0xd2
+	.word	370                     // 0x172
+	.word	506                     // 0x1fa
+	.word	117                     // 0x75
+	.word	499                     // 0x1f3
+	.word	328                     // 0x148
+	.word	357                     // 0x165
+	.word	141                     // 0x8d
+	.word	27                      // 0x1b
+	.word	144                     // 0x90
+	.word	162                     // 0xa2
+	.word	54                      // 0x36
+	.word	435                     // 0x1b3
+	.word	361                     // 0x169
+	.word	447                     // 0x1bf
+	.word	478                     // 0x1de
+	.word	400                     // 0x190
+	.word	434                     // 0x1b2
+	.word	2                       // 0x2
+	.word	77                      // 0x4d
+	.word	401                     // 0x191
+	.word	79                      // 0x4f
+	.word	313                     // 0x139
+	.word	454                     // 0x1c6
+	.word	177                     // 0xb1
+	.word	164                     // 0xa4
+	.word	415                     // 0x19f
+	.word	100                     // 0x64
+	.word	87                      // 0x57
+	.word	36                      // 0x24
+	.word	101                     // 0x65
+	.word	190                     // 0xbe
+	.word	294                     // 0x126
+	.word	378                     // 0x17a
+	.word	471                     // 0x1d7
+	.word	230                     // 0xe6
+	.word	49                      // 0x31
+	.word	231                     // 0xe7
+	.word	56                      // 0x38
+	.word	238                     // 0xee
+	.word	45                      // 0x2d
+	.word	1                       // 0x1
+	.word	73                      // 0x49
+	.word	372                     // 0x174
+	.word	322                     // 0x142
+	.word	229                     // 0xe5
+	.word	336                     // 0x150
+	.word	338                     // 0x152
+	.word	53                      // 0x35
+	.word	144                     // 0x90
+	.word	491                     // 0x1eb
+	.word	233                     // 0xe9
+	.word	440                     // 0x1b8
+	.word	200                     // 0xc8
+	.word	35                      // 0x23
+	.word	74                      // 0x4a
+	.word	108                     // 0x6c
+	.word	106                     // 0x6a
+	.word	448                     // 0x1c0
+	.word	313                     // 0x139
+	.word	324                     // 0x144
+	.word	126                     // 0x7e
+	.word	157                     // 0x9d
+	.word	283                     // 0x11b
+	.word	405                     // 0x195
+	.word	305                     // 0x131
+	.word	237                     // 0xed
+	.word	177                     // 0xb1
+	.word	354                     // 0x162
+	.word	386                     // 0x182
+	.word	318                     // 0x13e
+	.word	60                      // 0x3c
+	.word	145                     // 0x91
+	.word	299                     // 0x12b
+	.word	468                     // 0x1d4
+	.word	23                      // 0x17
+	.word	314                     // 0x13a
+	.word	6                       // 0x6
+	.word	145                     // 0x91
+	.word	103                     // 0x67
+	.word	482                     // 0x1e2
+	.word	129                     // 0x81
+	.word	98                      // 0x62
+	.word	220                     // 0xdc
+	.word	67                      // 0x43
+	.word	114                     // 0x72
+	.word	211                     // 0xd3
+	.word	265                     // 0x109
+	.word	83                      // 0x53
+	.word	398                     // 0x18e
+	.word	168                     // 0xa8
+	.word	92                      // 0x5c
+	.word	200                     // 0xc8
+	.word	55                      // 0x37
+	.word	71                      // 0x47
+	.word	39                      // 0x27
+	.word	459                     // 0x1cb
+	.word	146                     // 0x92
+	.word	252                     // 0xfc
+	.word	277                     // 0x115
+	.word	376                     // 0x178
+	.word	240                     // 0xf0
+	.word	232                     // 0xe8
+	.word	475                     // 0x1db
+	.word	297                     // 0x129
+	.word	375                     // 0x177
+	.word	385                     // 0x181
+	.word	253                     // 0xfd
+	.word	388                     // 0x184
+	.word	299                     // 0x12b
+	.word	174                     // 0xae
+	.word	216                     // 0xd8
+	.word	243                     // 0xf3
+	.word	42                      // 0x2a
+	.word	144                     // 0x90
+	.word	61                      // 0x3d
+	.word	336                     // 0x150
+	.word	413                     // 0x19d
+	.word	338                     // 0x152
+	.word	138                     // 0x8a
+	.word	133                     // 0x85
+	.word	302                     // 0x12e
+	.word	202                     // 0xca
+	.word	138                     // 0x8a
+	.word	78                      // 0x4e
+	.word	167                     // 0xa7
+	.word	101                     // 0x65
+	.word	486                     // 0x1e6
+	.word	131                     // 0x83
+	.word	476                     // 0x1dc
+	.word	282                     // 0x11a
+	.word	29                      // 0x1d
+	.word	402                     // 0x192
+	.word	46                      // 0x2e
+	.word	57                      // 0x39
+	.word	510                     // 0x1fe
+	.word	418                     // 0x1a2
+	.word	432                     // 0x1b0
+	.word	78                      // 0x4e
+	.word	214                     // 0xd6
+	.word	224                     // 0xe0
+	.word	243                     // 0xf3
+	.word	121                     // 0x79
+	.word	78                      // 0x4e
+	.word	378                     // 0x17a
+	.word	259                     // 0x103
+	.word	314                     // 0x13a
+	.word	246                     // 0xf6
+	.word	291                     // 0x123
+	.word	346                     // 0x15a
+	.word	239                     // 0xef
+	.word	5                       // 0x5
+	.word	162                     // 0xa2
+	.word	288                     // 0x120
+	.word	42                      // 0x2a
+	.word	32                      // 0x20
+	.word	286                     // 0x11e
+	.word	267                     // 0x10b
+	.word	67                      // 0x43
+	.word	103                     // 0x67
+	.word	244                     // 0xf4
+	.word	476                     // 0x1dc
+	.word	172                     // 0xac
+	.word	288                     // 0x120
+	.word	124                     // 0x7c
+	.word	511                     // 0x1ff
+	.word	226                     // 0xe2
+	.word	63                      // 0x3f
+	.word	103                     // 0x67
+	.word	485                     // 0x1e5
+	.word	488                     // 0x1e8
+	.word	153                     // 0x99
+	.word	453                     // 0x1c5
+	.word	422                     // 0x1a6
+	.word	461                     // 0x1cd
+	.word	240                     // 0xf0
+	.word	169                     // 0xa9
+	.word	312                     // 0x138
+	.word	290                     // 0x122
+	.word	300                     // 0x12c
+	.word	99                      // 0x63
+	.word	276                     // 0x114
+	.word	102                     // 0x66
+	.word	500                     // 0x1f4
+	.word	300                     // 0x12c
+	.word	386                     // 0x182
+	.word	247                     // 0xf7
+	.word	148                     // 0x94
+	.word	120                     // 0x78
+	.word	497                     // 0x1f1
+	.word	17                      // 0x11
+	.word	469                     // 0x1d5
+	.word	441                     // 0x1b9
+	.word	116                     // 0x74
+	.word	357                     // 0x165
+	.word	98                      // 0x62
+	.word	31                      // 0x1f
+	.word	162                     // 0xa2
+	.word	213                     // 0xd5
+	.word	312                     // 0x138
+	.word	100                     // 0x64
+	.word	280                     // 0x118
+	.word	89                      // 0x59
+	.word	293                     // 0x125
+	.word	324                     // 0x144
+	.word	284                     // 0x11c
+	.word	205                     // 0xcd
+	.word	245                     // 0xf5
+	.word	317                     // 0x13d
+	.word	279                     // 0x117
+	.word	95                      // 0x5f
+	.word	58                      // 0x3a
+	.word	3                       // 0x3
+	.word	356                     // 0x164
+	.word	36                      // 0x24
+	.word	279                     // 0x117
+	.word	499                     // 0x1f3
+	.word	104                     // 0x68
+	.word	240                     // 0xf0
+	.word	55                      // 0x37
+	.word	61                      // 0x3d
+	.word	447                     // 0x1bf
+	.word	441                     // 0x1b9
+	.word	372                     // 0x174
+	.word	176                     // 0xb0
+	.word	31                      // 0x1f
+	.word	165                     // 0xa5
+	.word	137                     // 0x89
+	.word	498                     // 0x1f2
+	.word	417                     // 0x1a1
+	.word	54                      // 0x36
+	.word	282                     // 0x11a
+	.word	288                     // 0x120
+	.word	451                     // 0x1c3
+	.word	367                     // 0x16f
+	.word	237                     // 0xed
+	.word	23                      // 0x17
+	.word	483                     // 0x1e3
+	.word	164                     // 0xa4
+	.word	71                      // 0x47
+	.word	430                     // 0x1ae
+	.word	292                     // 0x124
+	.word	136                     // 0x88
+	.word	208                     // 0xd0
+	.word	415                     // 0x19f
+	.word	472                     // 0x1d8
+	.word	376                     // 0x178
+	.word	327                     // 0x147
+	.word	195                     // 0xc3
+	.word	219                     // 0xdb
+	.word	419                     // 0x1a3
+	.word	312                     // 0x138
+	.word	14                      // 0xe
+	.word	198                     // 0xc6
+	.word	347                     // 0x15b
+	.word	219                     // 0xdb
+	.word	358                     // 0x166
+	.word	401                     // 0x191
+	.word	159                     // 0x9f
+	.word	216                     // 0xd8
+	.word	94                      // 0x5e
+	.word	406                     // 0x196
+	.word	349                     // 0x15d
+	.word	6                       // 0x6
+	.word	340                     // 0x154
+	.word	206                     // 0xce
+	.word	35                      // 0x23
+	.word	456                     // 0x1c8
+	.word	363                     // 0x16b
+	.word	12                      // 0xc
+	.word	37                      // 0x25
+	.word	392                     // 0x188
+	.word	178                     // 0xb2
+	.word	250                     // 0xfa
+	.word	142                     // 0x8e
+	.word	329                     // 0x149
+	.word	389                     // 0x185
+	.word	245                     // 0xf5
+	.word	327                     // 0x147
+	.word	262                     // 0x106
+	.word	81                      // 0x51
+	.word	78                      // 0x4e
+	.word	62                      // 0x3e
+	.word	508                     // 0x1fc
+	.word	512                     // 0x200
+	.word	500                     // 0x1f4
+	.word	122                     // 0x7a
+	.word	206                     // 0xce
+	.word	77                      // 0x4d
+	.word	249                     // 0xf9
+	.word	377                     // 0x179
+	.word	320                     // 0x140
+	.word	209                     // 0xd1
+	.word	123                     // 0x7b
+	.word	416                     // 0x1a0
+	.word	237                     // 0xed
+	.word	253                     // 0xfd
+	.word	185                     // 0xb9
+	.word	154                     // 0x9a
+	.word	184                     // 0xb8
+	.word	353                     // 0x161
+	.word	405                     // 0x195
+	.word	143                     // 0x8f
+	.word	323                     // 0x143
+	.word	132                     // 0x84
+	.word	317                     // 0x13d
+	.word	155                     // 0x9b
+	.word	142                     // 0x8e
+	.word	250                     // 0xfa
+	.word	477                     // 0x1dd
+	.word	250                     // 0xfa
+	.word	307                     // 0x133
+	.word	417                     // 0x1a1
+	.word	326                     // 0x146
+	.word	190                     // 0xbe
+	.word	397                     // 0x18d
+	.word	71                      // 0x47
+	.word	73                      // 0x49
+	.word	326                     // 0x146
+	.word	45                      // 0x2d
+	.word	192                     // 0xc0
+	.word	510                     // 0x1fe
+	.word	376                     // 0x178
+	.word	473                     // 0x1d9
+	.word	61                      // 0x3d
+	.word	20                      // 0x14
+	.word	286                     // 0x11e
+	.word	482                     // 0x1e2
+	.word	178                     // 0xb2
+	.word	507                     // 0x1fb
+	.word	301                     // 0x12d
+	.word	306                     // 0x132
+	.word	319                     // 0x13f
+	.word	90                      // 0x5a
+	.word	197                     // 0xc5
+	.word	334                     // 0x14e
+	.word	119                     // 0x77
+	.word	402                     // 0x192
+	.word	66                      // 0x42
+	.word	323                     // 0x143
+	.word	445                     // 0x1bd
+	.word	506                     // 0x1fa
+	.word	473                     // 0x1d9
+	.word	309                     // 0x135
+	.word	236                     // 0xec
+	.word	404                     // 0x194
+	.word	245                     // 0xf5
+	.word	354                     // 0x162
+	.word	325                     // 0x145
+	.word	188                     // 0xbc
+	.word	387                     // 0x183
+	.word	240                     // 0xf0
+	.word	86                      // 0x56
+	.word	84                      // 0x54
+	.word	223                     // 0xdf
+	.word	186                     // 0xba
+	.word	14                      // 0xe
+	.word	478                     // 0x1de
+	.word	251                     // 0xfb
+	.word	382                     // 0x17e
+	.word	444                     // 0x1bc
+	.word	151                     // 0x97
+	.word	417                     // 0x1a1
+	.word	163                     // 0xa3
+	.word	490                     // 0x1ea
+	.word	323                     // 0x143
+	.word	253                     // 0xfd
+	.word	368                     // 0x170
+	.word	187                     // 0xbb
+	.word	271                     // 0x10f
+	.word	445                     // 0x1bd
+	.word	473                     // 0x1d9
+	.word	19                      // 0x13
+	.word	222                     // 0xde
+	.word	290                     // 0x122
+	.word	350                     // 0x15e
+	.word	285                     // 0x11d
+	.word	372                     // 0x174
+	.word	421                     // 0x1a5
+	.word	30                      // 0x1e
+	.word	380                     // 0x17c
+	.word	250                     // 0xfa
+	.word	75                      // 0x4b
+	.word	476                     // 0x1dc
+	.word	168                     // 0xa8
+	.word	245                     // 0xf5
+	.word	390                     // 0x186
+	.word	86                      // 0x56
+	.word	20                      // 0x14
+	.word	363                     // 0x16b
+	.word	165                     // 0xa5
+	.word	151                     // 0x97
+	.word	423                     // 0x1a7
+	.word	117                     // 0x75
+	.word	163                     // 0xa3
+	.word	300                     // 0x12c
+	.word	82                      // 0x52
+	.word	173                     // 0xad
+	.word	237                     // 0xed
+	.word	87                      // 0x57
+	.word	208                     // 0xd0
+	.word	282                     // 0x11a
+	.word	87                      // 0x57
+	.word	181                     // 0xb5
+	.word	481                     // 0x1e1
+	.word	187                     // 0xbb
+	.word	112                     // 0x70
+	.word	169                     // 0xa9
+	.word	69                      // 0x45
+	.word	56                      // 0x38
+	.word	131                     // 0x83
+	.word	257                     // 0x101
+	.word	24                      // 0x18
+	.word	238                     // 0xee
+	.word	78                      // 0x4e
+	.word	470                     // 0x1d6
+	.word	154                     // 0x9a
+	.word	310                     // 0x136
+	.word	197                     // 0xc5
+	.word	481                     // 0x1e1
+	.word	398                     // 0x18e
+	.word	167                     // 0xa7
+	.word	386                     // 0x182
+	.word	366                     // 0x16e
+	.word	49                      // 0x31
+	.word	337                     // 0x151
+	.word	66                      // 0x42
+	.word	119                     // 0x77
+	.word	490                     // 0x1ea
+	.word	203                     // 0xcb
+	.word	39                      // 0x27
+	.word	317                     // 0x13d
+	.word	97                      // 0x61
+	.word	33                      // 0x21
+	.word	414                     // 0x19e
+	.word	464                     // 0x1d0
+	.word	210                     // 0xd2
+	.word	336                     // 0x150
+	.word	489                     // 0x1e9
+	.word	335                     // 0x14f
+	.word	378                     // 0x17a
+	.word	116                     // 0x74
+	.word	363                     // 0x16b
+	.word	328                     // 0x148
+	.word	191                     // 0xbf
+	.word	101                     // 0x65
+	.word	407                     // 0x197
+	.word	408                     // 0x198
+	.word	259                     // 0x103
+	.word	483                     // 0x1e3
+	.word	51                      // 0x33
+	.word	377                     // 0x179
+	.word	223                     // 0xdf
+	.size	nums1k1, 4096
+
+	.type	nums1k2,@object         // @nums1k2
+	.globl	nums1k2
+	.align	2
+nums1k2:
+	.word	348                     // 0x15c
+	.word	348                     // 0x15c
+	.word	4                       // 0x4
+	.word	379                     // 0x17b
+	.word	124                     // 0x7c
+	.word	157                     // 0x9d
+	.word	325                     // 0x145
+	.word	427                     // 0x1ab
+	.word	423                     // 0x1a7
+	.word	337                     // 0x151
+	.word	460                     // 0x1cc
+	.word	131                     // 0x83
+	.word	240                     // 0xf0
+	.word	232                     // 0xe8
+	.word	165                     // 0xa5
+	.word	278                     // 0x116
+	.word	158                     // 0x9e
+	.word	490                     // 0x1ea
+	.word	101                     // 0x65
+	.word	250                     // 0xfa
+	.word	109                     // 0x6d
+	.word	506                     // 0x1fa
+	.word	332                     // 0x14c
+	.word	245                     // 0xf5
+	.word	462                     // 0x1ce
+	.word	253                     // 0xfd
+	.word	165                     // 0xa5
+	.word	254                     // 0xfe
+	.word	321                     // 0x141
+	.word	390                     // 0x186
+	.word	107                     // 0x6b
+	.word	444                     // 0x1bc
+	.word	498                     // 0x1f2
+	.word	8                       // 0x8
+	.word	360                     // 0x168
+	.word	220                     // 0xdc
+	.word	79                      // 0x4f
+	.word	141                     // 0x8d
+	.word	474                     // 0x1da
+	.word	171                     // 0xab
+	.word	271                     // 0x10f
+	.word	243                     // 0xf3
+	.word	96                      // 0x60
+	.word	348                     // 0x15c
+	.word	297                     // 0x129
+	.word	181                     // 0xb5
+	.word	466                     // 0x1d2
+	.word	65                      // 0x41
+	.word	100                     // 0x64
+	.word	174                     // 0xae
+	.word	360                     // 0x168
+	.word	453                     // 0x1c5
+	.word	207                     // 0xcf
+	.word	414                     // 0x19e
+	.word	190                     // 0xbe
+	.word	134                     // 0x86
+	.word	92                      // 0x5c
+	.word	279                     // 0x117
+	.word	464                     // 0x1d0
+	.word	503                     // 0x1f7
+	.word	158                     // 0x9e
+	.word	159                     // 0x9f
+	.word	98                      // 0x62
+	.word	158                     // 0x9e
+	.word	302                     // 0x12e
+	.word	25                      // 0x19
+	.word	188                     // 0xbc
+	.word	337                     // 0x151
+	.word	8                       // 0x8
+	.word	98                      // 0x62
+	.word	393                     // 0x189
+	.word	90                      // 0x5a
+	.word	396                     // 0x18c
+	.word	504                     // 0x1f8
+	.word	205                     // 0xcd
+	.word	425                     // 0x1a9
+	.word	175                     // 0xaf
+	.word	439                     // 0x1b7
+	.word	58                      // 0x3a
+	.word	343                     // 0x157
+	.word	247                     // 0xf7
+	.word	113                     // 0x71
+	.word	249                     // 0xf9
+	.word	150                     // 0x96
+	.word	348                     // 0x15c
+	.word	24                      // 0x18
+	.word	174                     // 0xae
+	.word	376                     // 0x178
+	.word	331                     // 0x14b
+	.word	302                     // 0x12e
+	.word	280                     // 0x118
+	.word	251                     // 0xfb
+	.word	510                     // 0x1fe
+	.word	113                     // 0x71
+	.word	241                     // 0xf1
+	.word	507                     // 0x1fb
+	.word	9                       // 0x9
+	.word	389                     // 0x185
+	.word	172                     // 0xac
+	.word	214                     // 0xd6
+	.word	253                     // 0xfd
+	.word	497                     // 0x1f1
+	.word	401                     // 0x191
+	.word	243                     // 0xf3
+	.word	7                       // 0x7
+	.word	80                      // 0x50
+	.word	499                     // 0x1f3
+	.word	133                     // 0x85
+	.word	208                     // 0xd0
+	.word	477                     // 0x1dd
+	.word	456                     // 0x1c8
+	.word	376                     // 0x178
+	.word	350                     // 0x15e
+	.word	53                      // 0x35
+	.word	466                     // 0x1d2
+	.word	84                      // 0x54
+	.word	261                     // 0x105
+	.word	193                     // 0xc1
+	.word	215                     // 0xd7
+	.word	9                       // 0x9
+	.word	509                     // 0x1fd
+	.word	462                     // 0x1ce
+	.word	378                     // 0x17a
+	.word	363                     // 0x16b
+	.word	154                     // 0x9a
+	.word	482                     // 0x1e2
+	.word	72                      // 0x48
+	.word	266                     // 0x10a
+	.word	465                     // 0x1d1
+	.word	73                      // 0x49
+	.word	460                     // 0x1cc
+	.word	406                     // 0x196
+	.word	454                     // 0x1c6
+	.word	478                     // 0x1de
+	.word	447                     // 0x1bf
+	.word	94                      // 0x5e
+	.word	283                     // 0x11b
+	.word	107                     // 0x6b
+	.word	483                     // 0x1e3
+	.word	404                     // 0x194
+	.word	48                      // 0x30
+	.word	297                     // 0x129
+	.word	207                     // 0xcf
+	.word	47                      // 0x2f
+	.word	435                     // 0x1b3
+	.word	56                      // 0x38
+	.word	416                     // 0x1a0
+	.word	362                     // 0x16a
+	.word	181                     // 0xb5
+	.word	327                     // 0x147
+	.word	36                      // 0x24
+	.word	231                     // 0xe7
+	.word	273                     // 0x111
+	.word	48                      // 0x30
+	.word	123                     // 0x7b
+	.word	455                     // 0x1c7
+	.word	319                     // 0x13f
+	.word	358                     // 0x166
+	.word	21                      // 0x15
+	.word	153                     // 0x99
+	.word	161                     // 0xa1
+	.word	178                     // 0xb2
+	.word	382                     // 0x17e
+	.word	415                     // 0x19f
+	.word	362                     // 0x16a
+	.word	2                       // 0x2
+	.word	116                     // 0x74
+	.word	420                     // 0x1a4
+	.word	197                     // 0xc5
+	.word	60                      // 0x3c
+	.word	205                     // 0xcd
+	.word	16                      // 0x10
+	.word	506                     // 0x1fa
+	.word	109                     // 0x6d
+	.word	60                      // 0x3c
+	.word	135                     // 0x87
+	.word	491                     // 0x1eb
+	.word	414                     // 0x19e
+	.word	150                     // 0x96
+	.word	41                      // 0x29
+	.word	342                     // 0x156
+	.word	126                     // 0x7e
+	.word	188                     // 0xbc
+	.word	172                     // 0xac
+	.word	348                     // 0x15c
+	.word	383                     // 0x17f
+	.word	475                     // 0x1db
+	.word	454                     // 0x1c6
+	.word	236                     // 0xec
+	.word	461                     // 0x1cd
+	.word	370                     // 0x172
+	.word	113                     // 0x71
+	.word	158                     // 0x9e
+	.word	145                     // 0x91
+	.word	157                     // 0x9d
+	.word	17                      // 0x11
+	.word	90                      // 0x5a
+	.word	479                     // 0x1df
+	.word	497                     // 0x1f1
+	.word	384                     // 0x180
+	.word	18                      // 0x12
+	.word	92                      // 0x5c
+	.word	471                     // 0x1d7
+	.word	300                     // 0x12c
+	.word	137                     // 0x89
+	.word	230                     // 0xe6
+	.word	105                     // 0x69
+	.word	68                      // 0x44
+	.word	128                     // 0x80
+	.word	487                     // 0x1e7
+	.word	125                     // 0x7d
+	.word	9                       // 0x9
+	.word	158                     // 0x9e
+	.word	105                     // 0x69
+	.word	4                       // 0x4
+	.word	374                     // 0x176
+	.word	202                     // 0xca
+	.word	315                     // 0x13b
+	.word	295                     // 0x127
+	.word	11                      // 0xb
+	.word	512                     // 0x200
+	.word	247                     // 0xf7
+	.word	276                     // 0x114
+	.word	55                      // 0x37
+	.word	52                      // 0x34
+	.word	507                     // 0x1fb
+	.word	390                     // 0x186
+	.word	74                      // 0x4a
+	.word	470                     // 0x1d6
+	.word	16                      // 0x10
+	.word	332                     // 0x14c
+	.word	235                     // 0xeb
+	.word	455                     // 0x1c7
+	.word	374                     // 0x176
+	.word	175                     // 0xaf
+	.word	361                     // 0x169
+	.word	414                     // 0x19e
+	.word	143                     // 0x8f
+	.word	481                     // 0x1e1
+	.word	193                     // 0xc1
+	.word	409                     // 0x199
+	.word	212                     // 0xd4
+	.word	361                     // 0x169
+	.word	179                     // 0xb3
+	.word	189                     // 0xbd
+	.word	243                     // 0xf3
+	.word	330                     // 0x14a
+	.word	356                     // 0x164
+	.word	503                     // 0x1f7
+	.word	385                     // 0x181
+	.word	397                     // 0x18d
+	.word	110                     // 0x6e
+	.word	486                     // 0x1e6
+	.word	157                     // 0x9d
+	.word	169                     // 0xa9
+	.word	31                      // 0x1f
+	.word	276                     // 0x114
+	.word	455                     // 0x1c7
+	.word	499                     // 0x1f3
+	.word	161                     // 0xa1
+	.word	43                      // 0x2b
+	.word	315                     // 0x13b
+	.word	264                     // 0x108
+	.word	441                     // 0x1b9
+	.word	242                     // 0xf2
+	.word	145                     // 0x91
+	.word	204                     // 0xcc
+	.word	181                     // 0xb5
+	.word	206                     // 0xce
+	.word	83                      // 0x53
+	.word	354                     // 0x162
+	.word	446                     // 0x1be
+	.word	86                      // 0x56
+	.word	150                     // 0x96
+	.word	338                     // 0x152
+	.word	18                      // 0x12
+	.word	488                     // 0x1e8
+	.word	483                     // 0x1e3
+	.word	297                     // 0x129
+	.word	213                     // 0xd5
+	.word	479                     // 0x1df
+	.word	314                     // 0x13a
+	.word	439                     // 0x1b7
+	.word	353                     // 0x161
+	.word	272                     // 0x110
+	.word	4                       // 0x4
+	.word	75                      // 0x4b
+	.word	420                     // 0x1a4
+	.word	143                     // 0x8f
+	.word	413                     // 0x19d
+	.word	153                     // 0x99
+	.word	105                     // 0x69
+	.word	376                     // 0x178
+	.word	158                     // 0x9e
+	.word	101                     // 0x65
+	.word	327                     // 0x147
+	.word	396                     // 0x18c
+	.word	81                      // 0x51
+	.word	427                     // 0x1ab
+	.word	227                     // 0xe3
+	.word	404                     // 0x194
+	.word	48                      // 0x30
+	.word	302                     // 0x12e
+	.word	458                     // 0x1ca
+	.word	446                     // 0x1be
+	.word	422                     // 0x1a6
+	.word	134                     // 0x86
+	.word	42                      // 0x2a
+	.word	132                     // 0x84
+	.word	473                     // 0x1d9
+	.word	197                     // 0xc5
+	.word	258                     // 0x102
+	.word	146                     // 0x92
+	.word	99                      // 0x63
+	.word	220                     // 0xdc
+	.word	434                     // 0x1b2
+	.word	381                     // 0x17d
+	.word	489                     // 0x1e9
+	.word	365                     // 0x16d
+	.word	315                     // 0x13b
+	.word	280                     // 0x118
+	.word	437                     // 0x1b5
+	.word	284                     // 0x11c
+	.word	99                      // 0x63
+	.word	388                     // 0x184
+	.word	247                     // 0xf7
+	.word	494                     // 0x1ee
+	.word	477                     // 0x1dd
+	.word	122                     // 0x7a
+	.word	470                     // 0x1d6
+	.word	42                      // 0x2a
+	.word	47                      // 0x2f
+	.word	130                     // 0x82
+	.word	17                      // 0x11
+	.word	484                     // 0x1e4
+	.word	421                     // 0x1a5
+	.word	268                     // 0x10c
+	.word	390                     // 0x186
+	.word	490                     // 0x1ea
+	.word	317                     // 0x13d
+	.word	417                     // 0x1a1
+	.word	205                     // 0xcd
+	.word	220                     // 0xdc
+	.word	242                     // 0xf2
+	.word	477                     // 0x1dd
+	.word	508                     // 0x1fc
+	.word	196                     // 0xc4
+	.word	415                     // 0x19f
+	.word	5                       // 0x5
+	.word	144                     // 0x90
+	.word	479                     // 0x1df
+	.word	34                      // 0x22
+	.word	117                     // 0x75
+	.word	472                     // 0x1d8
+	.word	309                     // 0x135
+	.word	456                     // 0x1c8
+	.word	72                      // 0x48
+	.word	393                     // 0x189
+	.word	51                      // 0x33
+	.word	295                     // 0x127
+	.word	407                     // 0x197
+	.word	155                     // 0x9b
+	.word	128                     // 0x80
+	.word	47                      // 0x2f
+	.word	400                     // 0x190
+	.word	42                      // 0x2a
+	.word	424                     // 0x1a8
+	.word	168                     // 0xa8
+	.word	231                     // 0xe7
+	.word	468                     // 0x1d4
+	.word	24                      // 0x18
+	.word	467                     // 0x1d3
+	.word	226                     // 0xe2
+	.word	389                     // 0x185
+	.word	68                      // 0x44
+	.word	403                     // 0x193
+	.word	502                     // 0x1f6
+	.word	253                     // 0xfd
+	.word	409                     // 0x199
+	.word	505                     // 0x1f9
+	.word	333                     // 0x14d
+	.word	142                     // 0x8e
+	.word	203                     // 0xcb
+	.word	161                     // 0xa1
+	.word	426                     // 0x1aa
+	.word	322                     // 0x142
+	.word	329                     // 0x149
+	.word	130                     // 0x82
+	.word	114                     // 0x72
+	.word	398                     // 0x18e
+	.word	302                     // 0x12e
+	.word	306                     // 0x132
+	.word	268                     // 0x10c
+	.word	282                     // 0x11a
+	.word	168                     // 0xa8
+	.word	35                      // 0x23
+	.word	214                     // 0xd6
+	.word	28                      // 0x1c
+	.word	355                     // 0x163
+	.word	366                     // 0x16e
+	.word	208                     // 0xd0
+	.word	320                     // 0x140
+	.word	418                     // 0x1a2
+	.word	20                      // 0x14
+	.word	239                     // 0xef
+	.word	216                     // 0xd8
+	.word	277                     // 0x115
+	.word	343                     // 0x157
+	.word	33                      // 0x21
+	.word	250                     // 0xfa
+	.word	28                      // 0x1c
+	.word	339                     // 0x153
+	.word	151                     // 0x97
+	.word	232                     // 0xe8
+	.word	336                     // 0x150
+	.word	124                     // 0x7c
+	.word	36                      // 0x24
+	.word	203                     // 0xcb
+	.word	376                     // 0x178
+	.word	225                     // 0xe1
+	.word	114                     // 0x72
+	.word	390                     // 0x186
+	.word	241                     // 0xf1
+	.word	408                     // 0x198
+	.word	246                     // 0xf6
+	.word	21                      // 0x15
+	.word	246                     // 0xf6
+	.word	412                     // 0x19c
+	.word	421                     // 0x1a5
+	.word	419                     // 0x1a3
+	.word	472                     // 0x1d8
+	.word	454                     // 0x1c6
+	.word	239                     // 0xef
+	.word	162                     // 0xa2
+	.word	482                     // 0x1e2
+	.word	262                     // 0x106
+	.word	132                     // 0x84
+	.word	506                     // 0x1fa
+	.word	305                     // 0x131
+	.word	239                     // 0xef
+	.word	341                     // 0x155
+	.word	247                     // 0xf7
+	.word	253                     // 0xfd
+	.word	338                     // 0x152
+	.word	200                     // 0xc8
+	.word	37                      // 0x25
+	.word	86                      // 0x56
+	.word	66                      // 0x42
+	.word	49                      // 0x31
+	.word	458                     // 0x1ca
+	.word	21                      // 0x15
+	.word	89                      // 0x59
+	.word	54                      // 0x36
+	.word	299                     // 0x12b
+	.word	86                      // 0x56
+	.word	26                      // 0x1a
+	.word	417                     // 0x1a1
+	.word	143                     // 0x8f
+	.word	275                     // 0x113
+	.word	226                     // 0xe2
+	.word	325                     // 0x145
+	.word	56                      // 0x38
+	.word	183                     // 0xb7
+	.word	435                     // 0x1b3
+	.word	262                     // 0x106
+	.word	506                     // 0x1fa
+	.word	181                     // 0xb5
+	.word	228                     // 0xe4
+	.word	197                     // 0xc5
+	.word	270                     // 0x10e
+	.word	339                     // 0x153
+	.word	153                     // 0x99
+	.word	364                     // 0x16c
+	.word	471                     // 0x1d7
+	.word	283                     // 0x11b
+	.word	508                     // 0x1fc
+	.word	510                     // 0x1fe
+	.word	167                     // 0xa7
+	.word	337                     // 0x151
+	.word	462                     // 0x1ce
+	.word	41                      // 0x29
+	.word	338                     // 0x152
+	.word	388                     // 0x184
+	.word	106                     // 0x6a
+	.word	162                     // 0xa2
+	.word	439                     // 0x1b7
+	.word	473                     // 0x1d9
+	.word	505                     // 0x1f9
+	.word	16                      // 0x10
+	.word	87                      // 0x57
+	.word	338                     // 0x152
+	.word	48                      // 0x30
+	.word	504                     // 0x1f8
+	.word	402                     // 0x192
+	.word	261                     // 0x105
+	.word	376                     // 0x178
+	.word	317                     // 0x13d
+	.word	117                     // 0x75
+	.word	345                     // 0x159
+	.word	388                     // 0x184
+	.word	374                     // 0x176
+	.word	109                     // 0x6d
+	.word	272                     // 0x110
+	.word	301                     // 0x12d
+	.word	398                     // 0x18e
+	.word	435                     // 0x1b3
+	.word	348                     // 0x15c
+	.word	482                     // 0x1e2
+	.word	438                     // 0x1b6
+	.word	239                     // 0xef
+	.word	272                     // 0x110
+	.word	52                      // 0x34
+	.word	85                      // 0x55
+	.word	454                     // 0x1c6
+	.word	349                     // 0x15d
+	.word	475                     // 0x1db
+	.word	46                      // 0x2e
+	.word	188                     // 0xbc
+	.word	85                      // 0x55
+	.word	92                      // 0x5c
+	.word	246                     // 0xf6
+	.word	432                     // 0x1b0
+	.word	398                     // 0x18e
+	.word	169                     // 0xa9
+	.word	477                     // 0x1dd
+	.word	126                     // 0x7e
+	.word	291                     // 0x123
+	.word	158                     // 0x9e
+	.word	141                     // 0x8d
+	.word	143                     // 0x8f
+	.word	199                     // 0xc7
+	.word	415                     // 0x19f
+	.word	144                     // 0x90
+	.word	152                     // 0x98
+	.word	329                     // 0x149
+	.word	67                      // 0x43
+	.word	286                     // 0x11e
+	.word	347                     // 0x15b
+	.word	126                     // 0x7e
+	.word	290                     // 0x122
+	.word	148                     // 0x94
+	.word	421                     // 0x1a5
+	.word	273                     // 0x111
+	.word	342                     // 0x156
+	.word	13                      // 0xd
+	.word	205                     // 0xcd
+	.word	424                     // 0x1a8
+	.word	269                     // 0x10d
+	.word	117                     // 0x75
+	.word	155                     // 0x9b
+	.word	42                      // 0x2a
+	.word	99                      // 0x63
+	.word	262                     // 0x106
+	.word	343                     // 0x157
+	.word	359                     // 0x167
+	.word	16                      // 0x10
+	.word	320                     // 0x140
+	.word	466                     // 0x1d2
+	.word	182                     // 0xb6
+	.word	443                     // 0x1bb
+	.word	412                     // 0x19c
+	.word	435                     // 0x1b3
+	.word	335                     // 0x14f
+	.word	70                      // 0x46
+	.word	494                     // 0x1ee
+	.word	373                     // 0x175
+	.word	463                     // 0x1cf
+	.word	506                     // 0x1fa
+	.word	66                      // 0x42
+	.word	476                     // 0x1dc
+	.word	338                     // 0x152
+	.word	261                     // 0x105
+	.word	223                     // 0xdf
+	.word	505                     // 0x1f9
+	.word	432                     // 0x1b0
+	.word	400                     // 0x190
+	.word	478                     // 0x1de
+	.word	408                     // 0x198
+	.word	99                      // 0x63
+	.word	470                     // 0x1d6
+	.word	331                     // 0x14b
+	.word	202                     // 0xca
+	.word	272                     // 0x110
+	.word	362                     // 0x16a
+	.word	430                     // 0x1ae
+	.word	292                     // 0x124
+	.word	243                     // 0xf3
+	.word	158                     // 0x9e
+	.word	499                     // 0x1f3
+	.word	266                     // 0x10a
+	.word	200                     // 0xc8
+	.word	413                     // 0x19d
+	.word	94                      // 0x5e
+	.word	142                     // 0x8e
+	.word	451                     // 0x1c3
+	.word	231                     // 0xe7
+	.word	414                     // 0x19e
+	.word	151                     // 0x97
+	.word	294                     // 0x126
+	.word	154                     // 0x9a
+	.word	264                     // 0x108
+	.word	478                     // 0x1de
+	.word	10                      // 0xa
+	.word	28                      // 0x1c
+	.word	150                     // 0x96
+	.word	352                     // 0x160
+	.word	390                     // 0x186
+	.word	337                     // 0x151
+	.word	67                      // 0x43
+	.word	185                     // 0xb9
+	.word	30                      // 0x1e
+	.word	137                     // 0x89
+	.word	410                     // 0x19a
+	.word	113                     // 0x71
+	.word	258                     // 0x102
+	.word	332                     // 0x14c
+	.word	174                     // 0xae
+	.word	508                     // 0x1fc
+	.word	296                     // 0x128
+	.word	94                      // 0x5e
+	.word	132                     // 0x84
+	.word	202                     // 0xca
+	.word	306                     // 0x132
+	.word	452                     // 0x1c4
+	.word	185                     // 0xb9
+	.word	113                     // 0x71
+	.word	409                     // 0x199
+	.word	193                     // 0xc1
+	.word	364                     // 0x16c
+	.word	29                      // 0x1d
+	.word	210                     // 0xd2
+	.word	206                     // 0xce
+	.word	127                     // 0x7f
+	.word	244                     // 0xf4
+	.word	177                     // 0xb1
+	.word	394                     // 0x18a
+	.word	282                     // 0x11a
+	.word	329                     // 0x149
+	.word	317                     // 0x13d
+	.word	482                     // 0x1e2
+	.word	384                     // 0x180
+	.word	450                     // 0x1c2
+	.word	150                     // 0x96
+	.word	450                     // 0x1c2
+	.word	295                     // 0x127
+	.word	346                     // 0x15a
+	.word	191                     // 0xbf
+	.word	99                      // 0x63
+	.word	63                      // 0x3f
+	.word	362                     // 0x16a
+	.word	59                      // 0x3b
+	.word	50                      // 0x32
+	.word	470                     // 0x1d6
+	.word	235                     // 0xeb
+	.word	360                     // 0x168
+	.word	443                     // 0x1bb
+	.word	352                     // 0x160
+	.word	392                     // 0x188
+	.word	134                     // 0x86
+	.word	510                     // 0x1fe
+	.word	511                     // 0x1ff
+	.word	318                     // 0x13e
+	.word	303                     // 0x12f
+	.word	113                     // 0x71
+	.word	79                      // 0x4f
+	.word	84                      // 0x54
+	.word	170                     // 0xaa
+	.word	143                     // 0x8f
+	.word	135                     // 0x87
+	.word	266                     // 0x10a
+	.word	326                     // 0x146
+	.word	69                      // 0x45
+	.word	12                      // 0xc
+	.word	330                     // 0x14a
+	.word	82                      // 0x52
+	.word	504                     // 0x1f8
+	.word	492                     // 0x1ec
+	.word	174                     // 0xae
+	.word	455                     // 0x1c7
+	.word	228                     // 0xe4
+	.word	175                     // 0xaf
+	.word	446                     // 0x1be
+	.word	61                      // 0x3d
+	.word	405                     // 0x195
+	.word	444                     // 0x1bc
+	.word	451                     // 0x1c3
+	.word	97                      // 0x61
+	.word	241                     // 0xf1
+	.word	498                     // 0x1f2
+	.word	239                     // 0xef
+	.word	278                     // 0x116
+	.word	478                     // 0x1de
+	.word	401                     // 0x191
+	.word	154                     // 0x9a
+	.word	223                     // 0xdf
+	.word	231                     // 0xe7
+	.word	445                     // 0x1bd
+	.word	251                     // 0xfb
+	.word	83                      // 0x53
+	.word	374                     // 0x176
+	.word	121                     // 0x79
+	.word	506                     // 0x1fa
+	.word	16                      // 0x10
+	.word	291                     // 0x123
+	.word	202                     // 0xca
+	.word	104                     // 0x68
+	.word	456                     // 0x1c8
+	.word	124                     // 0x7c
+	.word	445                     // 0x1bd
+	.word	104                     // 0x68
+	.word	223                     // 0xdf
+	.word	312                     // 0x138
+	.word	437                     // 0x1b5
+	.word	462                     // 0x1ce
+	.word	491                     // 0x1eb
+	.word	403                     // 0x193
+	.word	229                     // 0xe5
+	.word	89                      // 0x59
+	.word	466                     // 0x1d2
+	.word	41                      // 0x29
+	.word	427                     // 0x1ab
+	.word	274                     // 0x112
+	.word	380                     // 0x17c
+	.word	27                      // 0x1b
+	.word	484                     // 0x1e4
+	.word	328                     // 0x148
+	.word	341                     // 0x155
+	.word	344                     // 0x158
+	.word	5                       // 0x5
+	.word	479                     // 0x1df
+	.word	137                     // 0x89
+	.word	127                     // 0x7f
+	.word	86                      // 0x56
+	.word	271                     // 0x10f
+	.word	94                      // 0x5e
+	.word	442                     // 0x1ba
+	.word	140                     // 0x8c
+	.word	466                     // 0x1d2
+	.word	431                     // 0x1af
+	.word	485                     // 0x1e5
+	.word	427                     // 0x1ab
+	.word	324                     // 0x144
+	.word	297                     // 0x129
+	.word	150                     // 0x96
+	.word	237                     // 0xed
+	.word	43                      // 0x2b
+	.word	271                     // 0x10f
+	.word	255                     // 0xff
+	.word	24                      // 0x18
+	.word	470                     // 0x1d6
+	.word	10                      // 0xa
+	.word	503                     // 0x1f7
+	.word	344                     // 0x158
+	.word	488                     // 0x1e8
+	.word	511                     // 0x1ff
+	.word	431                     // 0x1af
+	.word	490                     // 0x1ea
+	.word	270                     // 0x10e
+	.word	317                     // 0x13d
+	.word	180                     // 0xb4
+	.word	334                     // 0x14e
+	.word	434                     // 0x1b2
+	.word	254                     // 0xfe
+	.word	203                     // 0xcb
+	.word	110                     // 0x6e
+	.word	426                     // 0x1aa
+	.word	450                     // 0x1c2
+	.word	175                     // 0xaf
+	.word	145                     // 0x91
+	.word	220                     // 0xdc
+	.word	411                     // 0x19b
+	.word	478                     // 0x1de
+	.word	156                     // 0x9c
+	.word	271                     // 0x10f
+	.word	483                     // 0x1e3
+	.word	319                     // 0x13f
+	.word	81                      // 0x51
+	.word	149                     // 0x95
+	.word	175                     // 0xaf
+	.word	424                     // 0x1a8
+	.word	165                     // 0xa5
+	.word	326                     // 0x146
+	.word	512                     // 0x200
+	.word	53                      // 0x35
+	.word	108                     // 0x6c
+	.word	432                     // 0x1b0
+	.word	217                     // 0xd9
+	.word	146                     // 0x92
+	.word	107                     // 0x6b
+	.word	108                     // 0x6c
+	.word	401                     // 0x191
+	.word	339                     // 0x153
+	.word	412                     // 0x19c
+	.word	336                     // 0x150
+	.word	211                     // 0xd3
+	.word	68                      // 0x44
+	.word	120                     // 0x78
+	.word	153                     // 0x99
+	.word	415                     // 0x19f
+	.word	314                     // 0x13a
+	.word	307                     // 0x133
+	.word	26                      // 0x1a
+	.word	374                     // 0x176
+	.word	458                     // 0x1ca
+	.word	8                       // 0x8
+	.word	226                     // 0xe2
+	.word	49                      // 0x31
+	.word	458                     // 0x1ca
+	.word	8                       // 0x8
+	.word	369                     // 0x171
+	.word	43                      // 0x2b
+	.word	205                     // 0xcd
+	.word	241                     // 0xf1
+	.word	471                     // 0x1d7
+	.word	73                      // 0x49
+	.word	363                     // 0x16b
+	.word	203                     // 0xcb
+	.word	443                     // 0x1bb
+	.word	457                     // 0x1c9
+	.word	186                     // 0xba
+	.word	102                     // 0x66
+	.word	405                     // 0x195
+	.word	343                     // 0x157
+	.word	190                     // 0xbe
+	.word	84                      // 0x54
+	.word	43                      // 0x2b
+	.word	13                      // 0xd
+	.word	379                     // 0x17b
+	.word	89                      // 0x59
+	.word	43                      // 0x2b
+	.word	435                     // 0x1b3
+	.word	164                     // 0xa4
+	.word	89                      // 0x59
+	.word	111                     // 0x6f
+	.word	135                     // 0x87
+	.word	446                     // 0x1be
+	.word	186                     // 0xba
+	.word	120                     // 0x78
+	.word	149                     // 0x95
+	.word	165                     // 0xa5
+	.word	264                     // 0x108
+	.word	23                      // 0x17
+	.word	15                      // 0xf
+	.word	254                     // 0xfe
+	.word	309                     // 0x135
+	.word	376                     // 0x178
+	.word	301                     // 0x12d
+	.word	149                     // 0x95
+	.word	93                      // 0x5d
+	.word	415                     // 0x19f
+	.word	205                     // 0xcd
+	.word	245                     // 0xf5
+	.word	74                      // 0x4a
+	.word	304                     // 0x130
+	.word	163                     // 0xa3
+	.word	256                     // 0x100
+	.word	7                       // 0x7
+	.word	7                       // 0x7
+	.word	188                     // 0xbc
+	.word	182                     // 0xb6
+	.word	316                     // 0x13c
+	.word	11                      // 0xb
+	.word	52                      // 0x34
+	.word	380                     // 0x17c
+	.word	246                     // 0xf6
+	.word	305                     // 0x131
+	.word	228                     // 0xe4
+	.word	429                     // 0x1ad
+	.word	87                      // 0x57
+	.word	422                     // 0x1a6
+	.word	368                     // 0x170
+	.word	85                      // 0x55
+	.word	28                      // 0x1c
+	.word	271                     // 0x10f
+	.word	423                     // 0x1a7
+	.word	81                      // 0x51
+	.word	44                      // 0x2c
+	.word	128                     // 0x80
+	.word	456                     // 0x1c8
+	.word	365                     // 0x16d
+	.word	353                     // 0x161
+	.word	20                      // 0x14
+	.word	75                      // 0x4b
+	.word	131                     // 0x83
+	.word	376                     // 0x178
+	.word	40                      // 0x28
+	.word	495                     // 0x1ef
+	.word	273                     // 0x111
+	.word	143                     // 0x8f
+	.word	306                     // 0x132
+	.word	352                     // 0x160
+	.word	13                      // 0xd
+	.word	491                     // 0x1eb
+	.word	429                     // 0x1ad
+	.word	391                     // 0x187
+	.word	395                     // 0x18b
+	.word	502                     // 0x1f6
+	.word	72                      // 0x48
+	.word	391                     // 0x187
+	.word	71                      // 0x47
+	.word	271                     // 0x10f
+	.word	467                     // 0x1d3
+	.word	397                     // 0x18d
+	.word	95                      // 0x5f
+	.word	438                     // 0x1b6
+	.word	475                     // 0x1db
+	.word	118                     // 0x76
+	.word	485                     // 0x1e5
+	.word	427                     // 0x1ab
+	.word	160                     // 0xa0
+	.word	34                      // 0x22
+	.word	149                     // 0x95
+	.word	165                     // 0xa5
+	.word	90                      // 0x5a
+	.word	377                     // 0x179
+	.word	8                       // 0x8
+	.word	405                     // 0x195
+	.word	42                      // 0x2a
+	.word	50                      // 0x32
+	.word	160                     // 0xa0
+	.word	501                     // 0x1f5
+	.word	22                      // 0x16
+	.word	24                      // 0x18
+	.word	185                     // 0xb9
+	.word	172                     // 0xac
+	.word	402                     // 0x192
+	.word	123                     // 0x7b
+	.word	247                     // 0xf7
+	.word	479                     // 0x1df
+	.word	183                     // 0xb7
+	.word	10                      // 0xa
+	.word	440                     // 0x1b8
+	.word	403                     // 0x193
+	.word	43                      // 0x2b
+	.word	103                     // 0x67
+	.word	204                     // 0xcc
+	.word	428                     // 0x1ac
+	.word	300                     // 0x12c
+	.word	253                     // 0xfd
+	.word	312                     // 0x138
+	.word	217                     // 0xd9
+	.word	384                     // 0x180
+	.word	254                     // 0xfe
+	.word	16                      // 0x10
+	.word	375                     // 0x177
+	.word	212                     // 0xd4
+	.word	418                     // 0x1a2
+	.word	312                     // 0x138
+	.word	301                     // 0x12d
+	.word	214                     // 0xd6
+	.word	55                      // 0x37
+	.word	11                      // 0xb
+	.word	509                     // 0x1fd
+	.word	362                     // 0x16a
+	.word	200                     // 0xc8
+	.word	224                     // 0xe0
+	.word	484                     // 0x1e4
+	.word	136                     // 0x88
+	.word	475                     // 0x1db
+	.word	477                     // 0x1dd
+	.word	266                     // 0x10a
+	.word	410                     // 0x19a
+	.word	244                     // 0xf4
+	.word	256                     // 0x100
+	.word	217                     // 0xd9
+	.word	372                     // 0x174
+	.word	460                     // 0x1cc
+	.word	497                     // 0x1f1
+	.word	3                       // 0x3
+	.word	316                     // 0x13c
+	.word	477                     // 0x1dd
+	.word	474                     // 0x1da
+	.word	61                      // 0x3d
+	.word	462                     // 0x1ce
+	.word	332                     // 0x14c
+	.word	111                     // 0x6f
+	.word	183                     // 0xb7
+	.word	478                     // 0x1de
+	.word	29                      // 0x1d
+	.word	365                     // 0x16d
+	.word	511                     // 0x1ff
+	.word	421                     // 0x1a5
+	.word	453                     // 0x1c5
+	.word	287                     // 0x11f
+	.word	141                     // 0x8d
+	.word	177                     // 0xb1
+	.word	100                     // 0x64
+	.word	81                      // 0x51
+	.word	266                     // 0x10a
+	.word	451                     // 0x1c3
+	.word	235                     // 0xeb
+	.word	235                     // 0xeb
+	.word	198                     // 0xc6
+	.word	262                     // 0x106
+	.word	409                     // 0x199
+	.word	207                     // 0xcf
+	.word	269                     // 0x10d
+	.word	493                     // 0x1ed
+	.word	192                     // 0xc0
+	.word	482                     // 0x1e2
+	.word	43                      // 0x2b
+	.word	312                     // 0x138
+	.word	492                     // 0x1ec
+	.word	261                     // 0x105
+	.word	10                      // 0xa
+	.word	245                     // 0xf5
+	.word	221                     // 0xdd
+	.word	106                     // 0x6a
+	.word	288                     // 0x120
+	.word	58                      // 0x3a
+	.word	444                     // 0x1bc
+	.word	110                     // 0x6e
+	.word	6                       // 0x6
+	.word	10                      // 0xa
+	.word	373                     // 0x175
+	.word	211                     // 0xd3
+	.word	323                     // 0x143
+	.word	159                     // 0x9f
+	.word	274                     // 0x112
+	.word	210                     // 0xd2
+	.word	209                     // 0xd1
+	.word	314                     // 0x13a
+	.word	78                      // 0x4e
+	.word	75                      // 0x4b
+	.size	nums1k2, 4096
+
+
+	.ident	"clang version 3.5.0 "
