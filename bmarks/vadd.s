@@ -1,6 +1,7 @@
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3
@@ -2135,7 +2136,7 @@ main:
 	adds	r7, r7, #12
 	mov	sp, r7
 	@ sp needed
-	pop	{r7}
+	ldr	r7, [sp], #4
 	bx	lr
 .L6:
 	.align	2

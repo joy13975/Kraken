@@ -1,8 +1,11 @@
+#include <sstream>
+
 #include "bit_util.h"
 
-string bitsToStr(const void *anyData, const size_t nBytes)
+using namespace std;
+string leBitsToStr(const void *const anyData, const size_t nBytes)
 {
-    byte* data = (byte*) anyData;
+    const byte *const data = (const byte *const) anyData;
 
     stringstream ss;
     for (int i = nBytes - 1; i > -1; i--)

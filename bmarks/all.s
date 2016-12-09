@@ -1,7 +1,8 @@
 
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3
@@ -48,7 +49,7 @@ fac:
 	adds	r7, r7, #20
 	mov	sp, r7
 	@ sp needed
-	pop	{r7}
+	ldr	r7, [sp], #4
 	bx	lr
 	.size	fac, .-fac
 	.align	2
@@ -75,8 +76,9 @@ main:
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
 
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3
@@ -146,8 +148,9 @@ main:
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
 
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3
@@ -371,14 +374,207 @@ main:
 	mov	r0, r3
 	mov	sp, r7
 	@ sp needed
-	pop	{r7}
+	ldr	r7, [sp], #4
 	bx	lr
 	.size	main, .-main
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
 
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
+	.eabi_attribute 20, 1
+	.eabi_attribute 21, 1
+	.eabi_attribute 23, 3
+	.eabi_attribute 24, 1
+	.eabi_attribute 25, 1
+	.eabi_attribute 26, 1
+	.eabi_attribute 30, 6
+	.eabi_attribute 34, 1
+	.eabi_attribute 18, 4
+	.thumb
+	.syntax unified
+	.file	"pi_int.c"
+	.text
+	.align	2
+	.global	main
+	.thumb
+	.thumb_func
+	.type	main, %function
+main:
+	@ args = 0, pretend = 0, frame = 11224
+	@ frame_needed = 1, uses_anonymous_args = 0
+	@ link register save eliminated.
+	push	{r7}
+	sub	sp, sp, #11200
+	sub	sp, sp, #28
+	add	r7, sp, #0
+	movs	r3, #0
+	add	r2, r7, #11200
+	add	r2, r2, #8
+	str	r3, [r2]
+	movs	r3, #0
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	str	r3, [r2]
+	b	.L2
+.L3:
+	add	r3, r7, #24
+	subs	r3, r3, #24
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	ldr	r2, [r2]
+	mov	r1, #2000
+	str	r1, [r3, r2, lsl #2]
+	add	r3, r7, #11200
+	add	r3, r3, #20
+	ldr	r3, [r3]
+	adds	r3, r3, #1
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	str	r3, [r2]
+.L2:
+	add	r3, r7, #11200
+	add	r3, r3, #20
+	ldr	r3, [r3]
+	cmp	r3, #2800
+	blt	.L3
+	mov	r3, #2800
+	add	r2, r7, #11200
+	add	r2, r2, #16
+	str	r3, [r2]
+	b	.L4
+.L8:
+	movs	r3, #0
+	add	r2, r7, #11200
+	add	r2, r2, #12
+	str	r3, [r2]
+	add	r3, r7, #11200
+	add	r3, r3, #16
+	ldr	r3, [r3]
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	str	r3, [r2]
+.L7:
+	add	r3, r7, #24
+	subs	r3, r3, #24
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	ldr	r2, [r2]
+	ldr	r3, [r3, r2, lsl #2]
+	movw	r2, #10000
+	mul	r3, r2, r3
+	add	r2, r7, #11200
+	add	r2, r2, #12
+	ldr	r2, [r2]
+	add	r3, r3, r2
+	add	r2, r7, #11200
+	add	r2, r2, #12
+	str	r3, [r2]
+	add	r3, r7, #11200
+	add	r3, r3, #20
+	ldr	r3, [r3]
+	lsls	r3, r3, #1
+	subs	r3, r3, #1
+	add	r2, r7, #11200
+	add	r2, r2, #4
+	str	r3, [r2]
+	add	r3, r7, #11200
+	add	r3, r3, #12
+	ldr	r3, [r3]
+	add	r2, r7, #11200
+	add	r2, r2, #4
+	ldr	r2, [r2]
+	sdiv	r2, r3, r2
+	add	r1, r7, #11200
+	add	r1, r1, #4
+	ldr	r1, [r1]
+	mul	r2, r1, r2
+	subs	r1, r3, r2
+	add	r3, r7, #24
+	subs	r3, r3, #24
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	ldr	r2, [r2]
+	str	r1, [r3, r2, lsl #2]
+	add	r3, r7, #11200
+	add	r3, r3, #12
+	ldr	r2, [r3]
+	add	r3, r7, #11200
+	add	r3, r3, #4
+	ldr	r3, [r3]
+	sdiv	r3, r2, r3
+	add	r2, r7, #11200
+	add	r2, r2, #12
+	str	r3, [r2]
+	add	r3, r7, #11200
+	add	r3, r3, #20
+	ldr	r3, [r3]
+	subs	r3, r3, #1
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	str	r3, [r2]
+	add	r3, r7, #11200
+	add	r3, r3, #20
+	ldr	r3, [r3]
+	cmp	r3, #0
+	beq	.L11
+	add	r3, r7, #11200
+	add	r3, r3, #12
+	ldr	r3, [r3]
+	add	r2, r7, #11200
+	add	r2, r2, #20
+	ldr	r2, [r2]
+	mul	r3, r2, r3
+	add	r2, r7, #11200
+	add	r2, r2, #12
+	str	r3, [r2]
+	b	.L7
+.L11:
+	nop
+	add	r3, r7, #11200
+	add	r3, r3, #12
+	ldr	r3, [r3]
+	movw	r2, #35757
+	movt	r2, 26843
+	smull	r1, r2, r3, r2
+	asrs	r1, r2, #12
+	asrs	r2, r3, #31
+	subs	r2, r1, r2
+	movw	r1, #10000
+	mul	r2, r1, r2
+	subs	r3, r3, r2
+	add	r2, r7, #11200
+	add	r2, r2, #8
+	str	r3, [r2]
+	add	r3, r7, #11200
+	add	r3, r3, #16
+	ldr	r3, [r3]
+	subs	r3, r3, #14
+	add	r2, r7, #11200
+	add	r2, r2, #16
+	str	r3, [r2]
+.L4:
+	add	r3, r7, #11200
+	add	r3, r3, #16
+	ldr	r3, [r3]
+	cmp	r3, #0
+	bgt	.L8
+	movs	r3, #0
+	mov	r0, r3
+	add	r7, r7, #11200
+	adds	r7, r7, #28
+	mov	sp, r7
+	@ sp needed
+	ldr	r7, [sp], #4
+	bx	lr
+	.size	main, .-main
+	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+
+	.syntax unified
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3
@@ -2479,7 +2675,7 @@ swap:
 	adds	r7, r7, #20
 	mov	sp, r7
 	@ sp needed
-	pop	{r7}
+	ldr	r7, [sp], #4
 	bx	lr
 	.size	swap, .-swap
 	.align	2
@@ -2604,8 +2800,130 @@ main:
 	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
 
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
+	.eabi_attribute 20, 1
+	.eabi_attribute 21, 1
+	.eabi_attribute 23, 3
+	.eabi_attribute 24, 1
+	.eabi_attribute 25, 1
+	.eabi_attribute 26, 1
+	.eabi_attribute 30, 6
+	.eabi_attribute 34, 1
+	.eabi_attribute 18, 4
+	.thumb
+	.syntax unified
+	.file	"sqrt.c"
+	.text
+	.align	2
+	.global	sqroot
+	.thumb
+	.thumb_func
+	.type	sqroot, %function
+sqroot:
+	@ args = 0, pretend = 0, frame = 24
+	@ frame_needed = 1, uses_anonymous_args = 0
+	@ link register save eliminated.
+	push	{r7}
+	sub	sp, sp, #28
+	add	r7, sp, #0
+	vstr.32	s0, [r7, #4]
+	vldr.32	s14, [r7, #4]
+	vmov.f32	s13, #3.0e+0
+	vdiv.f32	s15, s14, s13
+	vstr.32	s15, [r7, #20]
+	mov	r3, #1065353216
+	str	r3, [r7, #16]	@ float
+	vldr.32	s15, [r7, #4]
+	vcmpe.f32	s15, #0
+	vmrs	APSR_nzcv, FPSCR
+	bls	.L5
+	b	.L2
+.L5:
+	mov	r3, #0
+	b	.L4
+.L2:
+	ldr	r3, [r7, #20]	@ float
+	str	r3, [r7, #12]	@ float
+	vldr.32	s13, [r7, #4]
+	vldr.32	s15, [r7, #20]
+	vdiv.f32	s14, s13, s15
+	vldr.32	s15, [r7, #20]
+	vadd.f32	s14, s14, s15
+	vmov.f32	s13, #2.0e+0
+	vdiv.f32	s15, s14, s13
+	vstr.32	s15, [r7, #20]
+	vldr.32	s14, [r7, #20]
+	vldr.32	s15, [r7, #12]
+	vsub.f32	s15, s14, s15
+	vstr.32	s15, [r7, #16]
+	vldr.32	s15, [r7, #16]
+	vcvt.f64.f32	d16, s15
+	vldr.64	d17, .L6
+	vcmpe.f64	d16, d17
+	vmrs	APSR_nzcv, FPSCR
+	bgt	.L2
+	vldr.32	s15, [r7, #16]
+	vcvt.f64.f32	d16, s15
+	vldr.64	d17, .L6+8
+	vcmpe.f64	d16, d17
+	vmrs	APSR_nzcv, FPSCR
+	bmi	.L2
+	ldr	r3, [r7, #20]	@ float
+.L4:
+	vmov	s15, r3
+	vmov.f32	s0, s15
+	adds	r7, r7, #28
+	mov	sp, r7
+	@ sp needed
+	ldr	r7, [sp], #4
+	bx	lr
+.L7:
+	.align	3
+.L6:
+	.word	2386185177
+	.word	1060322
+	.word	2386185177
+	.word	-2146423326
+	.size	sqroot, .-sqroot
+	.align	2
+	.global	main
+	.thumb
+	.thumb_func
+	.type	main, %function
+main:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r7, lr}
+	sub	sp, sp, #8
+	add	r7, sp, #0
+	vldr.32	s0, .L10
+	bl	sqroot(PLT)
+	vmov.f32	s15, s0
+	vmov.f32	s0, s15
+	bl	sqroot(PLT)
+	vmov.f32	s15, s0
+	vmov.f32	s0, s15
+	bl	sqroot(PLT)
+	vstr.32	s0, [r7, #4]
+	movs	r3, #0
+	mov	r0, r3
+	adds	r7, r7, #8
+	mov	sp, r7
+	@ sp needed
+	pop	{r7, pc}
+.L11:
+	.align	2
+.L10:
+	.word	1078529622
+	.size	main, .-main
+	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]"
+
+	.syntax unified
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3
@@ -4740,7 +5058,7 @@ main:
 	adds	r7, r7, #12
 	mov	sp, r7
 	@ sp needed
-	pop	{r7}
+	ldr	r7, [sp], #4
 	bx	lr
 .L6:
 	.align	2

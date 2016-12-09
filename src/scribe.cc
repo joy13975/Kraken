@@ -3,7 +3,7 @@
 namespace Scribe
 {
 
-void write(Scripture script, KrakenProc::State *const state)
+void write(KrakenScripture script, KrakenState *const state)
 {
     err("Unimplemented: write()\n");
 }

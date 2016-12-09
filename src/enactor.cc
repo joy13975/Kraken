@@ -4,11 +4,12 @@
 namespace Enactor
 {
 
-Scribe::Scripture enact(const Action &action, const KrakenProc::State *const state)
+KrakenScripture enact(const KrakenAction &action,
+                      const KrakenState *const state)
 {
     err("Unimplemented: enact()\n");
 
-    return Scribe::Scripture();
+    return KrakenScripture();
 }
 
 } // namespace Enactor

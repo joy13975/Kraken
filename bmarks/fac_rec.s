@@ -1,6 +1,7 @@
 	.syntax unified
-	.arch armv7-a
-	.fpu softvfp
+	.arch armv8-a
+	.eabi_attribute 28, 1
+	.fpu fp-armv8
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1
 	.eabi_attribute 23, 3

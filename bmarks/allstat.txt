@@ -1,26 +1,46 @@
 Stat: 
-   5 
-  31 add
-  14 adds
-   5 b
+   7 
+ 105 add
+  17 adds
+   2 asrs
+  10 b
+   1 beq
    1 bge
-   1 bgt
+   3 bgt
    8 bl
    1 ble
-   2 blt
+   1 bls
+   3 blt
+   1 bmi
    1 bne
-   4 bx
-   6 cmp
-  60 ldr
-   6 lsls
-  23 mov
-  11 movs
-   2 mul
-  66 nop
-   9 pop
-   9 push
-  24 str
-   8 sub
-   5 subs
+   7 bx
+   9 cmp
+  90 ldr
+   7 lsls
+  32 mov
+  16 movs
+   1 movt
+   3 movw
+   6 mul
+  67 nop
+   5 pop
+  12 push
+   2 sdiv
+   1 smull
+  41 str
+  11 sub
+  14 subs
+   1 vadd.f32
+   1 vcmpe.f32
+   2 vcmpe.f64
+   2 vcvt.f64.f32
+   3 vdiv.f32
+   9 vldr.32
+   2 vldr.64
+   1 vmov
+   3 vmov.f32
+   3 vmrs
+   4 vstr.32
+   1 vsub.f32
 Unique Insns: 
-      23
+      43

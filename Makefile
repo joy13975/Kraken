@@ -54,12 +54,13 @@ all: $(EXE)
 test: $(EXE)
 	./$(EXE) -i bmarks/vadd.o
 
--include $(DEPS)
-
-fresh: clean $(EXE)
+testim: $(EXE)
+	./$(EXE) -i bmarks/vadd.o -im
 
 clean:
 	rm -rf $(EXE) $(OBJ_DIR)/* $(OBJ_DIR) *.dSYM .DS_Store
+
+-include $(DEPS)
 
 #
 # DO NOT DELETE NEWLINE AT END OF FILE

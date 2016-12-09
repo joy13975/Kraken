@@ -1,15 +1,17 @@
 #include "fetcher.h"
-#include "decoder.h"
+#include "bit_util.h"
+#include "util.h"
 
 namespace Fetcher
 {
 
-const Instr fetch(KrakenProc::State *const state)
+const KrakenInstr fetch(KrakenState *const state)
 {
-    const bool is32bits = Decoder::is32bitInstr(UpperByte(*(state->pc)));
-    dbg("Fetching at pc: %p, %d-bit\n", state->getPCOffset(), is32bits ? 32 : 16);
-    Instr instr = {(byte*) state->pc, is32bits};
-    state->pc += is32bits ? 2 : 1;
+    dbg("pc: %p\n", state->pc);
+    KrakenInstr instr((byte*) state->pc);
+    dbg("Fetching at pc: %p, %d-bit\n",
+        state->getPcOffset(), instr.isT32 ? 32 : 16);
+    state->pc += instr.isT32 ? 2 : 1;
     return instr;
 }
 

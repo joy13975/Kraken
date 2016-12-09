@@ -2,15 +2,15 @@
 #define _ENACTOR_H_
 
 #include "util.h"
+#include "types.h"
 #include "enactor.h"
-#include "scribe.h"
 #include "proc.h"
 
 namespace Enactor
 {
 
-typedef void (*Action)();
-Scribe::Scripture enact(const Action &action, const KrakenProc::State *const state);
+KrakenScripture enact(const KrakenAction &action,
+                      const KrakenState *const state);
 
 } // namespace Enactor
 

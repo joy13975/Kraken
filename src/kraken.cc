@@ -1,21 +1,25 @@
 #include <stdio.h>
-#include <string>
 #include <vector>
 
+#include "types.h"
 #include "util.h"
 #include "proc.h"
 
 using namespace std;
-string inputFile = "";
+KrakenOptions options;
 
-DECL_ARG_CALLBACK(setInputFile) { inputFile = arg_in; }
+DECL_ARG_CALLBACK(setInputFile) { options.inputFile = arg_in; }
 DECL_ARG_CALLBACK(setLogLevel) { set_log_level((Log_Level) parse_long(arg_in)); }
 DECL_ARG_CALLBACK(helpAndExit);
+DECL_ARG_CALLBACK(enableInteractiveMode) { options.interactive = true; }
+DECL_ARG_CALLBACK(addBreakpoint) { options.bpoints.push_back(strtoul(arg_in, 0, 16)); }
 
 const argument_bundle argbv[] = {
     {"-i", "--input", "Set input binary", true, setInputFile},
     {"-h", "--help", "Print this help text and exit", false, helpAndExit},
-    {"-lg", "--loglevel", "Set log level", true, setLogLevel}
+    {"-lg", "--loglevel", "Set log level", true, setLogLevel},
+    {"-im", "--interactivemode", "Enable interactive mode", false, enableInteractiveMode},
+    {"-b", "--breakat", "Set breakpoint at address", true, addBreakpoint},
 };
 #define ARG_BUND_SIZE (sizeof(argbv) / sizeof(argbv[0]))
 
@@ -41,9 +45,9 @@ DECL_ARG_IN_FAIL_CALLBACK(argParseFail)
 
 void checkOptions()
 {
-    if (inputFile == "")
+    if (options.inputFile == "")
     {
-        err("No input ARM assembly given. Hint: use -i <file>\n");
+        err("No input executable given. Hint: use -i <file>\n");
         exit(1);
     }
 }
@@ -55,7 +59,7 @@ int main(int argc, const char *argv[])
     checkOptions();
 
     // start simulation
-    KrakenProc(inputFile).startSimulation();
+    KrakenProc(options).startSimulation();
 
     return 0;
 }
