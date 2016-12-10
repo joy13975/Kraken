@@ -1,502 +1,547 @@
 
 	.text
-	.file	"fac_it.ll"
+	.file	"fac_it.c"
 	.globl	fac
 	.align	2
 	.type	fac,@function
 fac:                                    // @fac
-// BB#0:                                // %entry
+// BB#0:
 	sub	sp, sp, #16             // =16
 	orr	w8, wzr, #0x1
-	stp	w8, w0, [sp, #8]
-	b	.LBB0_2
-.LBB0_1:                                // %while.body
-                                        //   in Loop: Header=BB0_2 Depth=1
-	ldp	w9, w8, [sp, #8]
-	ldr	w10, [sp, #12]
-	mul	 w8, w9, w8
-	sub	w9, w10, #1             // =1
-	stp	w8, w9, [sp, #8]
-.LBB0_2:                                // %while.cond
-                                        // =>This Inner Loop Header: Depth=1
+	str	w0, [sp, #12]
+	str	w8, [sp, #8]
+.LBB0_1:                                // =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #12]
-	cmp	 w8, #1                 // =1
-	b.ne	.LBB0_1
-// BB#3:                                // %while.end
+	cmp		w8, #1          // =1
+	b.eq	.LBB0_3
+// BB#2:                                //   in Loop: Header=BB0_1 Depth=1
+	ldr	w8, [sp, #12]
+	ldr	w9, [sp, #8]
+	mul		w8, w9, w8
+	str	w8, [sp, #8]
+	ldr	w8, [sp, #12]
+	sub	w8, w8, #1              // =1
+	str	w8, [sp, #12]
+	b	.LBB0_1
+.LBB0_3:
 	ldr	w0, [sp, #8]
 	add	sp, sp, #16             // =16
 	ret
-.Ltmp1:
-	.size	fac, .Ltmp1-fac
+.Lfunc_end0:
+	.size	fac, .Lfunc_end0-fac
 
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #16             // =16
-	stur	wzr, [x29, #-4]
 	movz	w0, #0xa
+	stur	wzr, [x29, #-4]
 	bl	fac
+	mov	 w8, wzr
 	str	w0, [sp, #8]
-	mov	 w0, wzr
+	mov	 w0, w8
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp2:
-	.size	main, .Ltmp2-main
+.Lfunc_end1:
+	.size	main, .Lfunc_end1-main
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits
 
 	.text
-	.file	"fac_rec.ll"
+	.file	"fac_rec.c"
 	.globl	fac
 	.align	2
 	.type	fac,@function
 fac:                                    // @fac
-// BB#0:                                // %entry
-	stp	x20, x19, [sp, #-32]!
-	stp	x29, x30, [sp, #16]
-	add	x29, sp, #16            // =16
-	sub	sp, sp, #16             // =16
-	str	w0, [sp, #12]
-	cmp	 w0, #2                 // =2
-	b.lt	.LBB0_2
-// BB#1:                                // %cond.true
-	ldr	w19, [sp, #12]
-	sub	w0, w19, #1             // =1
-	bl	fac
-	mul	 w0, w19, w0
-	b	.LBB0_3
-.LBB0_2:
-	orr	w0, wzr, #0x1
-.LBB0_3:                                // %cond.end
-	sub	sp, x29, #16            // =16
-	ldp	x29, x30, [sp, #16]
-	ldp	x20, x19, [sp], #32
-	ret
-.Ltmp0:
-	.size	fac, .Ltmp0-fac
-
-	.globl	main
-	.align	2
-	.type	main,@function
-main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #16             // =16
-	stur	wzr, [x29, #-4]
-	movz	w0, #0xa
+	stur	w0, [x29, #-4]
+	ldur	w0, [x29, #-4]
+	cmp		w0, #1          // =1
+	b.le	.LBB0_2
+// BB#1:
+	ldur	w8, [x29, #-4]
+	ldur	w9, [x29, #-4]
+	sub	w0, w9, #1              // =1
+	str	w8, [sp, #8]            // 4-byte Folded Spill
 	bl	fac
-	str	w0, [sp, #8]
-	mov	 w0, wzr
+	ldr	w8, [sp, #8]            // 4-byte Folded Reload
+	mul		w8, w8, w0
+	str	w8, [sp, #4]            // 4-byte Folded Spill
+	b	.LBB0_3
+.LBB0_2:
+	orr	w8, wzr, #0x1
+	str	w8, [sp, #4]            // 4-byte Folded Spill
+	b	.LBB0_3
+.LBB0_3:
+	ldr	w0, [sp, #4]            // 4-byte Folded Reload
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp1:
-	.size	main, .Ltmp1-main
+.Lfunc_end0:
+	.size	fac, .Lfunc_end0-fac
 
-
-	.ident	"clang version 3.5.0 "
-
-	.text
-	.file	"nops.ll"
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	//APP
-	nop
-	//NO_APP
-	mov	 w0, wzr
+// BB#0:
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #16             // =16
+	movz	w0, #0xa
+	stur	wzr, [x29, #-4]
+	bl	fac
+	mov	 w8, wzr
+	str	w0, [sp, #8]
+	mov	 w0, w8
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp1:
-	.size	main, .Ltmp1-main
+.Lfunc_end1:
+	.size	main, .Lfunc_end1-main
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits
 
 	.text
-	.file	"pi_int.ll"
+	.file	"nops.c"
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	//APP
+	nop
+	//NO_APP
+	mov	 w8, wzr
+	mov	 w0, w8
+	ret
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
+
+
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits
+
+	.text
+	.file	"pi_int.c"
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:
 	stp	x28, x27, [sp, #-16]!
 	sub	sp, sp, #2, lsl #12     // =8192
 	sub	sp, sp, #3040           // =3040
 	str	wzr, [sp, #11228]
 	str	wzr, [sp, #4]
 	str	wzr, [sp, #20]
-	add	x8, sp, #24             // =24
-	movz	w9, #0x7d0
-	b	.LBB0_2
-.LBB0_1:                                // %for.body
-                                        //   in Loop: Header=BB0_2 Depth=1
-	ldr	w10, [sp, #20]
-	ldrsw	x11, [sp, #20]
-	str	w9, [x8, x11, lsl #2]
-	add	w10, w10, #1            // =1
-	str	w10, [sp, #20]
-.LBB0_2:                                // %for.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldr	w10, [sp, #20]
-	cmp	 w10, #2799             // =2799
-	b.le	.LBB0_1
-// BB#3:                                // %for.end
-	movz	w10, #0xaf0
-	movz	w9, #0x2710
-	str	w10, [sp, #16]
-	movz	w10, #0x68db, lsl #16
-	movk	w10, #0x8bad
-	b	.LBB0_5
-.LBB0_4:                                // %for.end12
-                                        //   in Loop: Header=BB0_5 Depth=1
-	ldr	w11, [sp, #8]
-	ldr	w12, [sp, #16]
-	sxtw	x13, w11
-	sub	w12, w12, #14           // =14
-	mul	 x13, x13, x10
-	lsr	x14, x13, #63
-	asr	x13, x13, #44
-	add	 w13, w13, w14
-	msub	w11, w13, w9, w11
-	str	w11, [sp, #4]
-	str	w12, [sp, #16]
-.LBB0_5:                                // %for.cond1
-                                        // =>This Loop Header: Depth=1
-                                        //     Child Loop BB0_8 Depth 2
-	ldr	w11, [sp, #16]
-	cmp	 w11, #1                // =1
-	b.lt	.LBB0_9
-// BB#6:                                // %for.body3
-                                        //   in Loop: Header=BB0_5 Depth=1
-	ldr	w11, [sp, #16]
+.LBB0_1:                                // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #20]
+	cmp		w8, #2800       // =2800
+	b.ge	.LBB0_4
+// BB#2:                                //   in Loop: Header=BB0_1 Depth=1
+	movz	w8, #0x7d0
+	add	x9, sp, #24             // =24
+	ldrsw	x10, [sp, #20]
+	orr	x11, xzr, #0x4
+	mul		x10, x10, x11
+	add		x9, x9, x10
+	str		w8, [x9]
+// BB#3:                                //   in Loop: Header=BB0_1 Depth=1
+	ldr	w8, [sp, #20]
+	add	w8, w8, #1              // =1
+	str	w8, [sp, #20]
+	b	.LBB0_1
+.LBB0_4:
+	movz	w8, #0xaf0
+	str	w8, [sp, #16]
+.LBB0_5:                                // =>This Loop Header: Depth=1
+                                        //     Child Loop BB0_7 Depth 2
+	ldr	w8, [sp, #16]
+	cmp		w8, #0          // =0
+	b.le	.LBB0_12
+// BB#6:                                //   in Loop: Header=BB0_5 Depth=1
 	str	wzr, [sp, #8]
-	str	w11, [sp, #20]
-	b	.LBB0_8
-.LBB0_7:                                // %if.end
-                                        //   in Loop: Header=BB0_8 Depth=2
-	ldr	w11, [sp, #20]
-	ldr	w12, [sp, #8]
-	mul	 w11, w12, w11
-	str	w11, [sp, #8]
-.LBB0_8:                                // %for.cond4
-                                        //   Parent Loop BB0_5 Depth=1
+	ldr	w8, [sp, #16]
+	str	w8, [sp, #20]
+.LBB0_7:                                //   Parent Loop BB0_5 Depth=1
                                         // =>  This Inner Loop Header: Depth=2
-	ldrsw	x11, [sp, #20]
+	add	x8, sp, #24             // =24
+	movz	w9, #0x2710
+	ldrsw	x10, [sp, #20]
+	orr	x11, xzr, #0x4
+	mul		x10, x10, x11
+	add		x10, x8, x10
+	ldr		w12, [x10]
+	mul		w9, w12, w9
 	ldr	w12, [sp, #8]
-	ldr	w13, [sp, #20]
-	ldr	w14, [sp, #20]
-	ldr	w11, [x8, x11, lsl #2]
-	lsl	w13, w13, #1
-	sub	w13, w13, #1            // =1
-	madd	w11, w11, w9, w12
-	stp	w11, w13, [sp, #8]
-	ldr	w11, [sp, #8]
-	sdiv	w12, w11, w13
-	msub	w11, w12, w13, w11
-	ldp	w13, w12, [sp, #8]
-	sdiv	w12, w13, w12
-	ldrsw	x13, [sp, #20]
-	str	w12, [sp, #8]
-	sub	w12, w14, #1            // =1
-	str	w11, [x8, x13, lsl #2]
-	str	w12, [sp, #20]
-	cbnz	w12, .LBB0_7
-	b	.LBB0_4
-.LBB0_9:                                // %for.end16
-	mov	 w0, wzr
+	add		w9, w12, w9
+	str	w9, [sp, #8]
+	ldr	w9, [sp, #20]
+	lsl	w9, w9, #1
+	sub	w9, w9, #1              // =1
+	str	w9, [sp, #12]
+	ldr	w9, [sp, #8]
+	ldr	w12, [sp, #12]
+	sdiv	w13, w9, w12
+	msub	w9, w13, w12, w9
+	ldrsw	x10, [sp, #20]
+	orr	x11, xzr, #0x4
+	mul		x10, x10, x11
+	add		x8, x8, x10
+	str		w9, [x8]
+	ldr	w9, [sp, #12]
+	ldr	w12, [sp, #8]
+	sdiv	w9, w12, w9
+	str	w9, [sp, #8]
+	ldr	w9, [sp, #20]
+	sub	w9, w9, #1              // =1
+	str	w9, [sp, #20]
+	ldr	w9, [sp, #20]
+	cbnz	w9, .LBB0_9
+// BB#8:                                //   in Loop: Header=BB0_5 Depth=1
+	b	.LBB0_10
+.LBB0_9:                                //   in Loop: Header=BB0_7 Depth=2
+	ldr	w8, [sp, #20]
+	ldr	w9, [sp, #8]
+	mul		w8, w9, w8
+	str	w8, [sp, #8]
+	b	.LBB0_7
+.LBB0_10:                               //   in Loop: Header=BB0_5 Depth=1
+	movz	w8, #0x2710
+	ldr	w9, [sp, #8]
+	movz	w10, #0x2710
+	sdiv	w11, w9, w8
+	msub	w8, w11, w8, w9
+	str	w8, [sp, #4]
+	str		w10, [sp]       // 4-byte Folded Spill
+// BB#11:                               //   in Loop: Header=BB0_5 Depth=1
+	ldr	w8, [sp, #16]
+	sub	w8, w8, #14             // =14
+	str	w8, [sp, #16]
+	b	.LBB0_5
+.LBB0_12:
+	mov	 w8, wzr
+	mov	 w0, w8
 	add	sp, sp, #2, lsl #12     // =8192
 	add	sp, sp, #3040           // =3040
 	ldp	x28, x27, [sp], #16
 	ret
-.Ltmp0:
-	.size	main, .Ltmp0-main
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits
 
 	.text
-	.file	"qsort.ll"
+	.file	"qsort.c"
 	.globl	swap
 	.align	2
 	.type	swap,@function
 swap:                                   // @swap
-// BB#0:                                // %entry
+// BB#0:
 	sub	sp, sp, #32             // =32
 	str	x0, [sp, #24]
-	ldr	x8, [sp, #24]
 	str	x1, [sp, #16]
-	ldr	 w8, [x8]
-	ldp	x9, x10, [sp, #16]
+	ldr	x0, [sp, #24]
+	ldr		w8, [x0]
 	str	w8, [sp, #12]
-	ldr	 w8, [x9]
-	str	 w8, [x10]
+	ldr	x0, [sp, #16]
+	ldr		w8, [x0]
+	ldr	x0, [sp, #24]
+	str		w8, [x0]
 	ldr	w8, [sp, #12]
-	ldr	x9, [sp, #16]
-	str	 w8, [x9]
+	ldr	x0, [sp, #16]
+	str		w8, [x0]
 	add	sp, sp, #32             // =32
 	ret
-.Ltmp1:
-	.size	swap, .Ltmp1-swap
+.Lfunc_end0:
+	.size	swap, .Lfunc_end0-swap
 
 	.globl	sort
 	.align	2
 	.type	sort,@function
 sort:                                   // @sort
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #32             // =32
-	stur	w1, [x29, #-12]
-	ldur	w8, [x29, #-12]
 	stur	x0, [x29, #-8]
+	stur	w1, [x29, #-12]
 	str	w2, [sp, #16]
-	add	w8, w8, #1              // =1
-	cmp	 w2, w8
-	b.le	.LBB1_7
-// BB#1:                                // %if.then
+	ldr	w1, [sp, #16]
+	ldur	w2, [x29, #-12]
+	add	w2, w2, #1              // =1
+	cmp		w1, w2
+	b.le	.LBB1_8
+// BB#1:
 	ldursw	x8, [x29, #-12]
 	ldur	x9, [x29, #-8]
-	ldur	w10, [x29, #-12]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x8, x9, x8
+	ldr		w11, [x8]
+	str	w11, [sp, #12]
+	ldur	w11, [x29, #-12]
+	add	w11, w11, #1            // =1
+	str	w11, [sp, #8]
 	ldr	w11, [sp, #16]
-	ldr	w8, [x9, x8, lsl #2]
-	add	w9, w10, #1             // =1
-	stp	w9, w8, [sp, #8]
 	str	w11, [sp, #4]
-	b	.LBB1_3
-.LBB1_2:                                // %if.else
-                                        //   in Loop: Header=BB1_3 Depth=1
-	ldur	x9, [x29, #-8]
-	ldr	w10, [sp, #4]
-	ldur	x11, [x29, #-8]
-	add	x0, x9, x8, lsl #2
-	sub	w8, w10, #1             // =1
-	str	w8, [sp, #4]
-	add	x1, x11, w8, sxtw #2
-	bl	swap
-.LBB1_3:                                // %while.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldrsw	x8, [sp, #8]
+.LBB1_2:                                // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #8]
 	ldr	w9, [sp, #4]
-	cmp	 w8, w9
-	b.ge	.LBB1_6
-// BB#4:                                // %while.body
-                                        //   in Loop: Header=BB1_3 Depth=1
-	ldur	x9, [x29, #-8]
-	ldr	w9, [x9, x8, lsl #2]
-	ldr	w10, [sp, #12]
+	cmp		w8, w9
+	b.ge	.LBB1_7
+// BB#3:                                //   in Loop: Header=BB1_2 Depth=1
 	ldrsw	x8, [sp, #8]
-	cmp	 w9, w10
-	b.gt	.LBB1_2
-// BB#5:                                // %if.then6
-                                        //   in Loop: Header=BB1_3 Depth=1
+	ldur	x9, [x29, #-8]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x8, x9, x8
+	ldr		w11, [x8]
+	ldr	w12, [sp, #12]
+	cmp		w11, w12
+	b.gt	.LBB1_5
+// BB#4:                                //   in Loop: Header=BB1_2 Depth=1
+	ldr	w8, [sp, #8]
 	add	w8, w8, #1              // =1
 	str	w8, [sp, #8]
-	b	.LBB1_3
-.LBB1_6:                                // %while.end
+	b	.LBB1_6
+.LBB1_5:                                //   in Loop: Header=BB1_2 Depth=1
+	ldrsw	x8, [sp, #8]
 	ldur	x9, [x29, #-8]
-	ldursw	x10, [x29, #-12]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x0, x9, x8
+	ldr	w11, [sp, #4]
+	sub	w11, w11, #1            // =1
+	str	w11, [sp, #4]
+	mov	 w8, w11
+	sxtw	x8, w8
+	ldur	x9, [x29, #-8]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x1, x9, x8
+	bl	swap
+.LBB1_6:                                //   in Loop: Header=BB1_2 Depth=1
+	b	.LBB1_2
+.LBB1_7:
+	ldr	w8, [sp, #8]
 	sub	w8, w8, #1              // =1
 	str	w8, [sp, #8]
-	add	x0, x9, w8, sxtw #2
-	add	x1, x9, x10, lsl #2
+	mov	 w9, w8
+	sxtw	x9, w9
+	ldur	x10, [x29, #-8]
+	orr	x11, xzr, #0x4
+	mul		x9, x9, x11
+	add		x0, x10, x9
+	ldursw	x9, [x29, #-12]
+	ldur	x10, [x29, #-8]
+	orr	x11, xzr, #0x4
+	mul		x9, x9, x11
+	add		x1, x10, x9
 	bl	swap
 	ldur	x0, [x29, #-8]
 	ldur	w1, [x29, #-12]
@@ -506,30 +551,32 @@ sort:                                   // @sort
 	ldr	w1, [sp, #4]
 	ldr	w2, [sp, #16]
 	bl	sort
-.LBB1_7:                                // %if.end16
+.LBB1_8:
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp2:
-	.size	sort, .Ltmp2-sort
+.Lfunc_end1:
+	.size	sort, .Lfunc_end1-sort
 
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
-	mov	 w1, wzr
-	adrp	x0, nums1k1
-	add	x0, x0, :lo12:nums1k1
+	adrp	x8, :got:nums1k1
+	ldr	x0, [x8, :got_lo12:nums1k1]
+	mov	 w9, wzr
 	orr	w2, wzr, #0x400
+	mov	 w1, w9
 	bl	sort
-	mov	 w0, wzr
+	mov	 w9, wzr
+	mov	 w0, w9
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp3:
-	.size	main, .Ltmp3-main
+.Lfunc_end2:
+	.size	main, .Lfunc_end2-main
 
 	.type	nums1k1,@object         // @nums1k1
 	.data
@@ -2593,10 +2640,11 @@ nums1k2:
 	.size	nums1k2, 4096
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits
 
 	.text
-	.file	"sqrt.ll"
+	.file	"sqrt.c"
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
 .LCPI0_0:
@@ -2608,56 +2656,67 @@ nums1k2:
 	.align	2
 	.type	sqroot,@function
 sqroot:                                 // @sqroot
-// BB#0:                                // %entry
+// BB#0:
 	sub	sp, sp, #32             // =32
+	fmov	s1, #1.00000000
+	fmov	s2, #3.00000000
 	str	s0, [sp, #24]
-	fmov	s1, #3.00000000
-	fdiv	s0, s0, s1
-	ldr	s1, [sp, #24]
+	ldr	s0, [sp, #24]
+	fdiv	s0, s0, s2
 	str	s0, [sp, #20]
-	orr	w8, wzr, #0x3f800000
-	str	w8, [sp, #12]
-	fcmp	s1, #0.0
+	str	s1, [sp, #12]
+	ldr	s0, [sp, #24]
+	fcmp	s0, #0.0
 	b.hi	.LBB0_2
-// BB#1:                                // %if.then
+// BB#1:
 	str	wzr, [sp, #28]
-	b	.LBB0_6
+	b	.LBB0_8
 .LBB0_2:
-	adrp	x8, .LCPI0_0
-	adrp	x9, .LCPI0_1
-	ldr	d0, [x8, :lo12:.LCPI0_0]
-	ldr	d1, [x9, :lo12:.LCPI0_1]
-	fmov	s2, #2.00000000
-.LBB0_3:                                // %do.body
-                                        // =>This Inner Loop Header: Depth=1
-	ldp	s3, s5, [sp, #20]
-	ldr	s4, [sp, #20]
-	str	s3, [sp, #16]
-	fdiv	s3, s5, s4
-	fadd	s3, s4, s3
-	ldr	s4, [sp, #16]
-	fdiv	s3, s3, s2
-	str	s3, [sp, #20]
-	fsub	s3, s3, s4
-	str	s3, [sp, #12]
-	fcvt	d3, s3
-	fcmp	d3, d0
-	b.gt	.LBB0_3
-// BB#4:                                // %lor.rhs
-                                        //   in Loop: Header=BB0_3 Depth=1
-	ldr	s3, [sp, #12]
-	fcvt	d3, s3
-	fcmp	d3, d1
-	b.mi	.LBB0_3
-// BB#5:                                // %do.end
+	b	.LBB0_3
+.LBB0_3:                                // =>This Inner Loop Header: Depth=1
+	fmov	s0, #2.00000000
+	ldr	s1, [sp, #20]
+	str	s1, [sp, #16]
+	ldr	s1, [sp, #20]
+	ldr	s2, [sp, #24]
+	ldr	s3, [sp, #20]
+	fdiv	s2, s2, s3
+	fadd	s1, s1, s2
+	fdiv	s0, s1, s0
+	str	s0, [sp, #20]
+	ldr	s0, [sp, #20]
+	ldr	s1, [sp, #16]
+	fsub	s0, s0, s1
+	str	s0, [sp, #12]
+// BB#4:                                //   in Loop: Header=BB0_3 Depth=1
+	orr	w8, wzr, #0x1
+	adrp	x9, .LCPI0_0
+	ldr	d0, [x9, :lo12:.LCPI0_0]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	str	w8, [sp, #8]            // 4-byte Folded Spill
+	b.gt	.LBB0_6
+// BB#5:                                //   in Loop: Header=BB0_3 Depth=1
+	adrp	x8, .LCPI0_1
+	ldr	d0, [x8, :lo12:.LCPI0_1]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	cset	 w9, mi
+	str	w9, [sp, #8]            // 4-byte Folded Spill
+.LBB0_6:                                //   in Loop: Header=BB0_3 Depth=1
+	ldr	w8, [sp, #8]            // 4-byte Folded Reload
+	tbnz	w8, #0, .LBB0_3
+// BB#7:
 	ldr	s0, [sp, #20]
 	str	s0, [sp, #28]
-.LBB0_6:                                // %return
+.LBB0_8:
 	ldr	s0, [sp, #28]
 	add	sp, sp, #32             // =32
 	ret
-.Ltmp1:
-	.size	sqroot, .Ltmp1-sqroot
+.Lfunc_end0:
+	.size	sqroot, .Lfunc_end0-sqroot
 
 	.section	.rodata.cst4,"aM",@progbits,4
 	.align	2
@@ -2668,69 +2727,81 @@ sqroot:                                 // @sqroot
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #16             // =16
-	stur	wzr, [x29, #-4]
 	adrp	x8, .LCPI1_0
 	ldr	s0, [x8, :lo12:.LCPI1_0]
+	stur	wzr, [x29, #-4]
 	bl	sqroot
 	bl	sqroot
 	bl	sqroot
+	mov	 w9, wzr
 	str	s0, [sp, #8]
-	mov	 w0, wzr
+	mov	 w0, w9
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp2:
-	.size	main, .Ltmp2-main
+.Lfunc_end1:
+	.size	main, .Lfunc_end1-main
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits
 
 	.text
-	.file	"vadd.ll"
+	.file	"vadd.c"
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x28, x27, [sp, #-16]!
 	sub	sp, sp, #1, lsl #12     // =4096
 	sub	sp, sp, #16             // =16
 	str	wzr, [sp, #4108]
 	str	wzr, [sp, #8]
-	adrp	x8, nums1k1
-	add	x8, x8, :lo12:nums1k1
-	adrp	x9, nums1k2
-	add	x9, x9, :lo12:nums1k2
-	add	x10, sp, #12            // =12
-	b	.LBB0_2
-.LBB0_1:                                // %for.body
-                                        //   in Loop: Header=BB0_2 Depth=1
+.LBB0_1:                                // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #8]
+	cmp		w8, #1024       // =1024
+	b.ge	.LBB0_4
+// BB#2:                                //   in Loop: Header=BB0_1 Depth=1
+	add	x8, sp, #12             // =12
+	adrp	x9, :got:nums1k2
+	ldr	x9, [x9, :got_lo12:nums1k2]
+	adrp	x10, :got:nums1k1
+	ldr	x10, [x10, :got_lo12:nums1k1]
 	ldrsw	x11, [sp, #8]
-	ldr	w12, [sp, #8]
-	lsl	x11, x11, #2
-	ldr	 w13, [x8, x11]
-	ldr	 w14, [x9, x11]
-	add	w12, w12, #1            // =1
-	add	 w13, w13, w14
-	str	 w13, [x10, x11]
-	str	w12, [sp, #8]
-.LBB0_2:                                // %for.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldr	w11, [sp, #8]
-	cmp	 w11, #1023             // =1023
-	b.le	.LBB0_1
-// BB#3:                                // %for.end
-	mov	 w0, wzr
+	orr	x12, xzr, #0x4
+	mul		x11, x11, x12
+	add		x10, x10, x11
+	ldr		w13, [x10]
+	ldrsw	x10, [sp, #8]
+	orr	x11, xzr, #0x4
+	mul		x10, x10, x11
+	add		x9, x9, x10
+	ldr		w14, [x9]
+	add		w13, w13, w14
+	ldrsw	x9, [sp, #8]
+	orr	x10, xzr, #0x4
+	mul		x9, x9, x10
+	add		x8, x8, x9
+	str		w13, [x8]
+// BB#3:                                //   in Loop: Header=BB0_1 Depth=1
+	ldr	w8, [sp, #8]
+	add	w8, w8, #1              // =1
+	str	w8, [sp, #8]
+	b	.LBB0_1
+.LBB0_4:
+	mov	 w8, wzr
+	mov	 w0, w8
 	add	sp, sp, #1, lsl #12     // =4096
 	add	sp, sp, #16             // =16
 	ldp	x28, x27, [sp], #16
 	ret
-.Ltmp0:
-	.size	main, .Ltmp0-main
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
 
 	.type	nums1k1,@object         // @nums1k1
 	.data
@@ -4794,4 +4865,5 @@ nums1k2:
 	.size	nums1k2, 4096
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits

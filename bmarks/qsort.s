@@ -1,88 +1,110 @@
 	.text
-	.file	"qsort.ll"
+	.file	"qsort.c"
 	.globl	swap
 	.align	2
 	.type	swap,@function
 swap:                                   // @swap
-// BB#0:                                // %entry
+// BB#0:
 	sub	sp, sp, #32             // =32
 	str	x0, [sp, #24]
-	ldr	x8, [sp, #24]
 	str	x1, [sp, #16]
-	ldr	 w8, [x8]
-	ldp	x9, x10, [sp, #16]
+	ldr	x0, [sp, #24]
+	ldr		w8, [x0]
 	str	w8, [sp, #12]
-	ldr	 w8, [x9]
-	str	 w8, [x10]
+	ldr	x0, [sp, #16]
+	ldr		w8, [x0]
+	ldr	x0, [sp, #24]
+	str		w8, [x0]
 	ldr	w8, [sp, #12]
-	ldr	x9, [sp, #16]
-	str	 w8, [x9]
+	ldr	x0, [sp, #16]
+	str		w8, [x0]
 	add	sp, sp, #32             // =32
 	ret
-.Ltmp1:
-	.size	swap, .Ltmp1-swap
+.Lfunc_end0:
+	.size	swap, .Lfunc_end0-swap
 
 	.globl	sort
 	.align	2
 	.type	sort,@function
 sort:                                   // @sort
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #32             // =32
-	stur	w1, [x29, #-12]
-	ldur	w8, [x29, #-12]
 	stur	x0, [x29, #-8]
+	stur	w1, [x29, #-12]
 	str	w2, [sp, #16]
-	add	w8, w8, #1              // =1
-	cmp	 w2, w8
-	b.le	.LBB1_7
-// BB#1:                                // %if.then
+	ldr	w1, [sp, #16]
+	ldur	w2, [x29, #-12]
+	add	w2, w2, #1              // =1
+	cmp		w1, w2
+	b.le	.LBB1_8
+// BB#1:
 	ldursw	x8, [x29, #-12]
 	ldur	x9, [x29, #-8]
-	ldur	w10, [x29, #-12]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x8, x9, x8
+	ldr		w11, [x8]
+	str	w11, [sp, #12]
+	ldur	w11, [x29, #-12]
+	add	w11, w11, #1            // =1
+	str	w11, [sp, #8]
 	ldr	w11, [sp, #16]
-	ldr	w8, [x9, x8, lsl #2]
-	add	w9, w10, #1             // =1
-	stp	w9, w8, [sp, #8]
 	str	w11, [sp, #4]
-	b	.LBB1_3
-.LBB1_2:                                // %if.else
-                                        //   in Loop: Header=BB1_3 Depth=1
-	ldur	x9, [x29, #-8]
-	ldr	w10, [sp, #4]
-	ldur	x11, [x29, #-8]
-	add	x0, x9, x8, lsl #2
-	sub	w8, w10, #1             // =1
-	str	w8, [sp, #4]
-	add	x1, x11, w8, sxtw #2
-	bl	swap
-.LBB1_3:                                // %while.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldrsw	x8, [sp, #8]
+.LBB1_2:                                // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #8]
 	ldr	w9, [sp, #4]
-	cmp	 w8, w9
-	b.ge	.LBB1_6
-// BB#4:                                // %while.body
-                                        //   in Loop: Header=BB1_3 Depth=1
-	ldur	x9, [x29, #-8]
-	ldr	w9, [x9, x8, lsl #2]
-	ldr	w10, [sp, #12]
+	cmp		w8, w9
+	b.ge	.LBB1_7
+// BB#3:                                //   in Loop: Header=BB1_2 Depth=1
 	ldrsw	x8, [sp, #8]
-	cmp	 w9, w10
-	b.gt	.LBB1_2
-// BB#5:                                // %if.then6
-                                        //   in Loop: Header=BB1_3 Depth=1
+	ldur	x9, [x29, #-8]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x8, x9, x8
+	ldr		w11, [x8]
+	ldr	w12, [sp, #12]
+	cmp		w11, w12
+	b.gt	.LBB1_5
+// BB#4:                                //   in Loop: Header=BB1_2 Depth=1
+	ldr	w8, [sp, #8]
 	add	w8, w8, #1              // =1
 	str	w8, [sp, #8]
-	b	.LBB1_3
-.LBB1_6:                                // %while.end
+	b	.LBB1_6
+.LBB1_5:                                //   in Loop: Header=BB1_2 Depth=1
+	ldrsw	x8, [sp, #8]
 	ldur	x9, [x29, #-8]
-	ldursw	x10, [x29, #-12]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x0, x9, x8
+	ldr	w11, [sp, #4]
+	sub	w11, w11, #1            // =1
+	str	w11, [sp, #4]
+	mov	 w8, w11
+	sxtw	x8, w8
+	ldur	x9, [x29, #-8]
+	orr	x10, xzr, #0x4
+	mul		x8, x8, x10
+	add		x1, x9, x8
+	bl	swap
+.LBB1_6:                                //   in Loop: Header=BB1_2 Depth=1
+	b	.LBB1_2
+.LBB1_7:
+	ldr	w8, [sp, #8]
 	sub	w8, w8, #1              // =1
 	str	w8, [sp, #8]
-	add	x0, x9, w8, sxtw #2
-	add	x1, x9, x10, lsl #2
+	mov	 w9, w8
+	sxtw	x9, w9
+	ldur	x10, [x29, #-8]
+	orr	x11, xzr, #0x4
+	mul		x9, x9, x11
+	add		x0, x10, x9
+	ldursw	x9, [x29, #-12]
+	ldur	x10, [x29, #-8]
+	orr	x11, xzr, #0x4
+	mul		x9, x9, x11
+	add		x1, x10, x9
 	bl	swap
 	ldur	x0, [x29, #-8]
 	ldur	w1, [x29, #-12]
@@ -92,30 +114,32 @@ sort:                                   // @sort
 	ldr	w1, [sp, #4]
 	ldr	w2, [sp, #16]
 	bl	sort
-.LBB1_7:                                // %if.end16
+.LBB1_8:
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp2:
-	.size	sort, .Ltmp2-sort
+.Lfunc_end1:
+	.size	sort, .Lfunc_end1-sort
 
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
-	mov	 w1, wzr
-	adrp	x0, nums1k1
-	add	x0, x0, :lo12:nums1k1
+	adrp	x8, :got:nums1k1
+	ldr	x0, [x8, :got_lo12:nums1k1]
+	mov	 w9, wzr
 	orr	w2, wzr, #0x400
+	mov	 w1, w9
 	bl	sort
-	mov	 w0, wzr
+	mov	 w9, wzr
+	mov	 w0, w9
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp3:
-	.size	main, .Ltmp3-main
+.Lfunc_end2:
+	.size	main, .Lfunc_end2-main
 
 	.type	nums1k1,@object         // @nums1k1
 	.data
@@ -2179,4 +2203,5 @@ nums1k2:
 	.size	nums1k2, 4096
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits

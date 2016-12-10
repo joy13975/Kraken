@@ -28,10 +28,10 @@ void KrakenProc::startSimulation()
 
     resetStateRegs();
 
-    wrn("Ignoring main entry to test instruction decoding\n");
-    state->pc = (hword*) addPointers(state->memory, state->textStart);
-    msg("Entering binary at %p (offset: %p)\n",
-        state->pc, subPointers(state->entry, state->memory));
+    // wrn("Ignoring main entry to test instruction decoding\n");
+    // state->pc = (Word*) addPointers(state->memory, state->progInfo.textStart);
+    msg("Entering binary at %p (real: %p)\n",
+        subPointers(state->pc, state->memory), state->pc);
 
     run();
 
@@ -43,17 +43,19 @@ void KrakenProc::startSimulation()
 
 void KrakenProc::resetStateRegs()
 {
-    state->pc = state->entry;
+    state->pc = state->progInfo.entry;
 }
 
 bool KrakenProc::isPCSensible()
 {
     // add 2 to compensate the starting odd address
-    const byte* pcOffset = (byte*) state->getPcOffset();
-    const bool sensible = pcOffset <= state->textEnd && pcOffset >= state->textStart;
+    const Word* pcOffset = (Word*) state->getPcOffset();
+    const bool sensible = pcOffset <= state->progInfo.textEnd &&
+                          pcOffset >= state->progInfo.textStart;
 
     if (!sensible)
-        wrn("PC became weird: %p\n", pcOffset);
+        wrn("PC became weird: %p (%p ~ %p)\n",
+            pcOffset, state->progInfo.textStart, state->progInfo.textEnd);
     return sensible;
 }
 

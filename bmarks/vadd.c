@@ -5,6 +5,7 @@
 #include "nums1k.h"
 
 #define N 1024
+
 int main(void)
 {
     int c[N];

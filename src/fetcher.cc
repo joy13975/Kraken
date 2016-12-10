@@ -7,11 +7,10 @@ namespace Fetcher
 
 const KrakenInstr fetch(KrakenState *const state)
 {
-    dbg("pc: %p\n", state->pc);
-    KrakenInstr instr((byte*) state->pc);
-    dbg("Fetching at pc: %p, %d-bit\n",
-        state->getPcOffset(), instr.isT32 ? 32 : 16);
-    state->pc += instr.isT32 ? 2 : 1;
+    KrakenInstr instr(state->pc);
+    dbg("Fetching at pc: %p (real: %p)\n",
+        state->getPcOffset(), state->pc);
+    state->pc += 1;
     return instr;
 }
 

@@ -1,10 +1,10 @@
 	.text
-	.file	"nops.ll"
+	.file	"nops.c"
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	//APP
 	nop
 	//NO_APP
@@ -197,10 +197,12 @@ main:                                   // @main
 	//APP
 	nop
 	//NO_APP
-	mov	 w0, wzr
+	mov	 w8, wzr
+	mov	 w0, w8
 	ret
-.Ltmp1:
-	.size	main, .Ltmp1-main
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits

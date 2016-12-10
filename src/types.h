@@ -18,51 +18,54 @@ class KrakenState
 {
 public:
     KrakenState(std::ifstream & binStream);
-
     virtual ~KrakenState()
     {
         delete memory;
     };
 
-    const size_t stackAndHeapSize = 4096;
+    typedef struct ProgramInfo
+    {
+        const size_t stackAndHeapSize = 4096;
+        size_t binSize;
+        size_t totalMemSize;
+        Word * entry;
+        Word * textStart;
+        Word * textEnd;
+    } ProgramInfo;
 
-    const size_t        binSize;
-    const size_t        totalMemSize;
-    byte *const         memory;
-    hword *const        entry;
-    const byte *const   textStart;
-    const byte *const   textEnd;
+    const ProgramInfo progInfo;
+
+    //memory
+    Word * memory;
 
     // special purpose registers
-    hword *pc;
+    Word * pc;
 
     // general purpose registers
 
     uintptr_t getPcOffset() const;
 
 private:
-    byte * initMemory(std::ifstream & binStream);
+    ProgramInfo inspectProgram(std::ifstream & binStream);
     size_t getBinSize(std::ifstream & binStream) const;
-    hword * getEntryPoint() const;
-    byte * getTextBoundary(bool end) const;
+    Word * initMemory(std::ifstream & binStream) const;
+    Word * getEntryPoint() const;
+    Word * getTextBoundary(bool end) const;
 };
 
 class KrakenInstr
 {
 public:
-    KrakenInstr(const byte *const _bytes);
+    KrakenInstr(const Word *const _word);
     virtual ~KrakenInstr() {};
 
     bool matchPattern(const short offset,
                       const short bits,
-                      const byte mask) const;
+                      const Byte mask) const;
 
-    const bool isT32;
-    const KrakenWord rawBits;
+    const Word word;
     std::string toString() const;
 private:
-    bool checkT32(const byte *const _bytes);
-    KrakenWord getRawBits(const byte *const _bytes);
 };
 
 typedef void (*KrakenAction)();

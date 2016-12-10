@@ -2,16 +2,18 @@ CXX=g++
 
 EXE=kraken
 
-OBJ_DIR := .obj
+OBJ_DIR 		:= .obj
 
-SRC_DIR := src
-LIBELF_DIR := $(SRC_DIR)/libelf
-C_SRC := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(LIBELF_DIR)/*.c)
-CC_SRC := $(wildcard $(SRC_DIR)/*.cc)
-OBJS := $(C_SRC:%.c=$(OBJ_DIR)/%.o) $(CC_SRC:%.cc=$(OBJ_DIR)/%.o)
-DEPS := $(C_SRC:%.c=$(OBJ_DIR)/%.d) $(CC_SRC:%.cc=$(OBJ_DIR)/%.d)
+SRC_DIR 		:= src
+VIXL_DIR 		:= src/vixl
+LIBELF_DIR 		:= $(SRC_DIR)/libelf
+C_SRC 			:= $(wildcard $(SRC_DIR)/*.c) $(wildcard $(LIBELF_DIR)/*.c)
+CC_SRC 			:= $(wildcard $(SRC_DIR)/*.cc) $(wildcard $(VIXL_DIR)/*.cc)
+OBJS 			:= $(C_SRC:%.c=$(OBJ_DIR)/%.o) $(CC_SRC:%.cc=$(OBJ_DIR)/%.o)
+DEPS 			:= $(C_SRC:%.c=$(OBJ_DIR)/%.d) $(CC_SRC:%.cc=$(OBJ_DIR)/%.d)
 
 $(shell mkdir -p $(OBJ_DIR)/$(SRC_DIR))
+$(shell mkdir -p $(OBJ_DIR)/$(VIXL_DIR))
 
 DEBUG=1
 GOMP=1
@@ -52,10 +54,10 @@ $(EXE): $(OBJS)
 all: $(EXE)
 
 test: $(EXE)
-	./$(EXE) -i bmarks/vadd.o
+	./$(EXE) -i bmarks/vadd.a64
 
 testim: $(EXE)
-	./$(EXE) -i bmarks/vadd.o -im
+	./$(EXE) -i bmarks/vadd.a64 -im
 
 clean:
 	rm -rf $(EXE) $(OBJ_DIR)/* $(OBJ_DIR) *.dSYM .DS_Store

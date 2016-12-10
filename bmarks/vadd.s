@@ -1,45 +1,55 @@
 	.text
-	.file	"vadd.ll"
+	.file	"vadd.c"
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:                                // %entry
+// BB#0:
 	stp	x28, x27, [sp, #-16]!
 	sub	sp, sp, #1, lsl #12     // =4096
 	sub	sp, sp, #16             // =16
 	str	wzr, [sp, #4108]
 	str	wzr, [sp, #8]
-	adrp	x8, nums1k1
-	add	x8, x8, :lo12:nums1k1
-	adrp	x9, nums1k2
-	add	x9, x9, :lo12:nums1k2
-	add	x10, sp, #12            // =12
-	b	.LBB0_2
-.LBB0_1:                                // %for.body
-                                        //   in Loop: Header=BB0_2 Depth=1
+.LBB0_1:                                // =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #8]
+	cmp		w8, #1024       // =1024
+	b.ge	.LBB0_4
+// BB#2:                                //   in Loop: Header=BB0_1 Depth=1
+	add	x8, sp, #12             // =12
+	adrp	x9, :got:nums1k2
+	ldr	x9, [x9, :got_lo12:nums1k2]
+	adrp	x10, :got:nums1k1
+	ldr	x10, [x10, :got_lo12:nums1k1]
 	ldrsw	x11, [sp, #8]
-	ldr	w12, [sp, #8]
-	lsl	x11, x11, #2
-	ldr	 w13, [x8, x11]
-	ldr	 w14, [x9, x11]
-	add	w12, w12, #1            // =1
-	add	 w13, w13, w14
-	str	 w13, [x10, x11]
-	str	w12, [sp, #8]
-.LBB0_2:                                // %for.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldr	w11, [sp, #8]
-	cmp	 w11, #1023             // =1023
-	b.le	.LBB0_1
-// BB#3:                                // %for.end
-	mov	 w0, wzr
+	orr	x12, xzr, #0x4
+	mul		x11, x11, x12
+	add		x10, x10, x11
+	ldr		w13, [x10]
+	ldrsw	x10, [sp, #8]
+	orr	x11, xzr, #0x4
+	mul		x10, x10, x11
+	add		x9, x9, x10
+	ldr		w14, [x9]
+	add		w13, w13, w14
+	ldrsw	x9, [sp, #8]
+	orr	x10, xzr, #0x4
+	mul		x9, x9, x10
+	add		x8, x8, x9
+	str		w13, [x8]
+// BB#3:                                //   in Loop: Header=BB0_1 Depth=1
+	ldr	w8, [sp, #8]
+	add	w8, w8, #1              // =1
+	str	w8, [sp, #8]
+	b	.LBB0_1
+.LBB0_4:
+	mov	 w8, wzr
+	mov	 w0, w8
 	add	sp, sp, #1, lsl #12     // =4096
 	add	sp, sp, #16             // =16
 	ldp	x28, x27, [sp], #16
 	ret
-.Ltmp0:
-	.size	main, .Ltmp0-main
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
 
 	.type	nums1k1,@object         // @nums1k1
 	.data
@@ -2103,4 +2113,5 @@ nums1k2:
 	.size	nums1k2, 4096
 
 
-	.ident	"clang version 3.5.0 "
+	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
+	.section	".note.GNU-stack","",@progbits

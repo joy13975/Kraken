@@ -1,49 +1,45 @@
 Stat: 
   30 
-  42 //
+  30 //
   64 //APP
   64 //NO_APP
-  24 add
+  29 add
    6 adrp
-   1 asr
-  10 b
-   1 b.ge
+  12 b
+   1 b.eq
+   3 b.ge
    2 b.gt
    1 b.hi
    3 b.le
-   2 b.lt
-   1 b.mi
-   1 b.ne
   11 bl
    1 cbnz
    8 cmp
+   1 cset
    1 fadd
    3 fcmp
    2 fcvt
    3 fdiv
-   2 fmov
+   3 fmov
    1 fsub
-  13 ldp
-  44 ldr
-   6 ldrsw
-  10 ldur
+   8 ldp
+  67 ldr
+   8 ldrsw
+  14 ldur
    2 ldursw
-   2 lsl
-   1 lsr
-   1 madd
-  17 mov
-   1 movk
-   6 movz
+   1 lsl
+  29 mov
+   7 movz
    2 msub
-   4 mul
+  16 mul
   64 nop
-   4 orr
+  16 orr
   12 ret
-   2 sdiv
-  13 stp
-  40 str
-   5 stur
-  20 sub
-   1 sxtw
+   3 sdiv
+   8 stp
+  53 str
+   6 stur
+  19 sub
+   2 sxtw
+   1 tbnz
 Unique Insns: 
-      46
+      42

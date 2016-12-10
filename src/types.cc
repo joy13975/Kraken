@@ -7,27 +7,27 @@
 using namespace std;
 
 KrakenState::KrakenState(ifstream & binStream)
-    : binSize(getBinSize(binStream)), totalMemSize(binSize + stackAndHeapSize),
-      memory(initMemory(binStream)), entry(getEntryPoint()),
-      textStart(getTextBoundary(false)), textEnd(getTextBoundary(true))
-{
-};
+    : progInfo(inspectProgram(binStream))
+{};
 
 uintptr_t KrakenState::getPcOffset() const
 {
     return (uintptr_t) subPointers(pc, memory);
 };
 
-byte * KrakenState::initMemory(ifstream & binStream)
+KrakenState::ProgramInfo KrakenState::inspectProgram(ifstream & binStream)
 {
-    byte * mem = new byte[totalMemSize];
+    ProgramInfo pi;
 
-    binStream.seekg(0, ios::beg);
-    if (!binStream.read((char*) mem, binSize))
-        die("Could not load binary file into memory.\n");
-    msg("Binary loaded: %d bytes\n", binSize);
+    pi.binSize              = getBinSize(binStream);
+    pi.totalMemSize         = pi.binSize + pi.stackAndHeapSize;
+    memory                  = initMemory(binStream);
+    Word * elfEntryPoint    = getEntryPoint();
+    pi.entry                = (Word*) addPointers(memory, elfEntryPoint);
+    pi.textStart    = getTextBoundary(false);
+    pi.textEnd      = getTextBoundary(true);
 
-    return mem;
+    return pi;
 }
 
 size_t KrakenState::getBinSize(ifstream & binStream) const
@@ -38,9 +38,21 @@ size_t KrakenState::getBinSize(ifstream & binStream) const
     return s;
 }
 
-hword * KrakenState::getEntryPoint() const
+Word * KrakenState::initMemory(ifstream & binStream) const
 {
-    const Elf32_Ehdr * hdr = (Elf32_Ehdr*) memory;
+    Word * mem = new Word[progInfo.totalMemSize];
+
+    binStream.seekg(0, ios::beg);
+    if (!binStream.read((char*) mem, progInfo.binSize))
+        die("Could not load binary file into memory.\n");
+    msg("Binary loaded: %d bytes\n", progInfo.binSize);
+
+    return mem;
+}
+
+Word * KrakenState::getEntryPoint() const
+{
+    const Elf64_Ehdr * hdr = (Elf64_Ehdr*) memory;
 
     // do some elf checks before getting entry
 #define checkField(field, expectedVal, name) \
@@ -55,89 +67,67 @@ hword * KrakenState::getEntryPoint() const
     checkField(hdr->e_ident[EI_MAG3], ELFMAG3, "Magic-3");
 
     // check elf info
-    checkField(hdr->e_ident[EI_CLASS], ELFCLASS32, "32-bit");
+    checkField(hdr->e_ident[EI_CLASS], ELFCLASS64, "64-bit");
     checkField(hdr->e_ident[EI_DATA], ELFDATA2LSB, "little-endian");
     checkField(hdr->e_ident[EI_VERSION], EV_CURRENT, "version");
-    checkField(hdr->e_machine, EM_ARM, "arm");
+    checkField(hdr->e_machine, EM_AARCH64, "A64");
     if (hdr->e_type != ET_REL && hdr->e_type != ET_EXEC)
         die("ELF failure (%s): expected 0x%x or 0x%x but got 0x%x\n",
             "tpye", ET_REL, ET_EXEC, hdr->e_type);
 #undef checkField
 
-    // check Thumb entry address - should be odd number
-    const hword *elfEntryPoint = (hword*) (uintptr_t)
-                                 ((Elf32_Ehdr*) memory)->e_entry;
-    if (((uintptr_t) elfEntryPoint) % 2 != 1)
-        die("Entry point is not odd - this is not a Thumb binary.\n");
+    const Word *elfEntryPoint = (Word*) (uintptr_t)
+                                ((Elf64_Ehdr*) memory)->e_entry;
+
     msg("Program entry: 0x%x\n", elfEntryPoint);
 
-    return (hword*) addPointers(
-               addPointers(memory, elfEntryPoint),
-               (void*) 1);
+    return (Word*)elfEntryPoint;
 }
 
-byte * KrakenState::getTextBoundary(bool end) const
+Word * KrakenState::getTextBoundary(bool end) const
 {
-    const Elf32_Ehdr * ehdr = (Elf32_Ehdr*) memory;
-    Elf32_Shdr * shdr       = (Elf32_Shdr*) (memory + ehdr->e_shoff);
-    Elf32_Shdr * sh_strtab  = &shdr[ehdr->e_shstrndx];
-    const char *const sh_strtab_p = (char*) (memory + sh_strtab->sh_offset);
+    const Elf64_Ehdr * ehdr = (Elf64_Ehdr*) memory;
+    Elf64_Shdr * shdr       = (Elf64_Shdr*) addPointers(memory,
+                              (void*) ehdr->e_shoff);
+    Elf64_Shdr * sh_strtab  = &shdr[ehdr->e_shstrndx];
+    const char *const sh_strtab_p = (char*) addPointers(memory,
+                                    (void*)sh_strtab->sh_offset);
 
     for (int i = 0; i < ehdr->e_shnum; i++)
-        if (0 == strcmp(sh_strtab_p + shdr[i].sh_name, ".text"))
-            return (byte*) (end ?
-                            (uintptr_t) (shdr[i].sh_addr + shdr[i].sh_size) :
-                            (uintptr_t) shdr[i].sh_addr);
+    {
+        const char * sname = (char*) sh_strtab_p + shdr[i].sh_name;
+        // dbg("Section %d/%d (%s,%p,%p)\n",
+        //     i, ehdr->e_shnum, sname, shdr[i].sh_offset, shdr[i].sh_size);
+        if (0 == strcmp(sname, ".text"))
+            return (Word*) (end ?
+                                (uintptr_t) (shdr[i].sh_offset + shdr[i].sh_size) :
+                                (uintptr_t) shdr[i].sh_offset);
+    }
 
-    die("Could not find .text section in the binary\n");
+    die("Could not find .text section in the binary (sections=%d)\n",
+        ehdr->e_shnum);
 }
 
 
-KrakenInstr::KrakenInstr(const byte *const _bytes)
-    : isT32(checkT32(_bytes)), rawBits(getRawBits(_bytes))
+KrakenInstr::KrakenInstr(const Word *const _word)
+    : word(__builtin_bswap32(*_word))
 {
 }
 
 bool KrakenInstr::matchPattern(const short offset,
                                const short bits,
-                               const byte pattern) const
+                               const Byte pattern) const
 {
-    const KrakenWord shifted = (rawBits << (KRAKEN_WORD_SIZE - offset - 1))
-                               >> (KRAKEN_WORD_SIZE - offset - 1)
-                               >> (offset - bits + 1);
-    const KrakenWord mask = KrakenWord(pattern);
+    const Word shifted = (word << (KRAKEN_WORD_BITS - offset - 1))
+                         >> (KRAKEN_WORD_BITS - offset - 1)
+                         >> (offset - bits + 1);
     // dbg("shifted(%.2d,%.2d): %s\n", offset, bits, shifted.to_string().c_str());
     // dbg("mask:           %s\n", mask.to_string().c_str());
-    return shifted == mask;
+    return shifted == (Word) pattern;
 }
 
 string KrakenInstr::toString() const
 {
-    string s = rawBits.to_string();
-
-    // space insertion black magic
-    for (int i = 0; i < 8; i++)
-        s.insert(4 * (i + 1) + i + (i > 3 ? 1 : 0),
-                 i == 3 ? 2 : 1, ' ');
-
-    if (!isT32)
-        s = s.substr(0, s.length() / 2);
-
+    string s = leBitStr(&word, sizeof(Word));
     return s;
-}
-
-bool KrakenInstr::checkT32(const byte *const _bytes)
-{
-    return (_bytes[1] >> 5) == 0b111 &&
-           ((_bytes[1] >> 3) & 0b11) != 0b00;
-}
-
-KrakenWord KrakenInstr::getRawBits(const byte *const bytes)
-{
-    KrakenWord bits = KrakenWord(*((hword*) bytes)) << (sizeof(hword) * 8);
-
-    if (isT32)
-        bits |= KrakenWord(*(((hword*) bytes) + 1));
-
-    return bits;
 }

@@ -2,16 +2,15 @@
 
 SRC				:=$(wildcard *.c)
 
-EXT_X86 		:=x86
-EXT_LL_IR 		:=ll
+EXT_X86_BIN 	:=x86
+EXT_OBJ 		:=o
 EXT_A64_ASM 	:=s
 EXT_A64_DASM 	:=ds
-EXT_A64 		:=a64
+EXT_A64_BIN 	:=a64
 
-BIN_X86			:=$(SRC:%.c=%.$(EXT_X86))
-LL_A64 			:=$(SRC:%.c=%.$(EXT_LL_IR))
+BIN_X86			:=$(SRC:%.c=%.$(EXT_X86_BIN))
 ASM_A64 		:=$(SRC:%.c=%.$(EXT_A64_ASM))
-BIN_A64 		:=$(SRC:%.c=%.$(EXT_A64))
+BIN_A64 		:=$(SRC:%.c=%.$(EXT_A64_BIN))
 DASM_A64 		:=$(SRC:%.c=%.$(EXT_A64_DASM))
 
 C_CLAGS			:=-O0 -std=gnu99 -fno-stack-protector \
@@ -19,36 +18,35 @@ C_CLAGS			:=-O0 -std=gnu99 -fno-stack-protector \
 					-fPIC
 C_TO_X86		:=gcc $(C_CLAGS) -D_DEBUG
 
-A64_ARCH		:=-target aarch64 -S -emit-llvm
-C_TO_A64_LL 	:=clang $(A64_ARCH) $(C_CLAGS) -nostdlib
-LL_TO_A64_ASM 	:=llc -march=aarch64
-LL_TO_A64 		:=$(LL_TO_A64_ASM) -filetype=obj
-A64_TO_DASM 	:=objdump -arch=aarch64 -d
+A64_ARCH		:=-target aarch64-none-elf
+C_TO_A64 		:=clang $(A64_ARCH) $(C_CLAGS) -nostdlib
+C_TO_A64_OBJ 	:=$(C_TO_A64) -c
+OBJ_TO_A64_BIN 	:=aarch64ld -Ttext=0x100 -e main
+C_TO_A64_ASM 	:=$(C_TO_A64) -S
+OBJ_TO_A64_DASM :=aarch64objdump -xd
 
-%.$(EXT_X86): %.c
+%.$(EXT_X86_BIN): %.c
 	$(C_TO_X86)  $< -o $@
 
-%.$(EXT_LL_IR): %.c
-	$(C_TO_A64_LL) $<  -o $@
+%.$(EXT_OBJ): %.c
+	$(C_TO_A64_OBJ) $< -o $@
 
-%.$(EXT_A64_ASM): %.$(EXT_LL_IR)
-	$(LL_TO_A64_ASM) $< -o $@
+%.$(EXT_A64_ASM): %.c
+	$(C_TO_A64_ASM) $< -o $@
 
-%.$(EXT_A64): %.$(EXT_LL_IR)
-	$(LL_TO_A64) $< -o $@
+%.$(EXT_A64_BIN): %.$(EXT_OBJ)
+	$(OBJ_TO_A64_BIN) $< -o $@
 
-%.$(EXT_A64_DASM): %.$(EXT_A64)
-	$(A64_TO_DASM) $< > $@
+%.$(EXT_A64_DASM): %.$(EXT_A64_BIN)
+	$(OBJ_TO_A64_DASM) $< > $@
 
-all: $(BIN_X86) $(ASM_A64) $(BIN_A64) $(DASM_A64) clean_ll_ir
+all: $(BIN_X86) $(ASM_A64) $(BIN_A64) $(DASM_A64)
 	awk 'FNR==1{print ""}1' *.$(EXT_A64_ASM) > all.s
-
-clean_ll_ir:
-	rm -rf *.$(EXT_LL_IR)
 
 stat: all
 	asmstat all.s > allstat.txt
 	tail -n2 allstat.txt
 
 clean:
-	rm -rf *.$(EXT_X86) *.$(EXT_LL_IR) *.$(EXT_A64_ASM) *.$(EXT_A64)
+	rm -rf *.$(EXT_X86_BIN) *.$(EXT_A64_BIN) *.$(EXT_OBJ)
+	rm -rf *.$(EXT_A64_ASM) *.$(EXT_A64_DASM)

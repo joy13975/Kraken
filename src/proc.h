@@ -12,9 +12,7 @@ public:
 
     KrakenProc(const KrakenOptions &_options);
     virtual ~KrakenProc()
-    {
-        delete state;
-    };
+    { delete state; };
 
     void startSimulation();
 

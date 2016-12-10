@@ -3,9 +3,9 @@
 #include "bit_util.h"
 
 using namespace std;
-string leBitsToStr(const void *const anyData, const size_t nBytes)
+string leBitStr(const void *const anyData, const size_t nBytes)
 {
-    const byte *const data = (const byte *const) anyData;
+    const Byte *const data = (const Byte * const) anyData;
 
     stringstream ss;
     for (int i = nBytes - 1; i > -1; i--)
@@ -17,6 +17,21 @@ string leBitsToStr(const void *const anyData, const size_t nBytes)
             if (j % 4 == 0)
                 ss << " ";
         }
+    }
+
+    return ss.str();
+}
+
+string leHexStr(const void *anyData, const size_t nBytes)
+{
+    const Byte *const data = (const Byte * const) anyData;
+
+    stringstream ss;
+    for (int i = nBytes - 1; i > -1; i--)
+    {
+        ss << hex << data[i];
+        // if (i % 2 == 0)
+        //     ss << " ";
     }
 
     return ss.str();
