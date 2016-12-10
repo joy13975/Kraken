@@ -25,7 +25,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vixl/a64/instructions-a64.h"
-#include "vixl/a64/assembler-a64.h"
+#include "vixl/a64/instr-helper-a64.h"
+// #include "vixl/a64/assembler-a64.h"
 
 namespace vixl {
 
@@ -351,7 +352,7 @@ void Instruction::SetPCRelImmTarget(const Instruction* target) {
     uintptr_t target_page = reinterpret_cast<uintptr_t>(target) / kPageSize;
     imm21 = target_page - this_page;
   }
-  Instr imm = Assembler::ImmPCRelAddress(static_cast<int32_t>(imm21));
+  Instr imm = CodeGen::ImmPCRelAddress(static_cast<int32_t>(imm21));
 
   SetInstructionBits(Mask(~ImmPCRel_mask) | imm);
 }
@@ -364,22 +365,22 @@ void Instruction::SetBranchImmTarget(const Instruction* target) {
   int offset = static_cast<int>((target - this) >> kInstructionSizeLog2);
   switch (BranchType()) {
     case CondBranchType: {
-      branch_imm = Assembler::ImmCondBranch(offset);
+      branch_imm = CodeGen::ImmCondBranch(offset);
       imm_mask = ImmCondBranch_mask;
       break;
     }
     case UncondBranchType: {
-      branch_imm = Assembler::ImmUncondBranch(offset);
+      branch_imm = CodeGen::ImmUncondBranch(offset);
       imm_mask = ImmUncondBranch_mask;
       break;
     }
     case CompareBranchType: {
-      branch_imm = Assembler::ImmCmpBranch(offset);
+      branch_imm = CodeGen::ImmCmpBranch(offset);
       imm_mask = ImmCmpBranch_mask;
       break;
     }
     case TestBranchType: {
-      branch_imm = Assembler::ImmTestBranch(offset);
+      branch_imm = CodeGen::ImmTestBranch(offset);
       imm_mask = ImmTestBranch_mask;
       break;
     }
@@ -393,7 +394,7 @@ void Instruction::SetBranchImmTarget(const Instruction* target) {
 void Instruction::SetImmLLiteral(const Instruction* source) {
   VIXL_ASSERT(IsWordAligned(source));
   ptrdiff_t offset = (source - this) >> kLiteralEntrySizeLog2;
-  Instr imm = Assembler::ImmLLiteral(static_cast<int>(offset));
+  Instr imm = CodeGen::ImmLLiteral(static_cast<int>(offset));
   Instr mask = ImmLLiteral_mask;
 
   SetInstructionBits(Mask(~mask) | imm);

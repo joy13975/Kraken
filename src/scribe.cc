@@ -1,11 +1,12 @@
 #include "scribe.h"
 
-namespace Scribe
+namespace Kraken
 {
 
-void write(KrakenScripture script, KrakenState *const state)
+void Scribe::write(Scripture script, State *const state)
 {
     err("Unimplemented: write()\n");
 }
 
-} // namespace Scribe
+
+} // namespace Kraken

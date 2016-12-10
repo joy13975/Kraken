@@ -4,52 +4,63 @@
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:
+// BB#0:                                // %entry
 	stp	x28, x27, [sp, #-16]!
 	sub	sp, sp, #1, lsl #12     // =4096
 	sub	sp, sp, #16             // =16
-	str	wzr, [sp, #4108]
-	str	wzr, [sp, #8]
-.LBB0_1:                                // =>This Inner Loop Header: Depth=1
+	movz	w8, #0
+	str	w8, [sp, #4108]
+	str	w8, [sp, #8]
+.LBB0_1:                                // %for.cond
+                                        // =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #8]
-	cmp		w8, #1024       // =1024
-	b.ge	.LBB0_4
-// BB#2:                                //   in Loop: Header=BB0_1 Depth=1
+	cmp	 w8, #1024              // =1024
+	b.lt	.LBB0_2
+	b	.LBB0_4
+.LBB0_2:                                // %for.body
+                                        //   in Loop: Header=BB0_1 Depth=1
 	add	x8, sp, #12             // =12
 	adrp	x9, :got:nums1k2
 	ldr	x9, [x9, :got_lo12:nums1k2]
 	adrp	x10, :got:nums1k1
 	ldr	x10, [x10, :got_lo12:nums1k1]
-	ldrsw	x11, [sp, #8]
-	orr	x12, xzr, #0x4
-	mul		x11, x11, x12
-	add		x10, x10, x11
-	ldr		w13, [x10]
-	ldrsw	x10, [sp, #8]
-	orr	x11, xzr, #0x4
-	mul		x10, x10, x11
-	add		x9, x9, x10
-	ldr		w14, [x9]
-	add		w13, w13, w14
-	ldrsw	x9, [sp, #8]
-	orr	x10, xzr, #0x4
-	mul		x9, x9, x10
-	add		x8, x8, x9
-	str		w13, [x8]
-// BB#3:                                //   in Loop: Header=BB0_1 Depth=1
+	ldr	w11, [sp, #8]
+	mov	 w12, w11
+	sxtw	x12, w12
+	orr	x13, xzr, #0x2
+	lsl	x12, x12, x13
+	add	 x10, x10, x12
+	ldr	 w11, [x10]
+	ldr	w14, [sp, #8]
+	mov	 w10, w14
+	sxtw	x10, w10
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x9, x9, x10
+	ldr	 w14, [x9]
+	add	 w11, w11, w14
+	ldr	w14, [sp, #8]
+	mov	 w9, w14
+	sxtw	x9, w9
+	orr	x10, xzr, #0x2
+	lsl	x9, x9, x10
+	add	 x8, x8, x9
+	str	 w11, [x8]
+// BB#3:                                // %for.inc
+                                        //   in Loop: Header=BB0_1 Depth=1
 	ldr	w8, [sp, #8]
-	add	w8, w8, #1              // =1
+	orr	w9, wzr, #0x1
+	add	 w8, w8, w9
 	str	w8, [sp, #8]
 	b	.LBB0_1
-.LBB0_4:
-	mov	 w8, wzr
-	mov	 w0, w8
+.LBB0_4:                                // %for.end
+	movz	w0, #0
 	add	sp, sp, #1, lsl #12     // =4096
 	add	sp, sp, #16             // =16
 	ldp	x28, x27, [sp], #16
 	ret
-.Lfunc_end0:
-	.size	main, .Lfunc_end0-main
+.Ltmp0:
+	.size	main, .Ltmp0-main
 
 	.type	nums1k1,@object         // @nums1k1
 	.data
@@ -2113,5 +2124,4 @@ nums1k2:
 	.size	nums1k2, 4096
 
 
-	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
-	.section	".note.GNU-stack","",@progbits
+	.ident	"clang version 3.5.0 "

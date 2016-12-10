@@ -6,24 +6,29 @@
 #include "types.h"
 #include "bit_util.h"
 
-class KrakenProc
+namespace Kraken
+{
+
+class Proc
 {
 public:
 
-    KrakenProc(const KrakenOptions &_options);
-    virtual ~KrakenProc()
-    { delete state; };
+    Proc(const Options &_options);
+    virtual ~Proc()
+    { delete state_; };
 
     void startSimulation();
 
 private:
-    const KrakenOptions &options;
-    KrakenState *state;
+    const Options options_;
+    const ProgramInfo progInfo_;
+    State *state_;
 
     void resetStateRegs();
-    bool isPCSensible();
     void run();
-    void breakpoint(const uintptr_t addr);
+    void breakpoint(const ptrdiff_t addr);
 };
+
+} // namespace Kraken
 
 #endif /* include guard */

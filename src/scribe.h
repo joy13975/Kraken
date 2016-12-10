@@ -5,11 +5,19 @@
 #include "util.h"
 #include "proc.h"
 
-namespace Scribe
+namespace Kraken
 {
 
-void write(KrakenScripture script, KrakenState *const state);
+class Scribe
+{
+public:
+    Scribe();
+    virtual ~Scribe() {};
 
-} // namespace Scribe
+    void write(Scripture script, State *const state);
+private:
+};
+
+} // namespace Kraken
 
 #endif /* include guard */

@@ -6,7 +6,7 @@
 #include "proc.h"
 
 using namespace std;
-KrakenOptions options;
+Kraken::Options options;
 
 DECL_ARG_CALLBACK(setInputFile) { options.inputFile = arg_in; }
 DECL_ARG_CALLBACK(setLogLevel) { set_log_level((Log_Level) parse_long(arg_in)); }
@@ -59,7 +59,7 @@ int main(int argc, const char *argv[])
     checkOptions();
 
     // start simulation
-    KrakenProc(options).startSimulation();
+    Kraken::Proc(options).startSimulation();
 
     return 0;
 }

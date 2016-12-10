@@ -4,7 +4,7 @@
 	.align	2
 	.type	main,@function
 main:                                   // @main
-// BB#0:
+// BB#0:                                // %entry
 	//APP
 	nop
 	//NO_APP
@@ -197,12 +197,10 @@ main:                                   // @main
 	//APP
 	nop
 	//NO_APP
-	mov	 w8, wzr
-	mov	 w0, w8
+	movz	w0, #0
 	ret
-.Lfunc_end0:
-	.size	main, .Lfunc_end0-main
+.Ltmp1:
+	.size	main, .Ltmp1-main
 
 
-	.ident	"Apple LLVM version 8.0.0 (clang-800.0.42.1)"
-	.section	".note.GNU-stack","",@progbits
+	.ident	"clang version 3.5.0 "

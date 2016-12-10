@@ -2,16 +2,23 @@
 #include "bit_util.h"
 #include "util.h"
 
-namespace Fetcher
+namespace Kraken
 {
 
-const KrakenInstr fetch(KrakenState *const state)
+Fetcher::Fetcher(const Word *& pc)
+    : pc_(pc)
 {
-    KrakenInstr instr(state->pc);
-    dbg("Fetching at pc: %p (real: %p)\n",
-        state->getPcOffset(), state->pc);
-    state->pc += 1;
+}
+
+const vixl::Instruction * Fetcher::fetch()
+{
+    dbg("Fetching at pc: %p\n", pc_);
+
+    const vixl::Instruction * instr =
+        reinterpret_cast<const vixl::Instruction*>(pc_);
+    pc_++;
+
     return instr;
 }
 
-} // namespace Fetcher
+} // namespace Kraken

@@ -1,15 +1,14 @@
 #include "enactor.h"
 
-
-namespace Enactor
+namespace Kraken
 {
 
-KrakenScripture enact(const KrakenAction &action,
-                      const KrakenState *const state)
+Scripture Enactor::enact(const Action &action,
+                         const State *const state)
 {
     err("Unimplemented: enact()\n");
 
-    return KrakenScripture();
+    return Scripture();
 }
 
-} // namespace Enactor
+};

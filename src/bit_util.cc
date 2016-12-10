@@ -2,12 +2,14 @@
 
 #include "bit_util.h"
 
-using namespace std;
-string leBitStr(const void *const anyData, const size_t nBytes)
+namespace Kraken
+{
+
+std::string leBitStr(const void *const anyData, const size_t nBytes)
 {
     const Byte *const data = (const Byte * const) anyData;
 
-    stringstream ss;
+    std::stringstream ss;
     for (int i = nBytes - 1; i > -1; i--)
     {
         for (int j = 7; j > -1; j--)
@@ -22,17 +24,16 @@ string leBitStr(const void *const anyData, const size_t nBytes)
     return ss.str();
 }
 
-string leHexStr(const void *anyData, const size_t nBytes)
+#include <stdio.h>
+std::string leHexStr(const void *anyData, const size_t nBytes)
 {
     const Byte *const data = (const Byte * const) anyData;
 
-    stringstream ss;
+    std::stringstream ss;
     for (int i = nBytes - 1; i > -1; i--)
-    {
-        ss << hex << data[i];
-        // if (i % 2 == 0)
-        //     ss << " ";
-    }
+        ss << std::hex << (int) data[i] << " ";
 
     return ss.str();
 }
+
+} // namespace Kraken

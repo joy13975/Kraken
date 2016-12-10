@@ -1,0 +1,100 @@
+
+vadd.a64:     file format elf64-littleaarch64
+vadd.a64
+architecture: aarch64, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x0000000000000100
+
+Program Header:
+    LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
+         filesz 0x00000000000001bc memsz 0x00000000000001bc flags r-x
+    LOAD off    0x00000000000001c0 vaddr 0x00000000000101c0 paddr 0x00000000000101c0 align 2**16
+         filesz 0x0000000000002030 memsz 0x0000000000002030 flags rw-
+private flags = 0:
+
+Sections:
+Idx Name          Size      VMA               LMA               File off  Algn
+  0 .text         000000bc  0000000000000100  0000000000000100  00000100  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .got          00000018  00000000000101c0  00000000000101c0  000001c0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .got.plt      00000018  00000000000101d8  00000000000101d8  000001d8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+  3 .data         00002000  00000000000101f0  00000000000101f0  000001f0  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  4 .comment      00000015  0000000000000000  0000000000000000  000021f0  2**0
+                  CONTENTS, READONLY
+SYMBOL TABLE:
+0000000000000100 l    d  .text	0000000000000000 .text
+00000000000101c0 l    d  .got	0000000000000000 .got
+00000000000101d8 l    d  .got.plt	0000000000000000 .got.plt
+00000000000101f0 l    d  .data	0000000000000000 .data
+0000000000000000 l    d  .comment	0000000000000000 .comment
+0000000000000000 l    df *ABS*	0000000000000000 vadd.c
+0000000000000000 l    df *ABS*	0000000000000000 
+00000000000101c0 l     O .got	0000000000000000 _GLOBAL_OFFSET_TABLE_
+00000000000121f0 g       .data	0000000000000000 _bss_end__
+00000000000121f0 g       .data	0000000000000000 __bss_start__
+00000000000121f0 g       .data	0000000000000000 __bss_end__
+00000000000101f0 g     O .data	0000000000001000 nums1k1
+00000000000121f0 g       .data	0000000000000000 __bss_start
+0000000000000100 g     F .text	00000000000000bc main
+00000000000121f0 g       .data	0000000000000000 __end__
+00000000000121f0 g       .data	0000000000000000 _edata
+00000000000121f0 g       .data	0000000000000000 _end
+0000000000080000 g       .comment	0000000000000000 _stack
+00000000000101f0 g       .data	0000000000000000 __data_start
+00000000000111f0 g     O .data	0000000000001000 nums1k2
+
+
+
+Disassembly of section .text:
+
+0000000000000100 <main>:
+ 100:	a9bf6ffc 	stp	x28, x27, [sp,#-16]!
+ 104:	d14007ff 	sub	sp, sp, #0x1, lsl #12
+ 108:	d10043ff 	sub	sp, sp, #0x10
+ 10c:	52800008 	mov	w8, #0x0                   	// #0
+ 110:	b9100fe8 	str	w8, [sp,#4108]
+ 114:	b9000be8 	str	w8, [sp,#8]
+ 118:	b9400be8 	ldr	w8, [sp,#8]
+ 11c:	7110011f 	cmp	w8, #0x400
+ 120:	5400004b 	b.lt	128 <main+0x28>
+ 124:	14000021 	b	1a8 <main+0xa8>
+ 128:	910033e8 	add	x8, sp, #0xc
+ 12c:	90000089 	adrp	x9, 10000 <main+0xff00>
+ 130:	f940e929 	ldr	x9, [x9,#464]
+ 134:	9000008a 	adrp	x10, 10000 <main+0xff00>
+ 138:	f940e54a 	ldr	x10, [x10,#456]
+ 13c:	b9400beb 	ldr	w11, [sp,#8]
+ 140:	2a0b03ec 	mov	w12, w11
+ 144:	93407d8c 	sxtw	x12, w12
+ 148:	b27f03ed 	orr	x13, xzr, #0x2
+ 14c:	9acd218c 	lsl	x12, x12, x13
+ 150:	8b0c014a 	add	x10, x10, x12
+ 154:	b940014b 	ldr	w11, [x10]
+ 158:	b9400bee 	ldr	w14, [sp,#8]
+ 15c:	2a0e03ea 	mov	w10, w14
+ 160:	93407d4a 	sxtw	x10, w10
+ 164:	b27f03ec 	orr	x12, xzr, #0x2
+ 168:	9acc214a 	lsl	x10, x10, x12
+ 16c:	8b0a0129 	add	x9, x9, x10
+ 170:	b940012e 	ldr	w14, [x9]
+ 174:	0b0e016b 	add	w11, w11, w14
+ 178:	b9400bee 	ldr	w14, [sp,#8]
+ 17c:	2a0e03e9 	mov	w9, w14
+ 180:	93407d29 	sxtw	x9, w9
+ 184:	b27f03ea 	orr	x10, xzr, #0x2
+ 188:	9aca2129 	lsl	x9, x9, x10
+ 18c:	8b090108 	add	x8, x8, x9
+ 190:	b900010b 	str	w11, [x8]
+ 194:	b9400be8 	ldr	w8, [sp,#8]
+ 198:	320003e9 	orr	w9, wzr, #0x1
+ 19c:	0b090108 	add	w8, w8, w9
+ 1a0:	b9000be8 	str	w8, [sp,#8]
+ 1a4:	17ffffdd 	b	118 <main+0x18>
+ 1a8:	52800000 	mov	w0, #0x0                   	// #0
+ 1ac:	914007ff 	add	sp, sp, #0x1, lsl #12
+ 1b0:	910043ff 	add	sp, sp, #0x10
+ 1b4:	a8c16ffc 	ldp	x28, x27, [sp],#16
+ 1b8:	d65f03c0 	ret

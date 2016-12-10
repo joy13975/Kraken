@@ -3,12 +3,22 @@
 
 #include "proc.h"
 #include "types.h"
+#include "vixl/a64/instructions-a64.h"
 
-namespace Fetcher
+namespace Kraken
 {
 
-const KrakenInstr fetch(KrakenState *const state);
+class Fetcher
+{
+public:
+    Fetcher(const Word *& pc);
+    virtual ~Fetcher() {};
 
-} // namespace Fetcher
+    const vixl::Instruction * fetch();
+private:
+    const Word *& pc_;
+};
+
+} // namespace Kraken
 
 #endif /* include guard */

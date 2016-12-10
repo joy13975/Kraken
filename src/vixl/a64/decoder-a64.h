@@ -32,6 +32,8 @@
 #include "vixl/globals.h"
 #include "vixl/a64/instructions-a64.h"
 
+#include "types.h"
+
 
 // List macro containing all visitors needed by the decoder class.
 
@@ -113,158 +115,173 @@
   VISITOR_LIST_THAT_RETURN(V) \
   VISITOR_LIST_THAT_DONT_RETURN(V)
 
+namespace Kraken
+{
+
+#define GENERATE_AC_ENUM(ITEM) AC_##ITEM,
+#define GENERATE_AC_STRING(STRING) #STRING,
+typedef enum {
+    VISITOR_LIST(GENERATE_AC_ENUM)
+} ActionCode;
+
+static const char *ActionCodeString[] = {
+    VISITOR_LIST(GENERATE_AC_STRING)
+};
+
+} // namespace Kraken
+
 namespace vixl {
 
 // The Visitor interface. Disassembler and simulator (and other tools)
 // must provide implementations for all of these functions.
 class DecoderVisitor {
- public:
-  enum VisitorConstness { kConstVisitor, kNonConstVisitor };
-  explicit DecoderVisitor(VisitorConstness constness = kConstVisitor)
-      : constness_(constness) {}
+public:
+    enum VisitorConstness { kConstVisitor, kNonConstVisitor };
+    explicit DecoderVisitor(VisitorConstness constness = kConstVisitor)
+        : constness_(constness) {}
 
-  virtual ~DecoderVisitor() {}
+    virtual ~DecoderVisitor() {}
 
 #define DECLARE(A) virtual void Visit##A(const Instruction* instr) = 0;
-  VISITOR_LIST(DECLARE)
+    VISITOR_LIST(DECLARE)
 #undef DECLARE
 
-  bool IsConstVisitor() const { return constness_ == kConstVisitor; }
-  Instruction* MutableInstruction(const Instruction* instr) {
-    VIXL_ASSERT(!IsConstVisitor());
-    return const_cast<Instruction*>(instr);
-  }
+    bool IsConstVisitor() const { return constness_ == kConstVisitor; }
+    Instruction* MutableInstruction(const Instruction* instr) {
+        VIXL_ASSERT(!IsConstVisitor());
+        return const_cast<Instruction*>(instr);
+    }
 
- private:
-  const VisitorConstness constness_;
+private:
+    const VisitorConstness constness_;
 };
 
 
 class Decoder {
- public:
-  Decoder() {}
+public:
+    Decoder() {}
 
-  // Top-level wrappers around the actual decoding function.
-  void Decode(const Instruction* instr) {
-    std::list<DecoderVisitor*>::iterator it;
-    for (it = visitors_.begin(); it != visitors_.end(); it++) {
-      VIXL_ASSERT((*it)->IsConstVisitor());
+    // Top-level wrappers around the actual decoding function.
+    Kraken::ActionCode Decode(const Instruction* instr) {
+        std::list<DecoderVisitor*>::iterator it;
+        for (it = visitors_.begin(); it != visitors_.end(); it++) {
+            VIXL_ASSERT((*it)->IsConstVisitor());
+        }
+        return DecodeInstruction(instr);
     }
-    DecodeInstruction(instr);
-  }
-  void Decode(Instruction* instr) {
-    DecodeInstruction(const_cast<const Instruction*>(instr));
-  }
+    Kraken::ActionCode Decode(Instruction* instr) {
+        return DecodeInstruction(const_cast<const Instruction*>(instr));
+    }
 
-  // Register a new visitor class with the decoder.
-  // Decode() will call the corresponding visitor method from all registered
-  // visitor classes when decoding reaches the leaf node of the instruction
-  // decode tree.
-  // Visitors are called in order.
-  // A visitor can be registered multiple times.
-  //
-  //   d.AppendVisitor(V1);
-  //   d.AppendVisitor(V2);
-  //   d.PrependVisitor(V2);
-  //   d.AppendVisitor(V3);
-  //
-  //   d.Decode(i);
-  //
-  // will call in order visitor methods in V2, V1, V2, V3.
-  void AppendVisitor(DecoderVisitor* visitor);
-  void PrependVisitor(DecoderVisitor* visitor);
-  // These helpers register `new_visitor` before or after the first instance of
-  // `registered_visiter` in the list.
-  // So if
-  //   V1, V2, V1, V2
-  // are registered in this order in the decoder, calls to
-  //   d.InsertVisitorAfter(V3, V1);
-  //   d.InsertVisitorBefore(V4, V2);
-  // will yield the order
-  //   V1, V3, V4, V2, V1, V2
-  //
-  // For more complex modifications of the order of registered visitors, one can
-  // directly access and modify the list of visitors via the `visitors()'
-  // accessor.
-  void InsertVisitorBefore(DecoderVisitor* new_visitor,
-                           DecoderVisitor* registered_visitor);
-  void InsertVisitorAfter(DecoderVisitor* new_visitor,
-                          DecoderVisitor* registered_visitor);
+    // Register a new visitor class with the decoder.
+    // Decode() will call the corresponding visitor method from all registered
+    // visitor classes when decoding reaches the leaf node of the instruction
+    // decode tree.
+    // Visitors are called in order.
+    // A visitor can be registered multiple times.
+    //
+    //   d.AppendVisitor(V1);
+    //   d.AppendVisitor(V2);
+    //   d.PrependVisitor(V2);
+    //   d.AppendVisitor(V3);
+    //
+    //   d.Decode(i);
+    //
+    // will call in order visitor methods in V2, V1, V2, V3.
+    void AppendVisitor(DecoderVisitor* visitor);
+    void PrependVisitor(DecoderVisitor* visitor);
+    // These helpers register `new_visitor` before or after the first instance of
+    // `registered_visiter` in the list.
+    // So if
+    //   V1, V2, V1, V2
+    // are registered in this order in the decoder, calls to
+    //   d.InsertVisitorAfter(V3, V1);
+    //   d.InsertVisitorBefore(V4, V2);
+    // will yield the order
+    //   V1, V3, V4, V2, V1, V2
+    //
+    // For more complex modifications of the order of registered visitors, one can
+    // directly access and modify the list of visitors via the `visitors()'
+    // accessor.
+    void InsertVisitorBefore(DecoderVisitor* new_visitor,
+                             DecoderVisitor* registered_visitor);
+    void InsertVisitorAfter(DecoderVisitor* new_visitor,
+                            DecoderVisitor* registered_visitor);
 
-  // Remove all instances of a previously registered visitor class from the list
-  // of visitors stored by the decoder.
-  void RemoveVisitor(DecoderVisitor* visitor);
+    // Remove all instances of a previously registered visitor class from the list
+    // of visitors stored by the decoder.
+    void RemoveVisitor(DecoderVisitor* visitor);
 
-#define DECLARE(A) void Visit##A(const Instruction* instr);
-  VISITOR_LIST(DECLARE)
+#define DECLARE(A) Kraken::ActionCode Visit##A(const Instruction* instr);
+    VISITOR_LIST(DECLARE)
 #undef DECLARE
 
 
-  std::list<DecoderVisitor*>* visitors() { return &visitors_; }
+    std::list<DecoderVisitor*>* visitors() { return &visitors_; }
 
- private:
-  // Decodes an instruction and calls the visitor functions registered with the
-  // Decoder class.
-  void DecodeInstruction(const Instruction* instr);
+private:
+    // Decodes an instruction and calls the visitor functions registered with the
+    // Decoder class.
+    Kraken::ActionCode DecodeInstruction(const Instruction* instr);
 
-  // Decode the PC relative addressing instruction, and call the corresponding
-  // visitors.
-  // On entry, instruction bits 27:24 = 0x0.
-  void DecodePCRelAddressing(const Instruction* instr);
+    // Decode the PC relative addressing instruction, and call the corresponding
+    // visitors.
+    // On entry, instruction bits 27:24 = 0x0.
+    Kraken::ActionCode DecodePCRelAddressing(const Instruction* instr);
 
-  // Decode the add/subtract immediate instruction, and call the correspoding
-  // visitors.
-  // On entry, instruction bits 27:24 = 0x1.
-  void DecodeAddSubImmediate(const Instruction* instr);
+    // Decode the add/subtract immediate instruction, and call the correspoding
+    // visitors.
+    // On entry, instruction bits 27:24 = 0x1.
+    Kraken::ActionCode DecodeAddSubImmediate(const Instruction* instr);
 
-  // Decode the branch, system command, and exception generation parts of
-  // the instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 27:24 = {0x4, 0x5, 0x6, 0x7}.
-  void DecodeBranchSystemException(const Instruction* instr);
+    // Decode the branch, system command, and exception generation parts of
+    // the instruction tree, and call the corresponding visitors.
+    // On entry, instruction bits 27:24 = {0x4, 0x5, 0x6, 0x7}.
+    Kraken::ActionCode DecodeBranchSystemException(const Instruction* instr);
 
-  // Decode the load and store parts of the instruction tree, and call
-  // the corresponding visitors.
-  // On entry, instruction bits 27:24 = {0x8, 0x9, 0xC, 0xD}.
-  void DecodeLoadStore(const Instruction* instr);
+    // Decode the load and store parts of the instruction tree, and call
+    // the corresponding visitors.
+    // On entry, instruction bits 27:24 = {0x8, 0x9, 0xC, 0xD}.
+    Kraken::ActionCode DecodeLoadStore(const Instruction* instr);
 
-  // Decode the logical immediate and move wide immediate parts of the
-  // instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 27:24 = 0x2.
-  void DecodeLogical(const Instruction* instr);
+    // Decode the logical immediate and move wide immediate parts of the
+    // instruction tree, and call the corresponding visitors.
+    // On entry, instruction bits 27:24 = 0x2.
+    Kraken::ActionCode DecodeLogical(const Instruction* instr);
 
-  // Decode the bitfield and extraction parts of the instruction tree,
-  // and call the corresponding visitors.
-  // On entry, instruction bits 27:24 = 0x3.
-  void DecodeBitfieldExtract(const Instruction* instr);
+    // Decode the bitfield and extraction parts of the instruction tree,
+    // and call the corresponding visitors.
+    // On entry, instruction bits 27:24 = 0x3.
+    Kraken::ActionCode DecodeBitfieldExtract(const Instruction* instr);
 
-  // Decode the data processing parts of the instruction tree, and call the
-  // corresponding visitors.
-  // On entry, instruction bits 27:24 = {0x1, 0xA, 0xB}.
-  void DecodeDataProcessing(const Instruction* instr);
+    // Decode the data processing parts of the instruction tree, and call the
+    // corresponding visitors.
+    // On entry, instruction bits 27:24 = {0x1, 0xA, 0xB}.
+    Kraken::ActionCode DecodeDataProcessing(const Instruction* instr);
 
-  // Decode the floating point parts of the instruction tree, and call the
-  // corresponding visitors.
-  // On entry, instruction bits 27:24 = {0xE, 0xF}.
-  void DecodeFP(const Instruction* instr);
+    // Decode the floating point parts of the instruction tree, and call the
+    // corresponding visitors.
+    // On entry, instruction bits 27:24 = {0xE, 0xF}.
+    Kraken::ActionCode DecodeFP(const Instruction* instr);
 
-  // Decode the Advanced SIMD (NEON) load/store part of the instruction tree,
-  // and call the corresponding visitors.
-  // On entry, instruction bits 29:25 = 0x6.
-  void DecodeNEONLoadStore(const Instruction* instr);
+    // Decode the Advanced SIMD (NEON) load/store part of the instruction tree,
+    // and call the corresponding visitors.
+    // On entry, instruction bits 29:25 = 0x6.
+    Kraken::ActionCode DecodeNEONLoadStore(const Instruction* instr);
 
-  // Decode the Advanced SIMD (NEON) vector data processing part of the
-  // instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 28:25 = 0x7.
-  void DecodeNEONVectorDataProcessing(const Instruction* instr);
+    // Decode the Advanced SIMD (NEON) vector data processing part of the
+    // instruction tree, and call the corresponding visitors.
+    // On entry, instruction bits 28:25 = 0x7.
+    Kraken::ActionCode DecodeNEONVectorDataProcessing(const Instruction* instr);
 
-  // Decode the Advanced SIMD (NEON) scalar data processing part of the
-  // instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 28:25 = 0xF.
-  void DecodeNEONScalarDataProcessing(const Instruction* instr);
+    // Decode the Advanced SIMD (NEON) scalar data processing part of the
+    // instruction tree, and call the corresponding visitors.
+    // On entry, instruction bits 28:25 = 0xF.
+    Kraken::ActionCode DecodeNEONScalarDataProcessing(const Instruction* instr);
 
- private:
-  // Visitors are registered in a list.
-  std::list<DecoderVisitor*> visitors_;
+private:
+    // Visitors are registered in a list.
+    std::list<DecoderVisitor*> visitors_;
 };
 
 }  // namespace vixl

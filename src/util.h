@@ -17,8 +17,7 @@ extern "C" {
     } TYPE_NAME; \
     static const char *TYPE_NAME ## _String[] = { \
         FOREACH_MACRO(GENERATE_STRING) \
-    }; \
-
+    };
 
 //enum-string example
 /*

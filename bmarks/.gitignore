@@ -1,9 +1,4 @@
 out*
 *.data
 *.text
-*.s
-*.ll
-*.ds
 *.o
-*.x86
-*.a64

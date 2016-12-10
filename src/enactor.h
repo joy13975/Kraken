@@ -6,12 +6,20 @@
 #include "enactor.h"
 #include "proc.h"
 
-namespace Enactor
+namespace Kraken
 {
 
-KrakenScripture enact(const KrakenAction &action,
-                      const KrakenState *const state);
+class Enactor
+{
+public:
+    Enactor();
+    virtual ~Enactor() {};
 
-} // namespace Enactor
+    Scripture enact(const Action &action,
+                    const State *const state);
+private:
+};
+
+} // namespace Kraken
 
 #endif /* include guard */

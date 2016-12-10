@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream>
 
 #include <stdint.h>
 #include <string.h>
@@ -12,78 +11,86 @@
 #include "enactor.h"
 #include "scribe.h"
 
-using namespace std;
+#include "vixl/a64/decoder-a64.h"
 
-KrakenProc::KrakenProc(const KrakenOptions &_options)
-    : options(_options)
+namespace Kraken
+{
+
+
+Proc::Proc(const Options &options)
+    : options_(options),
+      progInfo_(ProgramInfo(std::ifstream(options_.inputFile, std::ios::binary)))
 {
 }
 
-void KrakenProc::startSimulation()
+void Proc::startSimulation()
 {
     // intialise processor state
-    ifstream binStream(options.inputFile, ios::binary);
-    state = new KrakenState(binStream);
-    binStream.close();
-
+    state_ = new State(progInfo_);
     resetStateRegs();
 
     // wrn("Ignoring main entry to test instruction decoding\n");
-    // state->pc = (Word*) addPointers(state->memory, state->progInfo.textStart);
-    msg("Entering binary at %p (real: %p)\n",
-        subPointers(state->pc, state->memory), state->pc);
+    // state_->pc_ = (Word*) addPointers(state_->baseAddr_, progInfo_.textStart_);
+    msg("Main is at %p (global: %p)\n",
+        state_->getPcOffset(), state_->pc_);
 
     run();
 
     msg("Program has exited\n");
-    wrn("Todo: stats and reg status (ret code?)\n");
+    wrn("TODO: stats and reg status (ret code?)\n");
 }
 
 // Private functions
 
-void KrakenProc::resetStateRegs()
+void Proc::resetStateRegs()
 {
-    state->pc = state->progInfo.entry;
+    // do not use progInfo_.binary_, it does not represent
+    // the memory space
+    state_->pc_ = state_->memAt<Word>(progInfo_.entry_);
 }
 
-bool KrakenProc::isPCSensible()
+void Proc::run()
 {
-    // add 2 to compensate the starting odd address
-    const Word* pcOffset = (Word*) state->getPcOffset();
-    const bool sensible = pcOffset <= state->progInfo.textEnd &&
-                          pcOffset >= state->progInfo.textStart;
+    Word *const absStart = state_->memAt<Word>(progInfo_.textStart_);
+    Word *const absEnd = state_->memAt<Word>(progInfo_.textEnd_);
+    state_->pc_ = absStart;
 
-    if (!sensible)
-        wrn("PC became weird: %p (%p ~ %p)\n",
-            pcOffset, state->progInfo.textStart, state->progInfo.textEnd);
-    return sensible;
-}
+    //initialise components
+    vixl::Decoder vixlDecoder;
+    Fetcher fetcher(state_->pc_);
 
-void KrakenProc::run()
-{
-    while (isPCSensible())
+    msg("Absolute .text addresses: %p to %p\n",
+        absStart, absEnd);
+    while (state_->pc_ < absEnd)
     {
+        bool shouldBreak = options_.interactive;
+        const ptrdiff_t pcOffset = state_->getPcOffset();
+
         // check whether to break
-        for (uintptr_t bAddr : options.bpoints)
-            if (bAddr == state->getPcOffset())
-            { breakpoint(bAddr); break; }
+        for (uintptr_t bAddr : options_.bpoints)
+            if (shouldBreak |= (bAddr == pcOffset))
+                break;
 
-        const KrakenInstr instr = Fetcher::fetch(state);
-        KrakenAction action     = Decoder::decode(instr);
-        KrakenScripture script  = Enactor::enact(action, state);
-        Scribe::write(script, state);
+        if (shouldBreak)
+            breakpoint(pcOffset);
 
-        if (options.interactive)
-            getchar();
+        const vixl::Instruction *instr = fetcher.fetch();
+        ActionCode ac = vixlDecoder.Decode(instr);
+        msg("Got: %s\n", ActionCodeString[ac]);
+        // Scripture script  = Enactor::enact(action, state);
+        // Scribe::write(script, state);
+
     }
 }
 
-void KrakenProc::breakpoint(const uintptr_t addr)
+void Proc::breakpoint(const ptrdiff_t pcOffset)
 {
-    msg("Breakpoint: %p\n", addr);
+    msg("Breakpoint: %p\n", pcOffset);
 
     // print reg vals
     wrn("TODO: brekapoint()\n");
 
     getchar();
 }
+
+} // namespace Kraken

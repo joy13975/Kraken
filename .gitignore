@@ -2,3 +2,5 @@ sim
 *.o
 *.dSym
 .DS_Store
+kraken
+.obj
