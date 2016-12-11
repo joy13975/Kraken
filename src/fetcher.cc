@@ -5,18 +5,19 @@
 namespace Kraken
 {
 
-Fetcher::Fetcher(const Word *& pc)
-    : pc_(pc)
+Fetcher::Fetcher(State * state)
+    : state_(state)
 {
 }
 
 const vixl::Instruction * Fetcher::fetch()
 {
-    dbg("Fetching at pc: %p\n", pc_);
+    dbg("Fetching at pc: %p (global: %p)\n",
+        state_->getPcOffset(), state_->pc_);
 
     const vixl::Instruction * instr =
-        reinterpret_cast<const vixl::Instruction*>(pc_);
-    pc_++;
+        reinterpret_cast<const vixl::Instruction*>(state_->pc_);
+    state_->pc_++;
 
     return instr;
 }

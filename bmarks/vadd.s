@@ -20,10 +20,10 @@ main:                                   // @main
 .LBB0_2:                                // %for.body
                                         //   in Loop: Header=BB0_1 Depth=1
 	add	x8, sp, #12             // =12
-	adrp	x9, :got:nums1k2
-	ldr	x9, [x9, :got_lo12:nums1k2]
-	adrp	x10, :got:nums1k1
-	ldr	x10, [x10, :got_lo12:nums1k1]
+	adrp	x9, nums1k2
+	add	x9, x9, :lo12:nums1k2
+	adrp	x10, nums1k1
+	add	x10, x10, :lo12:nums1k1
 	ldr	w11, [sp, #8]
 	mov	 w12, w11
 	sxtw	x12, w12

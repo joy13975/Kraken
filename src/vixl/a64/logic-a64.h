@@ -24,17 +24,15 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef VIXL_A64_SIMULATOR_A64_H_
-#define VIXL_A64_SIMULATOR_A64_H_
-
 #include "vixl/globals.h"
 #include "vixl/utils.h"
 #include "vixl/a64/instructions-a64.h"
-#include "vixl/a64/assembler-a64.h"
-#include "vixl/a64/disasm-a64.h"
+#include "vixl/a64/logic-constants-a64.h"
 #include "vixl/a64/instrument-a64.h"
-#include "vixl/a64/simulator-constants-a64.h"
+#include "vixl/a64/disasm-a64.h"
+#include "vixl/a64/assembler-a64.h"
 
+#include "visits.h"
 #include "util.h"
 
 namespace vixl {
@@ -731,16 +729,16 @@ private:
 };
 
 
-class Simulator : public DecoderVisitor {
+class Logic {
 public:
-    explicit Simulator(Decoder* decoder, FILE* stream = stdout);
-    ~Simulator();
+    explicit Logic(FILE* stream = stdout);
+    ~Logic();
 
     void ResetState();
 
     // Run the simulator.
-    virtual void Run();
-    void RunFrom(const Instruction* first);
+    virtual void Execute(const Kraken::ActionCode & ac,
+                         const Instruction * instr);
 
     // Execution ends when the PC hits this address.
     static const Instruction* kEndOfSimAddress;
@@ -752,20 +750,14 @@ public:
         pc_modified_ = true;
     }
 
+    const Instruction* get_pc() {
+        return pc_;
+    }
+
     void increment_pc() {
         if (!pc_modified_) {
             pc_ = pc_->NextInstruction();
         }
-    }
-
-    void ExecuteInstruction() {
-        // The program counter should always be aligned.
-        VIXL_ASSERT(IsWordAligned(pc_));
-        pc_modified_ = false;
-        dbg("pc_: %p (%8x)\n", pc_, *pc_);
-        decoder_->Decode(pc_);
-        increment_pc();
-        LogAllWrittenRegisters();
     }
 
 // Declare all Visitor functions.
@@ -1532,7 +1524,7 @@ protected:
                         const LogicVRegister& src1,
                         const LogicVRegister& src2);
 
-    typedef LogicVRegister (Simulator::*ByElementOp)(VectorFormat vform,
+    typedef LogicVRegister (Logic::*ByElementOp)(VectorFormat vform,
             LogicVRegister dst,
             const LogicVRegister& src1,
             const LogicVRegister& src2,
@@ -2425,7 +2417,7 @@ protected:
                           LogicVRegister dst,
                           const LogicVRegister& src);
 
-    typedef float (Simulator::*FPMinMaxOp)(float a, float b);
+    typedef float (Logic::*FPMinMaxOp)(float a, float b);
 
     LogicVRegister fminmaxv(VectorFormat vform,
                             LogicVRegister dst,
@@ -2582,8 +2574,8 @@ protected:
     // Stack
     byte* stack_;
     static const int stack_protection_size_ = 256;
-    // 2 KB stack.
-    static const int stack_size_ = 2 * 1024 + 2 * stack_protection_size_;
+    // 8 KB stack.
+    static const int stack_size_ = 8 * 1024 + 2 * stack_protection_size_;
     byte* stack_limit_;
 
     Decoder* decoder_;
@@ -2664,5 +2656,3 @@ private:
     void PrintExclusiveAccessWarning();
 };
 }  // namespace vixl
-
-#endif  // VIXL_A64_SIMULATOR_A64_H_

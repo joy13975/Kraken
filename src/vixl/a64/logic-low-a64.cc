@@ -24,21 +24,19 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifdef VIXL_INCLUDE_SIMULATOR
-
 #include <cmath>
-#include "vixl/a64/simulator-a64.h"
+#include "vixl/a64/logic-a64.h"
 
 namespace vixl {
 
 template <>
-double Simulator::FPDefaultNaN<double>() {
+double Logic::FPDefaultNaN<double>() {
   return kFP64DefaultNaN;
 }
 
 
 template <>
-float Simulator::FPDefaultNaN<float>() {
+float Logic::FPDefaultNaN<float>() {
   return kFP32DefaultNaN;
 }
 
@@ -81,7 +79,7 @@ static inline float16 FPRoundToFloat16(int64_t sign,
 }
 
 
-double Simulator::FixedToDouble(int64_t src, int fbits, FPRounding round) {
+double Logic::FixedToDouble(int64_t src, int fbits, FPRounding round) {
   if (src >= 0) {
     return UFixedToDouble(src, fbits, round);
   } else {
@@ -91,7 +89,7 @@ double Simulator::FixedToDouble(int64_t src, int fbits, FPRounding round) {
 }
 
 
-double Simulator::UFixedToDouble(uint64_t src, int fbits, FPRounding round) {
+double Logic::UFixedToDouble(uint64_t src, int fbits, FPRounding round) {
   // An input of 0 is a special case because the result is effectively
   // subnormal: The exponent is encoded as 0 and there is no implicit 1 bit.
   if (src == 0) {
@@ -107,7 +105,7 @@ double Simulator::UFixedToDouble(uint64_t src, int fbits, FPRounding round) {
 }
 
 
-float Simulator::FixedToFloat(int64_t src, int fbits, FPRounding round) {
+float Logic::FixedToFloat(int64_t src, int fbits, FPRounding round) {
   if (src >= 0) {
     return UFixedToFloat(src, fbits, round);
   } else {
@@ -117,7 +115,7 @@ float Simulator::FixedToFloat(int64_t src, int fbits, FPRounding round) {
 }
 
 
-float Simulator::UFixedToFloat(uint64_t src, int fbits, FPRounding round) {
+float Logic::UFixedToFloat(uint64_t src, int fbits, FPRounding round) {
   // An input of 0 is a special case because the result is effectively
   // subnormal: The exponent is encoded as 0 and there is no implicit 1 bit.
   if (src == 0) {
@@ -133,7 +131,7 @@ float Simulator::UFixedToFloat(uint64_t src, int fbits, FPRounding round) {
 }
 
 
-double Simulator::FPToDouble(float value) {
+double Logic::FPToDouble(float value) {
   switch (std::fpclassify(value)) {
     case FP_NAN: {
       if (IsSignallingNaN(value)) {
@@ -173,7 +171,7 @@ double Simulator::FPToDouble(float value) {
 }
 
 
-float Simulator::FPToFloat(float16 value) {
+float Logic::FPToFloat(float16 value) {
   uint32_t sign = value >> 15;
   uint32_t exponent =
       unsigned_bitextract_32(kFloat16MantissaBits + kFloat16ExponentBits - 1,
@@ -237,7 +235,7 @@ float Simulator::FPToFloat(float16 value) {
 }
 
 
-float16 Simulator::FPToFloat16(float value, FPRounding round_mode) {
+float16 Logic::FPToFloat16(float value, FPRounding round_mode) {
   // Only the FPTieEven rounding mode is implemented.
   VIXL_ASSERT(round_mode == FPTieEven);
   USE(round_mode);
@@ -287,7 +285,7 @@ float16 Simulator::FPToFloat16(float value, FPRounding round_mode) {
 }
 
 
-float16 Simulator::FPToFloat16(double value, FPRounding round_mode) {
+float16 Logic::FPToFloat16(double value, FPRounding round_mode) {
   // Only the FPTieEven rounding mode is implemented.
   VIXL_ASSERT(round_mode == FPTieEven);
   USE(round_mode);
@@ -337,7 +335,7 @@ float16 Simulator::FPToFloat16(double value, FPRounding round_mode) {
 }
 
 
-float Simulator::FPToFloat(double value, FPRounding round_mode) {
+float Logic::FPToFloat(double value, FPRounding round_mode) {
   // Only the FPTieEven rounding mode is implemented.
   VIXL_ASSERT((round_mode == FPTieEven) || (round_mode == FPRoundOdd));
   USE(round_mode);
@@ -395,7 +393,7 @@ float Simulator::FPToFloat(double value, FPRounding round_mode) {
 }
 
 
-void Simulator::ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
+void Logic::ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     dst.ReadUintFromMem(vform, i, addr);
@@ -404,7 +402,7 @@ void Simulator::ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
 }
 
 
-void Simulator::ld1(VectorFormat vform,
+void Logic::ld1(VectorFormat vform,
                     LogicVRegister dst,
                     int index,
                     uint64_t addr) {
@@ -412,7 +410,7 @@ void Simulator::ld1(VectorFormat vform,
 }
 
 
-void Simulator::ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
+void Logic::ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     dst.ReadUintFromMem(vform, i, addr);
@@ -420,7 +418,7 @@ void Simulator::ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
 }
 
 
-void Simulator::ld2(VectorFormat vform,
+void Logic::ld2(VectorFormat vform,
                     LogicVRegister dst1,
                     LogicVRegister dst2,
                     uint64_t addr1) {
@@ -437,7 +435,7 @@ void Simulator::ld2(VectorFormat vform,
 }
 
 
-void Simulator::ld2(VectorFormat vform,
+void Logic::ld2(VectorFormat vform,
                     LogicVRegister dst1,
                     LogicVRegister dst2,
                     int index,
@@ -450,7 +448,7 @@ void Simulator::ld2(VectorFormat vform,
 }
 
 
-void Simulator::ld2r(VectorFormat vform,
+void Logic::ld2r(VectorFormat vform,
                      LogicVRegister dst1,
                      LogicVRegister dst2,
                      uint64_t addr) {
@@ -464,7 +462,7 @@ void Simulator::ld2r(VectorFormat vform,
 }
 
 
-void Simulator::ld3(VectorFormat vform,
+void Logic::ld3(VectorFormat vform,
                     LogicVRegister dst1,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -486,7 +484,7 @@ void Simulator::ld3(VectorFormat vform,
 }
 
 
-void Simulator::ld3(VectorFormat vform,
+void Logic::ld3(VectorFormat vform,
                     LogicVRegister dst1,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -503,7 +501,7 @@ void Simulator::ld3(VectorFormat vform,
 }
 
 
-void Simulator::ld3r(VectorFormat vform,
+void Logic::ld3r(VectorFormat vform,
                      LogicVRegister dst1,
                      LogicVRegister dst2,
                      LogicVRegister dst3,
@@ -521,7 +519,7 @@ void Simulator::ld3r(VectorFormat vform,
 }
 
 
-void Simulator::ld4(VectorFormat vform,
+void Logic::ld4(VectorFormat vform,
                     LogicVRegister dst1,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -548,7 +546,7 @@ void Simulator::ld4(VectorFormat vform,
 }
 
 
-void Simulator::ld4(VectorFormat vform,
+void Logic::ld4(VectorFormat vform,
                     LogicVRegister dst1,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -569,7 +567,7 @@ void Simulator::ld4(VectorFormat vform,
 }
 
 
-void Simulator::ld4r(VectorFormat vform,
+void Logic::ld4r(VectorFormat vform,
                      LogicVRegister dst1,
                      LogicVRegister dst2,
                      LogicVRegister dst3,
@@ -591,7 +589,7 @@ void Simulator::ld4r(VectorFormat vform,
 }
 
 
-void Simulator::st1(VectorFormat vform, LogicVRegister src, uint64_t addr) {
+void Logic::st1(VectorFormat vform, LogicVRegister src, uint64_t addr) {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     src.WriteUintToMem(vform, i, addr);
     addr += LaneSizeInBytesFromFormat(vform);
@@ -599,7 +597,7 @@ void Simulator::st1(VectorFormat vform, LogicVRegister src, uint64_t addr) {
 }
 
 
-void Simulator::st1(VectorFormat vform,
+void Logic::st1(VectorFormat vform,
                     LogicVRegister src,
                     int index,
                     uint64_t addr) {
@@ -607,7 +605,7 @@ void Simulator::st1(VectorFormat vform,
 }
 
 
-void Simulator::st2(VectorFormat vform,
+void Logic::st2(VectorFormat vform,
                     LogicVRegister dst,
                     LogicVRegister dst2,
                     uint64_t addr) {
@@ -622,7 +620,7 @@ void Simulator::st2(VectorFormat vform,
 }
 
 
-void Simulator::st2(VectorFormat vform,
+void Logic::st2(VectorFormat vform,
                     LogicVRegister dst,
                     LogicVRegister dst2,
                     int index,
@@ -633,7 +631,7 @@ void Simulator::st2(VectorFormat vform,
 }
 
 
-void Simulator::st3(VectorFormat vform,
+void Logic::st3(VectorFormat vform,
                     LogicVRegister dst,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -652,7 +650,7 @@ void Simulator::st3(VectorFormat vform,
 }
 
 
-void Simulator::st3(VectorFormat vform,
+void Logic::st3(VectorFormat vform,
                     LogicVRegister dst,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -665,7 +663,7 @@ void Simulator::st3(VectorFormat vform,
 }
 
 
-void Simulator::st4(VectorFormat vform,
+void Logic::st4(VectorFormat vform,
                     LogicVRegister dst,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -688,7 +686,7 @@ void Simulator::st4(VectorFormat vform,
 }
 
 
-void Simulator::st4(VectorFormat vform,
+void Logic::st4(VectorFormat vform,
                     LogicVRegister dst,
                     LogicVRegister dst2,
                     LogicVRegister dst3,
@@ -703,7 +701,7 @@ void Simulator::st4(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::cmp(VectorFormat vform,
+LogicVRegister Logic::cmp(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
@@ -747,7 +745,7 @@ LogicVRegister Simulator::cmp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::cmp(VectorFormat vform,
+LogicVRegister Logic::cmp(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               int imm,
@@ -758,7 +756,7 @@ LogicVRegister Simulator::cmp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::cmptst(VectorFormat vform,
+LogicVRegister Logic::cmptst(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -772,7 +770,7 @@ LogicVRegister Simulator::cmptst(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::add(VectorFormat vform,
+LogicVRegister Logic::add(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -803,7 +801,7 @@ LogicVRegister Simulator::add(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::addp(VectorFormat vform,
+LogicVRegister Logic::addp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -815,7 +813,7 @@ LogicVRegister Simulator::addp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mla(VectorFormat vform,
+LogicVRegister Logic::mla(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -826,7 +824,7 @@ LogicVRegister Simulator::mla(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mls(VectorFormat vform,
+LogicVRegister Logic::mls(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -837,7 +835,7 @@ LogicVRegister Simulator::mls(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mul(VectorFormat vform,
+LogicVRegister Logic::mul(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -849,7 +847,7 @@ LogicVRegister Simulator::mul(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mul(VectorFormat vform,
+LogicVRegister Logic::mul(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
@@ -860,7 +858,7 @@ LogicVRegister Simulator::mul(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mla(VectorFormat vform,
+LogicVRegister Logic::mla(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
@@ -871,7 +869,7 @@ LogicVRegister Simulator::mla(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mls(VectorFormat vform,
+LogicVRegister Logic::mls(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
@@ -882,7 +880,7 @@ LogicVRegister Simulator::mls(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smull(VectorFormat vform,
+LogicVRegister Logic::smull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -894,7 +892,7 @@ LogicVRegister Simulator::smull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smull2(VectorFormat vform,
+LogicVRegister Logic::smull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
@@ -906,7 +904,7 @@ LogicVRegister Simulator::smull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umull(VectorFormat vform,
+LogicVRegister Logic::umull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -918,7 +916,7 @@ LogicVRegister Simulator::umull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umull2(VectorFormat vform,
+LogicVRegister Logic::umull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
@@ -930,7 +928,7 @@ LogicVRegister Simulator::umull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlal(VectorFormat vform,
+LogicVRegister Logic::smlal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -942,7 +940,7 @@ LogicVRegister Simulator::smlal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlal2(VectorFormat vform,
+LogicVRegister Logic::smlal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
@@ -954,7 +952,7 @@ LogicVRegister Simulator::smlal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlal(VectorFormat vform,
+LogicVRegister Logic::umlal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -966,7 +964,7 @@ LogicVRegister Simulator::umlal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlal2(VectorFormat vform,
+LogicVRegister Logic::umlal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
@@ -978,7 +976,7 @@ LogicVRegister Simulator::umlal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlsl(VectorFormat vform,
+LogicVRegister Logic::smlsl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -990,7 +988,7 @@ LogicVRegister Simulator::smlsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlsl2(VectorFormat vform,
+LogicVRegister Logic::smlsl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
@@ -1002,7 +1000,7 @@ LogicVRegister Simulator::smlsl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlsl(VectorFormat vform,
+LogicVRegister Logic::umlsl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -1014,7 +1012,7 @@ LogicVRegister Simulator::umlsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlsl2(VectorFormat vform,
+LogicVRegister Logic::umlsl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
@@ -1026,7 +1024,7 @@ LogicVRegister Simulator::umlsl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmull(VectorFormat vform,
+LogicVRegister Logic::sqdmull(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -1038,7 +1036,7 @@ LogicVRegister Simulator::sqdmull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmull2(VectorFormat vform,
+LogicVRegister Logic::sqdmull2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
@@ -1050,7 +1048,7 @@ LogicVRegister Simulator::sqdmull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlal(VectorFormat vform,
+LogicVRegister Logic::sqdmlal(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -1062,7 +1060,7 @@ LogicVRegister Simulator::sqdmlal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlal2(VectorFormat vform,
+LogicVRegister Logic::sqdmlal2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
@@ -1074,7 +1072,7 @@ LogicVRegister Simulator::sqdmlal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
+LogicVRegister Logic::sqdmlsl(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -1086,7 +1084,7 @@ LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlsl2(VectorFormat vform,
+LogicVRegister Logic::sqdmlsl2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
@@ -1098,7 +1096,7 @@ LogicVRegister Simulator::sqdmlsl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmulh(VectorFormat vform,
+LogicVRegister Logic::sqdmulh(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -1109,7 +1107,7 @@ LogicVRegister Simulator::sqdmulh(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
+LogicVRegister Logic::sqrdmulh(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
@@ -1120,7 +1118,7 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
 }
 
 
-uint16_t Simulator::PolynomialMult(uint8_t op1, uint8_t op2) {
+uint16_t Logic::PolynomialMult(uint8_t op1, uint8_t op2) {
   uint16_t result = 0;
   uint16_t extended_op2 = op2;
   for (int i = 0; i < 8; ++i) {
@@ -1132,7 +1130,7 @@ uint16_t Simulator::PolynomialMult(uint8_t op1, uint8_t op2) {
 }
 
 
-LogicVRegister Simulator::pmul(VectorFormat vform,
+LogicVRegister Logic::pmul(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1146,7 +1144,7 @@ LogicVRegister Simulator::pmul(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::pmull(VectorFormat vform,
+LogicVRegister Logic::pmull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -1162,7 +1160,7 @@ LogicVRegister Simulator::pmull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::pmull2(VectorFormat vform,
+LogicVRegister Logic::pmull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -1179,7 +1177,7 @@ LogicVRegister Simulator::pmull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sub(VectorFormat vform,
+LogicVRegister Logic::sub(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1206,7 +1204,7 @@ LogicVRegister Simulator::sub(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::and_(VectorFormat vform,
+LogicVRegister Logic::and_(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1218,7 +1216,7 @@ LogicVRegister Simulator::and_(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::orr(VectorFormat vform,
+LogicVRegister Logic::orr(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1230,7 +1228,7 @@ LogicVRegister Simulator::orr(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::orn(VectorFormat vform,
+LogicVRegister Logic::orn(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1242,7 +1240,7 @@ LogicVRegister Simulator::orn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::eor(VectorFormat vform,
+LogicVRegister Logic::eor(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1254,7 +1252,7 @@ LogicVRegister Simulator::eor(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::bic(VectorFormat vform,
+LogicVRegister Logic::bic(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1266,7 +1264,7 @@ LogicVRegister Simulator::bic(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::bic(VectorFormat vform,
+LogicVRegister Logic::bic(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               uint64_t imm) {
@@ -1283,7 +1281,7 @@ LogicVRegister Simulator::bic(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::bif(VectorFormat vform,
+LogicVRegister Logic::bif(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1299,7 +1297,7 @@ LogicVRegister Simulator::bif(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::bit(VectorFormat vform,
+LogicVRegister Logic::bit(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1315,7 +1313,7 @@ LogicVRegister Simulator::bit(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::bsl(VectorFormat vform,
+LogicVRegister Logic::bsl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
@@ -1331,7 +1329,7 @@ LogicVRegister Simulator::bsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sminmax(VectorFormat vform,
+LogicVRegister Logic::sminmax(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -1352,7 +1350,7 @@ LogicVRegister Simulator::sminmax(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smax(VectorFormat vform,
+LogicVRegister Logic::smax(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1360,7 +1358,7 @@ LogicVRegister Simulator::smax(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smin(VectorFormat vform,
+LogicVRegister Logic::smin(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1368,7 +1366,7 @@ LogicVRegister Simulator::smin(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sminmaxp(VectorFormat vform,
+LogicVRegister Logic::sminmaxp(VectorFormat vform,
                                    LogicVRegister dst,
                                    int dst_index,
                                    const LogicVRegister& src,
@@ -1388,7 +1386,7 @@ LogicVRegister Simulator::sminmaxp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smaxp(VectorFormat vform,
+LogicVRegister Logic::smaxp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -1399,7 +1397,7 @@ LogicVRegister Simulator::smaxp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sminp(VectorFormat vform,
+LogicVRegister Logic::sminp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -1410,7 +1408,7 @@ LogicVRegister Simulator::sminp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::addp(VectorFormat vform,
+LogicVRegister Logic::addp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   VIXL_ASSERT(vform == kFormatD);
@@ -1422,7 +1420,7 @@ LogicVRegister Simulator::addp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::addv(VectorFormat vform,
+LogicVRegister Logic::addv(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   VectorFormat vform_dst =
@@ -1440,7 +1438,7 @@ LogicVRegister Simulator::addv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saddlv(VectorFormat vform,
+LogicVRegister Logic::saddlv(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   VectorFormat vform_dst =
@@ -1457,7 +1455,7 @@ LogicVRegister Simulator::saddlv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uaddlv(VectorFormat vform,
+LogicVRegister Logic::uaddlv(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   VectorFormat vform_dst =
@@ -1474,7 +1472,7 @@ LogicVRegister Simulator::uaddlv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sminmaxv(VectorFormat vform,
+LogicVRegister Logic::sminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    bool max) {
@@ -1494,7 +1492,7 @@ LogicVRegister Simulator::sminmaxv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smaxv(VectorFormat vform,
+LogicVRegister Logic::smaxv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   sminmaxv(vform, dst, src, true);
@@ -1502,7 +1500,7 @@ LogicVRegister Simulator::smaxv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sminv(VectorFormat vform,
+LogicVRegister Logic::sminv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   sminmaxv(vform, dst, src, false);
@@ -1510,7 +1508,7 @@ LogicVRegister Simulator::sminv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uminmax(VectorFormat vform,
+LogicVRegister Logic::uminmax(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -1531,7 +1529,7 @@ LogicVRegister Simulator::uminmax(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umax(VectorFormat vform,
+LogicVRegister Logic::umax(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1539,7 +1537,7 @@ LogicVRegister Simulator::umax(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umin(VectorFormat vform,
+LogicVRegister Logic::umin(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1547,7 +1545,7 @@ LogicVRegister Simulator::umin(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uminmaxp(VectorFormat vform,
+LogicVRegister Logic::uminmaxp(VectorFormat vform,
                                    LogicVRegister dst,
                                    int dst_index,
                                    const LogicVRegister& src,
@@ -1567,7 +1565,7 @@ LogicVRegister Simulator::uminmaxp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umaxp(VectorFormat vform,
+LogicVRegister Logic::umaxp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -1578,7 +1576,7 @@ LogicVRegister Simulator::umaxp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uminp(VectorFormat vform,
+LogicVRegister Logic::uminp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -1589,7 +1587,7 @@ LogicVRegister Simulator::uminp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uminmaxv(VectorFormat vform,
+LogicVRegister Logic::uminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    bool max) {
@@ -1609,7 +1607,7 @@ LogicVRegister Simulator::uminmaxv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umaxv(VectorFormat vform,
+LogicVRegister Logic::umaxv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   uminmaxv(vform, dst, src, true);
@@ -1617,7 +1615,7 @@ LogicVRegister Simulator::umaxv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uminv(VectorFormat vform,
+LogicVRegister Logic::uminv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   uminmaxv(vform, dst, src, false);
@@ -1625,7 +1623,7 @@ LogicVRegister Simulator::uminv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::shl(VectorFormat vform,
+LogicVRegister Logic::shl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               int shift) {
@@ -1636,7 +1634,7 @@ LogicVRegister Simulator::shl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sshll(VectorFormat vform,
+LogicVRegister Logic::sshll(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -1648,7 +1646,7 @@ LogicVRegister Simulator::sshll(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sshll2(VectorFormat vform,
+LogicVRegister Logic::sshll2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int shift) {
@@ -1660,7 +1658,7 @@ LogicVRegister Simulator::sshll2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::shll(VectorFormat vform,
+LogicVRegister Logic::shll(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   int shift = LaneSizeInBitsFromFormat(vform) / 2;
@@ -1668,7 +1666,7 @@ LogicVRegister Simulator::shll(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::shll2(VectorFormat vform,
+LogicVRegister Logic::shll2(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   int shift = LaneSizeInBitsFromFormat(vform) / 2;
@@ -1676,7 +1674,7 @@ LogicVRegister Simulator::shll2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ushll(VectorFormat vform,
+LogicVRegister Logic::ushll(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -1688,7 +1686,7 @@ LogicVRegister Simulator::ushll(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ushll2(VectorFormat vform,
+LogicVRegister Logic::ushll2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int shift) {
@@ -1700,7 +1698,7 @@ LogicVRegister Simulator::ushll2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sli(VectorFormat vform,
+LogicVRegister Logic::sli(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               int shift) {
@@ -1717,7 +1715,7 @@ LogicVRegister Simulator::sli(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqshl(VectorFormat vform,
+LogicVRegister Logic::sqshl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -1728,7 +1726,7 @@ LogicVRegister Simulator::sqshl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uqshl(VectorFormat vform,
+LogicVRegister Logic::uqshl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -1739,7 +1737,7 @@ LogicVRegister Simulator::uqshl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqshlu(VectorFormat vform,
+LogicVRegister Logic::sqshlu(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int shift) {
@@ -1750,7 +1748,7 @@ LogicVRegister Simulator::sqshlu(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sri(VectorFormat vform,
+LogicVRegister Logic::sri(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               int shift) {
@@ -1776,7 +1774,7 @@ LogicVRegister Simulator::sri(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ushr(VectorFormat vform,
+LogicVRegister Logic::ushr(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src,
                                int shift) {
@@ -1787,7 +1785,7 @@ LogicVRegister Simulator::ushr(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sshr(VectorFormat vform,
+LogicVRegister Logic::sshr(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src,
                                int shift) {
@@ -1798,7 +1796,7 @@ LogicVRegister Simulator::sshr(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ssra(VectorFormat vform,
+LogicVRegister Logic::ssra(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src,
                                int shift) {
@@ -1808,7 +1806,7 @@ LogicVRegister Simulator::ssra(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::usra(VectorFormat vform,
+LogicVRegister Logic::usra(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src,
                                int shift) {
@@ -1818,7 +1816,7 @@ LogicVRegister Simulator::usra(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::srsra(VectorFormat vform,
+LogicVRegister Logic::srsra(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -1828,7 +1826,7 @@ LogicVRegister Simulator::srsra(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ursra(VectorFormat vform,
+LogicVRegister Logic::ursra(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -1838,7 +1836,7 @@ LogicVRegister Simulator::ursra(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::cls(VectorFormat vform,
+LogicVRegister Logic::cls(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
   uint64_t result[16];
@@ -1856,7 +1854,7 @@ LogicVRegister Simulator::cls(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::clz(VectorFormat vform,
+LogicVRegister Logic::clz(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
   uint64_t result[16];
@@ -1874,7 +1872,7 @@ LogicVRegister Simulator::clz(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::cnt(VectorFormat vform,
+LogicVRegister Logic::cnt(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
   uint64_t result[16];
@@ -1897,7 +1895,7 @@ LogicVRegister Simulator::cnt(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sshl(VectorFormat vform,
+LogicVRegister Logic::sshl(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1942,7 +1940,7 @@ LogicVRegister Simulator::sshl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ushl(VectorFormat vform,
+LogicVRegister Logic::ushl(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -1981,7 +1979,7 @@ LogicVRegister Simulator::ushl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::neg(VectorFormat vform,
+LogicVRegister Logic::neg(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -1997,7 +1995,7 @@ LogicVRegister Simulator::neg(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::suqadd(VectorFormat vform,
+LogicVRegister Logic::suqadd(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -2016,7 +2014,7 @@ LogicVRegister Simulator::suqadd(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::usqadd(VectorFormat vform,
+LogicVRegister Logic::usqadd(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -2037,7 +2035,7 @@ LogicVRegister Simulator::usqadd(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::abs(VectorFormat vform,
+LogicVRegister Logic::abs(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -2057,7 +2055,7 @@ LogicVRegister Simulator::abs(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
+LogicVRegister Logic::extractnarrow(VectorFormat dstform,
                                         LogicVRegister dst,
                                         bool dstIsSigned,
                                         const LogicVRegister& src,
@@ -2159,35 +2157,35 @@ LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
 }
 
 
-LogicVRegister Simulator::xtn(VectorFormat vform,
+LogicVRegister Logic::xtn(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
   return extractnarrow(vform, dst, true, src, true);
 }
 
 
-LogicVRegister Simulator::sqxtn(VectorFormat vform,
+LogicVRegister Logic::sqxtn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   return extractnarrow(vform, dst, true, src, true).SignedSaturate(vform);
 }
 
 
-LogicVRegister Simulator::sqxtun(VectorFormat vform,
+LogicVRegister Logic::sqxtun(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   return extractnarrow(vform, dst, false, src, true).UnsignedSaturate(vform);
 }
 
 
-LogicVRegister Simulator::uqxtn(VectorFormat vform,
+LogicVRegister Logic::uqxtn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   return extractnarrow(vform, dst, false, src, false).UnsignedSaturate(vform);
 }
 
 
-LogicVRegister Simulator::absdiff(VectorFormat vform,
+LogicVRegister Logic::absdiff(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -2208,7 +2206,7 @@ LogicVRegister Simulator::absdiff(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saba(VectorFormat vform,
+LogicVRegister Logic::saba(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -2220,7 +2218,7 @@ LogicVRegister Simulator::saba(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uaba(VectorFormat vform,
+LogicVRegister Logic::uaba(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -2232,7 +2230,7 @@ LogicVRegister Simulator::uaba(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::not_(VectorFormat vform,
+LogicVRegister Logic::not_(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -2243,7 +2241,7 @@ LogicVRegister Simulator::not_(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rbit(VectorFormat vform,
+LogicVRegister Logic::rbit(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   uint64_t result[16];
@@ -2269,7 +2267,7 @@ LogicVRegister Simulator::rbit(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rev(VectorFormat vform,
+LogicVRegister Logic::rev(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               int revSize) {
@@ -2290,28 +2288,28 @@ LogicVRegister Simulator::rev(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rev16(VectorFormat vform,
+LogicVRegister Logic::rev16(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   return rev(vform, dst, src, 2);
 }
 
 
-LogicVRegister Simulator::rev32(VectorFormat vform,
+LogicVRegister Logic::rev32(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   return rev(vform, dst, src, 4);
 }
 
 
-LogicVRegister Simulator::rev64(VectorFormat vform,
+LogicVRegister Logic::rev64(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   return rev(vform, dst, src, 8);
 }
 
 
-LogicVRegister Simulator::addlp(VectorFormat vform,
+LogicVRegister Logic::addlp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 bool is_signed,
@@ -2351,35 +2349,35 @@ LogicVRegister Simulator::addlp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saddlp(VectorFormat vform,
+LogicVRegister Logic::saddlp(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   return addlp(vform, dst, src, true, false);
 }
 
 
-LogicVRegister Simulator::uaddlp(VectorFormat vform,
+LogicVRegister Logic::uaddlp(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   return addlp(vform, dst, src, false, false);
 }
 
 
-LogicVRegister Simulator::sadalp(VectorFormat vform,
+LogicVRegister Logic::sadalp(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   return addlp(vform, dst, src, true, true);
 }
 
 
-LogicVRegister Simulator::uadalp(VectorFormat vform,
+LogicVRegister Logic::uadalp(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   return addlp(vform, dst, src, false, true);
 }
 
 
-LogicVRegister Simulator::ext(VectorFormat vform,
+LogicVRegister Logic::ext(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
@@ -2400,7 +2398,7 @@ LogicVRegister Simulator::ext(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::dup_element(VectorFormat vform,
+LogicVRegister Logic::dup_element(VectorFormat vform,
                                       LogicVRegister dst,
                                       const LogicVRegister& src,
                                       int src_index) {
@@ -2414,7 +2412,7 @@ LogicVRegister Simulator::dup_element(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::dup_immediate(VectorFormat vform,
+LogicVRegister Logic::dup_immediate(VectorFormat vform,
                                         LogicVRegister dst,
                                         uint64_t imm) {
   int laneCount = LaneCountFromFormat(vform);
@@ -2427,7 +2425,7 @@ LogicVRegister Simulator::dup_immediate(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ins_element(VectorFormat vform,
+LogicVRegister Logic::ins_element(VectorFormat vform,
                                       LogicVRegister dst,
                                       int dst_index,
                                       const LogicVRegister& src,
@@ -2437,7 +2435,7 @@ LogicVRegister Simulator::ins_element(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ins_immediate(VectorFormat vform,
+LogicVRegister Logic::ins_immediate(VectorFormat vform,
                                         LogicVRegister dst,
                                         int dst_index,
                                         uint64_t imm) {
@@ -2447,7 +2445,7 @@ LogicVRegister Simulator::ins_immediate(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::movi(VectorFormat vform,
+LogicVRegister Logic::movi(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm) {
   int laneCount = LaneCountFromFormat(vform);
@@ -2459,7 +2457,7 @@ LogicVRegister Simulator::movi(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::mvni(VectorFormat vform,
+LogicVRegister Logic::mvni(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm) {
   int laneCount = LaneCountFromFormat(vform);
@@ -2471,7 +2469,7 @@ LogicVRegister Simulator::mvni(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::orr(VectorFormat vform,
+LogicVRegister Logic::orr(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               uint64_t imm) {
@@ -2488,7 +2486,7 @@ LogicVRegister Simulator::orr(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uxtl(VectorFormat vform,
+LogicVRegister Logic::uxtl(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
@@ -2501,7 +2499,7 @@ LogicVRegister Simulator::uxtl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sxtl(VectorFormat vform,
+LogicVRegister Logic::sxtl(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
@@ -2514,7 +2512,7 @@ LogicVRegister Simulator::sxtl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uxtl2(VectorFormat vform,
+LogicVRegister Logic::uxtl2(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
@@ -2528,7 +2526,7 @@ LogicVRegister Simulator::uxtl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sxtl2(VectorFormat vform,
+LogicVRegister Logic::sxtl2(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
@@ -2542,7 +2540,7 @@ LogicVRegister Simulator::sxtl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::shrn(VectorFormat vform,
+LogicVRegister Logic::shrn(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src,
                                int shift) {
@@ -2554,7 +2552,7 @@ LogicVRegister Simulator::shrn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::shrn2(VectorFormat vform,
+LogicVRegister Logic::shrn2(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -2566,7 +2564,7 @@ LogicVRegister Simulator::shrn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rshrn(VectorFormat vform,
+LogicVRegister Logic::rshrn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int shift) {
@@ -2578,7 +2576,7 @@ LogicVRegister Simulator::rshrn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rshrn2(VectorFormat vform,
+LogicVRegister Logic::rshrn2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int shift) {
@@ -2590,7 +2588,7 @@ LogicVRegister Simulator::rshrn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbl(VectorFormat vform,
+LogicVRegister Logic::tbl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& ind) {
@@ -2599,7 +2597,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbl(VectorFormat vform,
+LogicVRegister Logic::tbl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
@@ -2609,7 +2607,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbl(VectorFormat vform,
+LogicVRegister Logic::tbl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
@@ -2620,7 +2618,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbl(VectorFormat vform,
+LogicVRegister Logic::tbl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
@@ -2632,7 +2630,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbx(VectorFormat vform,
+LogicVRegister Logic::tbx(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& ind) {
@@ -2649,7 +2647,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbx(VectorFormat vform,
+LogicVRegister Logic::tbx(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
@@ -2670,7 +2668,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbx(VectorFormat vform,
+LogicVRegister Logic::tbx(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
@@ -2695,7 +2693,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::tbx(VectorFormat vform,
+LogicVRegister Logic::tbx(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
@@ -2724,7 +2722,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uqshrn(VectorFormat vform,
+LogicVRegister Logic::uqshrn(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int shift) {
@@ -2732,7 +2730,7 @@ LogicVRegister Simulator::uqshrn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uqshrn2(VectorFormat vform,
+LogicVRegister Logic::uqshrn2(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src,
                                   int shift) {
@@ -2740,7 +2738,7 @@ LogicVRegister Simulator::uqshrn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uqrshrn(VectorFormat vform,
+LogicVRegister Logic::uqrshrn(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src,
                                   int shift) {
@@ -2748,7 +2746,7 @@ LogicVRegister Simulator::uqrshrn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uqrshrn2(VectorFormat vform,
+LogicVRegister Logic::uqrshrn2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    int shift) {
@@ -2756,7 +2754,7 @@ LogicVRegister Simulator::uqrshrn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqshrn(VectorFormat vform,
+LogicVRegister Logic::sqshrn(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int shift) {
@@ -2768,7 +2766,7 @@ LogicVRegister Simulator::sqshrn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqshrn2(VectorFormat vform,
+LogicVRegister Logic::sqshrn2(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src,
                                   int shift) {
@@ -2780,7 +2778,7 @@ LogicVRegister Simulator::sqshrn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqrshrn(VectorFormat vform,
+LogicVRegister Logic::sqrshrn(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src,
                                   int shift) {
@@ -2792,7 +2790,7 @@ LogicVRegister Simulator::sqrshrn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqrshrn2(VectorFormat vform,
+LogicVRegister Logic::sqrshrn2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    int shift) {
@@ -2804,7 +2802,7 @@ LogicVRegister Simulator::sqrshrn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqshrun(VectorFormat vform,
+LogicVRegister Logic::sqshrun(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src,
                                   int shift) {
@@ -2816,7 +2814,7 @@ LogicVRegister Simulator::sqshrun(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqshrun2(VectorFormat vform,
+LogicVRegister Logic::sqshrun2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    int shift) {
@@ -2828,7 +2826,7 @@ LogicVRegister Simulator::sqshrun2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqrshrun(VectorFormat vform,
+LogicVRegister Logic::sqrshrun(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    int shift) {
@@ -2840,7 +2838,7 @@ LogicVRegister Simulator::sqrshrun(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqrshrun2(VectorFormat vform,
+LogicVRegister Logic::sqrshrun2(VectorFormat vform,
                                     LogicVRegister dst,
                                     const LogicVRegister& src,
                                     int shift) {
@@ -2852,7 +2850,7 @@ LogicVRegister Simulator::sqrshrun2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uaddl(VectorFormat vform,
+LogicVRegister Logic::uaddl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -2864,7 +2862,7 @@ LogicVRegister Simulator::uaddl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uaddl2(VectorFormat vform,
+LogicVRegister Logic::uaddl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -2876,7 +2874,7 @@ LogicVRegister Simulator::uaddl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uaddw(VectorFormat vform,
+LogicVRegister Logic::uaddw(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -2887,7 +2885,7 @@ LogicVRegister Simulator::uaddw(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uaddw2(VectorFormat vform,
+LogicVRegister Logic::uaddw2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -2898,7 +2896,7 @@ LogicVRegister Simulator::uaddw2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saddl(VectorFormat vform,
+LogicVRegister Logic::saddl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -2910,7 +2908,7 @@ LogicVRegister Simulator::saddl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saddl2(VectorFormat vform,
+LogicVRegister Logic::saddl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -2922,7 +2920,7 @@ LogicVRegister Simulator::saddl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saddw(VectorFormat vform,
+LogicVRegister Logic::saddw(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -2933,7 +2931,7 @@ LogicVRegister Simulator::saddw(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::saddw2(VectorFormat vform,
+LogicVRegister Logic::saddw2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -2944,7 +2942,7 @@ LogicVRegister Simulator::saddw2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::usubl(VectorFormat vform,
+LogicVRegister Logic::usubl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -2956,7 +2954,7 @@ LogicVRegister Simulator::usubl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::usubl2(VectorFormat vform,
+LogicVRegister Logic::usubl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -2968,7 +2966,7 @@ LogicVRegister Simulator::usubl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::usubw(VectorFormat vform,
+LogicVRegister Logic::usubw(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -2979,7 +2977,7 @@ LogicVRegister Simulator::usubw(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::usubw2(VectorFormat vform,
+LogicVRegister Logic::usubw2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -2990,7 +2988,7 @@ LogicVRegister Simulator::usubw2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ssubl(VectorFormat vform,
+LogicVRegister Logic::ssubl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3002,7 +3000,7 @@ LogicVRegister Simulator::ssubl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ssubl2(VectorFormat vform,
+LogicVRegister Logic::ssubl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3014,7 +3012,7 @@ LogicVRegister Simulator::ssubl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ssubw(VectorFormat vform,
+LogicVRegister Logic::ssubw(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3025,7 +3023,7 @@ LogicVRegister Simulator::ssubw(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ssubw2(VectorFormat vform,
+LogicVRegister Logic::ssubw2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3036,7 +3034,7 @@ LogicVRegister Simulator::ssubw2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uabal(VectorFormat vform,
+LogicVRegister Logic::uabal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3048,7 +3046,7 @@ LogicVRegister Simulator::uabal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uabal2(VectorFormat vform,
+LogicVRegister Logic::uabal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3060,7 +3058,7 @@ LogicVRegister Simulator::uabal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sabal(VectorFormat vform,
+LogicVRegister Logic::sabal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3072,7 +3070,7 @@ LogicVRegister Simulator::sabal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sabal2(VectorFormat vform,
+LogicVRegister Logic::sabal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3084,7 +3082,7 @@ LogicVRegister Simulator::sabal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uabdl(VectorFormat vform,
+LogicVRegister Logic::uabdl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3096,7 +3094,7 @@ LogicVRegister Simulator::uabdl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uabdl2(VectorFormat vform,
+LogicVRegister Logic::uabdl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3108,7 +3106,7 @@ LogicVRegister Simulator::uabdl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sabdl(VectorFormat vform,
+LogicVRegister Logic::sabdl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3120,7 +3118,7 @@ LogicVRegister Simulator::sabdl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sabdl2(VectorFormat vform,
+LogicVRegister Logic::sabdl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3132,7 +3130,7 @@ LogicVRegister Simulator::sabdl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umull(VectorFormat vform,
+LogicVRegister Logic::umull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3144,7 +3142,7 @@ LogicVRegister Simulator::umull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umull2(VectorFormat vform,
+LogicVRegister Logic::umull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3156,7 +3154,7 @@ LogicVRegister Simulator::umull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smull(VectorFormat vform,
+LogicVRegister Logic::smull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3168,7 +3166,7 @@ LogicVRegister Simulator::smull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smull2(VectorFormat vform,
+LogicVRegister Logic::smull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3180,7 +3178,7 @@ LogicVRegister Simulator::smull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlsl(VectorFormat vform,
+LogicVRegister Logic::umlsl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3192,7 +3190,7 @@ LogicVRegister Simulator::umlsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlsl2(VectorFormat vform,
+LogicVRegister Logic::umlsl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3204,7 +3202,7 @@ LogicVRegister Simulator::umlsl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlsl(VectorFormat vform,
+LogicVRegister Logic::smlsl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3216,7 +3214,7 @@ LogicVRegister Simulator::smlsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlsl2(VectorFormat vform,
+LogicVRegister Logic::smlsl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3228,7 +3226,7 @@ LogicVRegister Simulator::smlsl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlal(VectorFormat vform,
+LogicVRegister Logic::umlal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3240,7 +3238,7 @@ LogicVRegister Simulator::umlal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::umlal2(VectorFormat vform,
+LogicVRegister Logic::umlal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3252,7 +3250,7 @@ LogicVRegister Simulator::umlal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlal(VectorFormat vform,
+LogicVRegister Logic::smlal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3264,7 +3262,7 @@ LogicVRegister Simulator::smlal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::smlal2(VectorFormat vform,
+LogicVRegister Logic::smlal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3276,7 +3274,7 @@ LogicVRegister Simulator::smlal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlal(VectorFormat vform,
+LogicVRegister Logic::sqdmlal(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -3286,7 +3284,7 @@ LogicVRegister Simulator::sqdmlal(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlal2(VectorFormat vform,
+LogicVRegister Logic::sqdmlal2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2) {
@@ -3296,7 +3294,7 @@ LogicVRegister Simulator::sqdmlal2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
+LogicVRegister Logic::sqdmlsl(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -3306,7 +3304,7 @@ LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmlsl2(VectorFormat vform,
+LogicVRegister Logic::sqdmlsl2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2) {
@@ -3316,7 +3314,7 @@ LogicVRegister Simulator::sqdmlsl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmull(VectorFormat vform,
+LogicVRegister Logic::sqdmull(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -3326,7 +3324,7 @@ LogicVRegister Simulator::sqdmull(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmull2(VectorFormat vform,
+LogicVRegister Logic::sqdmull2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2) {
@@ -3336,7 +3334,7 @@ LogicVRegister Simulator::sqdmull2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
+LogicVRegister Logic::sqrdmulh(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
@@ -3366,7 +3364,7 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sqdmulh(VectorFormat vform,
+LogicVRegister Logic::sqdmulh(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -3374,7 +3372,7 @@ LogicVRegister Simulator::sqdmulh(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::addhn(VectorFormat vform,
+LogicVRegister Logic::addhn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3385,7 +3383,7 @@ LogicVRegister Simulator::addhn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::addhn2(VectorFormat vform,
+LogicVRegister Logic::addhn2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3396,7 +3394,7 @@ LogicVRegister Simulator::addhn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::raddhn(VectorFormat vform,
+LogicVRegister Logic::raddhn(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3407,7 +3405,7 @@ LogicVRegister Simulator::raddhn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::raddhn2(VectorFormat vform,
+LogicVRegister Logic::raddhn2(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -3418,7 +3416,7 @@ LogicVRegister Simulator::raddhn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::subhn(VectorFormat vform,
+LogicVRegister Logic::subhn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3429,7 +3427,7 @@ LogicVRegister Simulator::subhn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::subhn2(VectorFormat vform,
+LogicVRegister Logic::subhn2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3440,7 +3438,7 @@ LogicVRegister Simulator::subhn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rsubhn(VectorFormat vform,
+LogicVRegister Logic::rsubhn(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3451,7 +3449,7 @@ LogicVRegister Simulator::rsubhn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::rsubhn2(VectorFormat vform,
+LogicVRegister Logic::rsubhn2(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -3462,7 +3460,7 @@ LogicVRegister Simulator::rsubhn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::trn1(VectorFormat vform,
+LogicVRegister Logic::trn1(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -3482,7 +3480,7 @@ LogicVRegister Simulator::trn1(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::trn2(VectorFormat vform,
+LogicVRegister Logic::trn2(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -3502,7 +3500,7 @@ LogicVRegister Simulator::trn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::zip1(VectorFormat vform,
+LogicVRegister Logic::zip1(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -3522,7 +3520,7 @@ LogicVRegister Simulator::zip1(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::zip2(VectorFormat vform,
+LogicVRegister Logic::zip2(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -3542,7 +3540,7 @@ LogicVRegister Simulator::zip2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uzp1(VectorFormat vform,
+LogicVRegister Logic::uzp1(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -3561,7 +3559,7 @@ LogicVRegister Simulator::uzp1(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::uzp2(VectorFormat vform,
+LogicVRegister Logic::uzp2(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -3581,7 +3579,7 @@ LogicVRegister Simulator::uzp2(VectorFormat vform,
 
 
 template <typename T>
-T Simulator::FPAdd(T op1, T op2) {
+T Logic::FPAdd(T op1, T op2) {
   T result = FPProcessNaNs(op1, op2);
   if (std::isnan(result)) return result;
 
@@ -3597,7 +3595,7 @@ T Simulator::FPAdd(T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPSub(T op1, T op2) {
+T Logic::FPSub(T op1, T op2) {
   // NaNs should be handled elsewhere.
   VIXL_ASSERT(!std::isnan(op1) && !std::isnan(op2));
 
@@ -3613,7 +3611,7 @@ T Simulator::FPSub(T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPMul(T op1, T op2) {
+T Logic::FPMul(T op1, T op2) {
   // NaNs should be handled elsewhere.
   VIXL_ASSERT(!std::isnan(op1) && !std::isnan(op2));
 
@@ -3629,7 +3627,7 @@ T Simulator::FPMul(T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPMulx(T op1, T op2) {
+T Logic::FPMulx(T op1, T op2) {
   if ((std::isinf(op1) && (op2 == 0.0)) || (std::isinf(op2) && (op1 == 0.0))) {
     // inf * 0.0 returns +/-2.0.
     T two = 2.0;
@@ -3640,7 +3638,7 @@ T Simulator::FPMulx(T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPMulAdd(T a, T op1, T op2) {
+T Logic::FPMulAdd(T a, T op1, T op2) {
   T result = FPProcessNaNs3(a, op1, op2);
 
   T sign_a = copysign(1.0, a);
@@ -3687,7 +3685,7 @@ T Simulator::FPMulAdd(T a, T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPDiv(T op1, T op2) {
+T Logic::FPDiv(T op1, T op2) {
   // NaNs should be handled elsewhere.
   VIXL_ASSERT(!std::isnan(op1) && !std::isnan(op2));
 
@@ -3705,7 +3703,7 @@ T Simulator::FPDiv(T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPSqrt(T op) {
+T Logic::FPSqrt(T op) {
   if (std::isnan(op)) {
     return FPProcessNaN(op);
   } else if (op < 0.0) {
@@ -3718,7 +3716,7 @@ T Simulator::FPSqrt(T op) {
 
 
 template <typename T>
-T Simulator::FPMax(T a, T b) {
+T Logic::FPMax(T a, T b) {
   T result = FPProcessNaNs(a, b);
   if (std::isnan(result)) return result;
 
@@ -3732,7 +3730,7 @@ T Simulator::FPMax(T a, T b) {
 
 
 template <typename T>
-T Simulator::FPMaxNM(T a, T b) {
+T Logic::FPMaxNM(T a, T b) {
   if (IsQuietNaN(a) && !IsQuietNaN(b)) {
     a = kFP64NegativeInfinity;
   } else if (!IsQuietNaN(a) && IsQuietNaN(b)) {
@@ -3745,7 +3743,7 @@ T Simulator::FPMaxNM(T a, T b) {
 
 
 template <typename T>
-T Simulator::FPMin(T a, T b) {
+T Logic::FPMin(T a, T b) {
   T result = FPProcessNaNs(a, b);
   if (std::isnan(result)) return result;
 
@@ -3759,7 +3757,7 @@ T Simulator::FPMin(T a, T b) {
 
 
 template <typename T>
-T Simulator::FPMinNM(T a, T b) {
+T Logic::FPMinNM(T a, T b) {
   if (IsQuietNaN(a) && !IsQuietNaN(b)) {
     a = kFP64PositiveInfinity;
   } else if (!IsQuietNaN(a) && IsQuietNaN(b)) {
@@ -3772,7 +3770,7 @@ T Simulator::FPMinNM(T a, T b) {
 
 
 template <typename T>
-T Simulator::FPRecipStepFused(T op1, T op2) {
+T Logic::FPRecipStepFused(T op1, T op2) {
   const T two = 2.0;
   if ((std::isinf(op1) && (op2 == 0.0)) ||
       ((op1 == 0.0) && (std::isinf(op2)))) {
@@ -3788,7 +3786,7 @@ T Simulator::FPRecipStepFused(T op1, T op2) {
 
 
 template <typename T>
-T Simulator::FPRSqrtStepFused(T op1, T op2) {
+T Logic::FPRSqrtStepFused(T op1, T op2) {
   const T one_point_five = 1.5;
   const T two = 2.0;
 
@@ -3816,7 +3814,7 @@ T Simulator::FPRSqrtStepFused(T op1, T op2) {
 }
 
 
-double Simulator::FPRoundInt(double value, FPRounding round_mode) {
+double Logic::FPRoundInt(double value, FPRounding round_mode) {
   if ((value == 0.0) || (value == kFP64PositiveInfinity) ||
       (value == kFP64NegativeInfinity)) {
     return value;
@@ -3885,7 +3883,7 @@ double Simulator::FPRoundInt(double value, FPRounding round_mode) {
 }
 
 
-int32_t Simulator::FPToInt32(double value, FPRounding rmode) {
+int32_t Logic::FPToInt32(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
   if (value >= kWMaxInt) {
     return kWMaxInt;
@@ -3896,7 +3894,7 @@ int32_t Simulator::FPToInt32(double value, FPRounding rmode) {
 }
 
 
-int64_t Simulator::FPToInt64(double value, FPRounding rmode) {
+int64_t Logic::FPToInt64(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
   if (value >= kXMaxInt) {
     return kXMaxInt;
@@ -3907,7 +3905,7 @@ int64_t Simulator::FPToInt64(double value, FPRounding rmode) {
 }
 
 
-uint32_t Simulator::FPToUInt32(double value, FPRounding rmode) {
+uint32_t Logic::FPToUInt32(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
   if (value >= kWMaxUInt) {
     return kWMaxUInt;
@@ -3918,7 +3916,7 @@ uint32_t Simulator::FPToUInt32(double value, FPRounding rmode) {
 }
 
 
-uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
+uint64_t Logic::FPToUInt64(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
   if (value >= kXMaxUInt) {
     return kXMaxUInt;
@@ -3931,7 +3929,7 @@ uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
 
 #define DEFINE_NEON_FP_VECTOR_OP(FN, OP, PROCNAN)                \
   template <typename T>                                          \
-  LogicVRegister Simulator::FN(VectorFormat vform,               \
+  LogicVRegister Logic::FN(VectorFormat vform,               \
                                LogicVRegister dst,               \
                                const LogicVRegister& src1,       \
                                const LogicVRegister& src2) {     \
@@ -3953,7 +3951,7 @@ uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
     return dst;                                                  \
   }                                                              \
                                                                  \
-  LogicVRegister Simulator::FN(VectorFormat vform,               \
+  LogicVRegister Logic::FN(VectorFormat vform,               \
                                LogicVRegister dst,               \
                                const LogicVRegister& src1,       \
                                const LogicVRegister& src2) {     \
@@ -3969,7 +3967,7 @@ NEON_FP3SAME_LIST(DEFINE_NEON_FP_VECTOR_OP)
 #undef DEFINE_NEON_FP_VECTOR_OP
 
 
-LogicVRegister Simulator::fnmul(VectorFormat vform,
+LogicVRegister Logic::fnmul(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
@@ -3980,7 +3978,7 @@ LogicVRegister Simulator::fnmul(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::frecps(VectorFormat vform,
+LogicVRegister Logic::frecps(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -3995,7 +3993,7 @@ LogicVRegister Simulator::frecps(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::frecps(VectorFormat vform,
+LogicVRegister Logic::frecps(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
@@ -4010,7 +4008,7 @@ LogicVRegister Simulator::frecps(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::frsqrts(VectorFormat vform,
+LogicVRegister Logic::frsqrts(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -4025,7 +4023,7 @@ LogicVRegister Simulator::frsqrts(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::frsqrts(VectorFormat vform,
+LogicVRegister Logic::frsqrts(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
@@ -4040,7 +4038,7 @@ LogicVRegister Simulator::frsqrts(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::fcmp(VectorFormat vform,
+LogicVRegister Logic::fcmp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2,
@@ -4079,7 +4077,7 @@ LogicVRegister Simulator::fcmp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcmp(VectorFormat vform,
+LogicVRegister Logic::fcmp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2,
@@ -4094,7 +4092,7 @@ LogicVRegister Simulator::fcmp(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcmp_zero(VectorFormat vform,
+LogicVRegister Logic::fcmp_zero(VectorFormat vform,
                                     LogicVRegister dst,
                                     const LogicVRegister& src,
                                     Condition cond) {
@@ -4112,7 +4110,7 @@ LogicVRegister Simulator::fcmp_zero(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fabscmp(VectorFormat vform,
+LogicVRegister Logic::fabscmp(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
@@ -4133,7 +4131,7 @@ LogicVRegister Simulator::fabscmp(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::fmla(VectorFormat vform,
+LogicVRegister Logic::fmla(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -4149,7 +4147,7 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fmla(VectorFormat vform,
+LogicVRegister Logic::fmla(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -4164,7 +4162,7 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::fmls(VectorFormat vform,
+LogicVRegister Logic::fmls(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -4180,7 +4178,7 @@ LogicVRegister Simulator::fmls(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fmls(VectorFormat vform,
+LogicVRegister Logic::fmls(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -4195,7 +4193,7 @@ LogicVRegister Simulator::fmls(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::fneg(VectorFormat vform,
+LogicVRegister Logic::fneg(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4208,7 +4206,7 @@ LogicVRegister Simulator::fneg(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fneg(VectorFormat vform,
+LogicVRegister Logic::fneg(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
@@ -4222,7 +4220,7 @@ LogicVRegister Simulator::fneg(VectorFormat vform,
 
 
 template <typename T>
-LogicVRegister Simulator::fabs_(VectorFormat vform,
+LogicVRegister Logic::fabs_(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4237,7 +4235,7 @@ LogicVRegister Simulator::fabs_(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fabs_(VectorFormat vform,
+LogicVRegister Logic::fabs_(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
@@ -4250,7 +4248,7 @@ LogicVRegister Simulator::fabs_(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fabd(VectorFormat vform,
+LogicVRegister Logic::fabd(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
@@ -4261,7 +4259,7 @@ LogicVRegister Simulator::fabd(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fsqrt(VectorFormat vform,
+LogicVRegister Logic::fsqrt(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4282,7 +4280,7 @@ LogicVRegister Simulator::fsqrt(VectorFormat vform,
 
 
 #define DEFINE_NEON_FP_PAIR_OP(FNP, FN, OP)                           \
-  LogicVRegister Simulator::FNP(VectorFormat vform,                   \
+  LogicVRegister Logic::FNP(VectorFormat vform,                   \
                                 LogicVRegister dst,                   \
                                 const LogicVRegister& src1,           \
                                 const LogicVRegister& src2) {         \
@@ -4293,7 +4291,7 @@ LogicVRegister Simulator::fsqrt(VectorFormat vform,
     return dst;                                                       \
   }                                                                   \
                                                                       \
-  LogicVRegister Simulator::FNP(VectorFormat vform,                   \
+  LogicVRegister Logic::FNP(VectorFormat vform,                   \
                                 LogicVRegister dst,                   \
                                 const LogicVRegister& src) {          \
     if (vform == kFormatS) {                                          \
@@ -4311,7 +4309,7 @@ NEON_FPPAIRWISE_LIST(DEFINE_NEON_FP_PAIR_OP)
 #undef DEFINE_NEON_FP_PAIR_OP
 
 
-LogicVRegister Simulator::fminmaxv(VectorFormat vform,
+LogicVRegister Logic::fminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    FPMinMaxOp Op) {
@@ -4326,35 +4324,35 @@ LogicVRegister Simulator::fminmaxv(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fmaxv(VectorFormat vform,
+LogicVRegister Logic::fmaxv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  return fminmaxv(vform, dst, src, &Simulator::FPMax);
+  return fminmaxv(vform, dst, src, &Logic::FPMax);
 }
 
 
-LogicVRegister Simulator::fminv(VectorFormat vform,
+LogicVRegister Logic::fminv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  return fminmaxv(vform, dst, src, &Simulator::FPMin);
+  return fminmaxv(vform, dst, src, &Logic::FPMin);
 }
 
 
-LogicVRegister Simulator::fmaxnmv(VectorFormat vform,
+LogicVRegister Logic::fmaxnmv(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
-  return fminmaxv(vform, dst, src, &Simulator::FPMaxNM);
+  return fminmaxv(vform, dst, src, &Logic::FPMaxNM);
 }
 
 
-LogicVRegister Simulator::fminnmv(VectorFormat vform,
+LogicVRegister Logic::fminnmv(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
-  return fminmaxv(vform, dst, src, &Simulator::FPMinNM);
+  return fminmaxv(vform, dst, src, &Logic::FPMinNM);
 }
 
 
-LogicVRegister Simulator::fmul(VectorFormat vform,
+LogicVRegister Logic::fmul(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2,
@@ -4374,7 +4372,7 @@ LogicVRegister Simulator::fmul(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fmla(VectorFormat vform,
+LogicVRegister Logic::fmla(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2,
@@ -4394,7 +4392,7 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fmls(VectorFormat vform,
+LogicVRegister Logic::fmls(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2,
@@ -4414,7 +4412,7 @@ LogicVRegister Simulator::fmls(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fmulx(VectorFormat vform,
+LogicVRegister Logic::fmulx(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2,
@@ -4434,7 +4432,7 @@ LogicVRegister Simulator::fmulx(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::frint(VectorFormat vform,
+LogicVRegister Logic::frint(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 FPRounding rounding_mode,
@@ -4464,7 +4462,7 @@ LogicVRegister Simulator::frint(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvts(VectorFormat vform,
+LogicVRegister Logic::fcvts(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 FPRounding rounding_mode,
@@ -4486,7 +4484,7 @@ LogicVRegister Simulator::fcvts(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtu(VectorFormat vform,
+LogicVRegister Logic::fcvtu(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 FPRounding rounding_mode,
@@ -4508,7 +4506,7 @@ LogicVRegister Simulator::fcvtu(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtl(VectorFormat vform,
+LogicVRegister Logic::fcvtl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
@@ -4525,7 +4523,7 @@ LogicVRegister Simulator::fcvtl(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtl2(VectorFormat vform,
+LogicVRegister Logic::fcvtl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   int lane_count = LaneCountFromFormat(vform);
@@ -4543,7 +4541,7 @@ LogicVRegister Simulator::fcvtl2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtn(VectorFormat vform,
+LogicVRegister Logic::fcvtn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
@@ -4560,7 +4558,7 @@ LogicVRegister Simulator::fcvtn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtn2(VectorFormat vform,
+LogicVRegister Logic::fcvtn2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   int lane_count = LaneCountFromFormat(vform) / 2;
@@ -4578,7 +4576,7 @@ LogicVRegister Simulator::fcvtn2(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtxn(VectorFormat vform,
+LogicVRegister Logic::fcvtxn(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4590,7 +4588,7 @@ LogicVRegister Simulator::fcvtxn(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::fcvtxn2(VectorFormat vform,
+LogicVRegister Logic::fcvtxn2(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
@@ -4603,7 +4601,7 @@ LogicVRegister Simulator::fcvtxn2(VectorFormat vform,
 
 
 // Based on reference C function recip_sqrt_estimate from ARM ARM.
-double Simulator::recip_sqrt_estimate(double a) {
+double Logic::recip_sqrt_estimate(double a) {
   int q0, q1, s;
   double r;
   if (a < 0.5) {
@@ -4624,7 +4622,7 @@ static inline uint64_t Bits(uint64_t val, int start_bit, int end_bit) {
 
 
 template <typename T>
-T Simulator::FPRecipSqrtEstimate(T op) {
+T Logic::FPRecipSqrtEstimate(T op) {
   if (std::isnan(op)) {
     return FPProcessNaN(op);
   } else if (op == 0.0) {
@@ -4685,7 +4683,7 @@ T Simulator::FPRecipSqrtEstimate(T op) {
 }
 
 
-LogicVRegister Simulator::frsqrte(VectorFormat vform,
+LogicVRegister Logic::frsqrte(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4705,7 +4703,7 @@ LogicVRegister Simulator::frsqrte(VectorFormat vform,
 }
 
 template <typename T>
-T Simulator::FPRecipEstimate(T op, FPRounding rounding) {
+T Logic::FPRecipEstimate(T op, FPRounding rounding) {
   uint32_t sign;
 
   if (sizeof(T) == sizeof(float)) {  // NOLINT(runtime/sizeof)
@@ -4806,7 +4804,7 @@ T Simulator::FPRecipEstimate(T op, FPRounding rounding) {
 }
 
 
-LogicVRegister Simulator::frecpe(VectorFormat vform,
+LogicVRegister Logic::frecpe(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  FPRounding round) {
@@ -4827,7 +4825,7 @@ LogicVRegister Simulator::frecpe(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ursqrte(VectorFormat vform,
+LogicVRegister Logic::ursqrte(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4850,7 +4848,7 @@ LogicVRegister Simulator::ursqrte(VectorFormat vform,
 
 
 // Based on reference C function recip_estimate from ARM ARM.
-double Simulator::recip_estimate(double a) {
+double Logic::recip_estimate(double a) {
   int q, s;
   double r;
   q = static_cast<int>(a * 512.0);
@@ -4860,7 +4858,7 @@ double Simulator::recip_estimate(double a) {
 }
 
 
-LogicVRegister Simulator::urecpe(VectorFormat vform,
+LogicVRegister Logic::urecpe(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4882,7 +4880,7 @@ LogicVRegister Simulator::urecpe(VectorFormat vform,
 }
 
 template <typename T>
-LogicVRegister Simulator::frecpx(VectorFormat vform,
+LogicVRegister Logic::frecpx(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
@@ -4912,7 +4910,7 @@ LogicVRegister Simulator::frecpx(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::frecpx(VectorFormat vform,
+LogicVRegister Logic::frecpx(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
@@ -4924,7 +4922,7 @@ LogicVRegister Simulator::frecpx(VectorFormat vform,
   return dst;
 }
 
-LogicVRegister Simulator::scvtf(VectorFormat vform,
+LogicVRegister Logic::scvtf(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int fbits,
@@ -4943,7 +4941,7 @@ LogicVRegister Simulator::scvtf(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::ucvtf(VectorFormat vform,
+LogicVRegister Logic::ucvtf(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int fbits,
@@ -4963,5 +4961,3 @@ LogicVRegister Simulator::ucvtf(VectorFormat vform,
 
 
 }  // namespace vixl
-
-#endif  // VIXL_INCLUDE_SIMULATOR

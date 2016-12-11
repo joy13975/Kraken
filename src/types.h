@@ -22,91 +22,141 @@ typedef struct
     std::vector<uintptr_t> bpoints;
 } Options;
 
+#define ADRP_ALIGNMMENT 4096
+
 class ProgramInfo
 {
 public:
-    const size_t            stackAndHeapSize = 8 * 1024;
-    const size_t            binSize_;
-    const Word *const       binary_;
-    const Elf64_Ehdr *const elf_;
+    const size_t            stackAndHeapSize = 0; // logic takes care
+    const Word *const       image_;
+    const Elf64_Ehdr        elf_;
+    const size_t            imgSize_;
     const Word *const       entry_;
     const Word *const       textStart_;
     const Word *const       textEnd_;
 
     ProgramInfo(std::ifstream &&binStream);
     virtual ~ProgramInfo() {
-        delete binary_;
+        delete imgBaseRoot_;
     };
 
-    static size_t getBinSize(std::ifstream &binStream);
+    static size_t getImgSize(std::ifstream &binStream);
 private:
+    Elf64_Ehdr elfPriv_;
+    size_t imgSizePriv_;
+    Byte * imgBaseRoot_;
+
     template<typename T>
-    T * getBinary(std::ifstream &binStream)
+    T loadImage(std::ifstream &binStream)
     {
-        T * bin = reinterpret_cast<T*>(new Byte[binSize_]);
+        // get the elf header
         binStream.seekg(0, std::ios::beg);
+        if (!binStream.read((char*) &elfPriv_, sizeof(elfPriv_)))
+            die("Could not load Elf header.\n");
 
-        if (!binStream.read((char*) bin, binSize_))
-            die("Could not load binary into memory.\n");
-
-        return bin;
-    }
-
-    template<typename T>
-    T getEntryPoint() const
-    {
-        // do some elf checks before getting entry
+        // do some elf checks
 #define checkField(field, expectedVal, name) \
     if(field != expectedVal) \
         die("ELF failure (%s): expected 0x%x but got 0x%x\n", \
     name, expectedVal, field)
 
         // check elf magic
-        checkField(elf_->e_ident[EI_MAG0], ELFMAG0, "Magic-0");
+        checkField(elfPriv_.e_ident[EI_MAG0], ELFMAG0, "Magic-0");
 
-        checkField(elf_->e_ident[EI_MAG1], ELFMAG1, "Magic-1");
-        checkField(elf_->e_ident[EI_MAG2], ELFMAG2, "Magic-2");
-        checkField(elf_->e_ident[EI_MAG3], ELFMAG3, "Magic-3");
+        checkField(elfPriv_.e_ident[EI_MAG1], ELFMAG1, "Magic-1");
+        checkField(elfPriv_.e_ident[EI_MAG2], ELFMAG2, "Magic-2");
+        checkField(elfPriv_.e_ident[EI_MAG3], ELFMAG3, "Magic-3");
 
         // check elf info
-        checkField(elf_->e_ident[EI_CLASS], ELFCLASS64, "64-bit");
-        checkField(elf_->e_ident[EI_DATA], ELFDATA2LSB, "little-endian");
-        checkField(elf_->e_ident[EI_VERSION], EV_CURRENT, "version");
-        checkField(elf_->e_machine, EM_AARCH64, "A64");
-        if (elf_->e_type != ET_REL && elf_->e_type != ET_EXEC)
+        checkField(elfPriv_.e_ident[EI_CLASS], ELFCLASS64, "64-bit");
+        checkField(elfPriv_.e_ident[EI_DATA], ELFDATA2LSB, "little-endian");
+        checkField(elfPriv_.e_ident[EI_VERSION], EV_CURRENT, "version");
+        checkField(elfPriv_.e_machine, EM_AARCH64, "A64");
+        if (elfPriv_.e_type != ET_REL && elfPriv_.e_type != ET_EXEC)
             die("ELF failure (%s): expected 0x%x or 0x%x but got 0x%x\n",
-                "tpye", ET_REL, ET_EXEC, elf_->e_type);
+                "tpye", ET_REL, ET_EXEC, elfPriv_.e_type);
 #undef checkField
 
-        return reinterpret_cast<T>(elf_->e_entry);
+        // get program headers
+        binStream.seekg(elfPriv_.e_phoff, std::ios::beg);
+
+        imgSizePriv_ = 0;
+        std::vector<Elf64_Phdr> phList;
+        for (int i = 0; i < elfPriv_.e_phnum; i++)
+        {
+            Elf64_Phdr phdr;
+            if (!binStream.read((char*) &phdr, sizeof(phdr)))
+                die("Could not Elf program header.\n");
+
+            if (phdr.p_type == PT_LOAD)
+            {
+                phList.push_back(phdr);
+                if (phdr.p_vaddr + phdr.p_memsz > imgSizePriv_)
+                    imgSizePriv_ = phdr.p_vaddr + phdr.p_memsz;
+            }
+        }
+
+        // now we know the max image address, create the space
+        imgBaseRoot_ = new Byte[imgSizePriv_ + ADRP_ALIGNMMENT];
+        Byte * imgBase = addPointers<Byte*>(imgBaseRoot_,
+                                            (void*) (ADRP_ALIGNMMENT - (((uintptr_t) imgBaseRoot_) % ADRP_ALIGNMMENT)));
+
+        for (Elf64_Phdr phdr : phList)
+        {
+            dbg("Program section: p_type(%.4d) p_flags(%.4d) p_offset(%.8x) p_vaddr(%.8x) p_paddr(%.8x) p_filesz(%.4d) p_memsz(%.4d) p_align(%.4d)\n",
+                phdr.p_type,
+                phdr.p_flags,
+                phdr.p_offset,
+                phdr.p_vaddr,
+                phdr.p_paddr,
+                phdr.p_filesz,
+                phdr.p_memsz,
+                phdr.p_align
+               );
+
+            binStream.seekg(phdr.p_offset, std::ios::beg);
+            uintptr_t imgPtr = (uintptr_t) addPointers<Byte*>(imgBase,
+                               (void*) phdr.p_vaddr);
+
+            if (!binStream.read((char*) imgPtr, phdr.p_memsz))
+                die("Could not load Elf program section.\n");
+            dbg("Loaded %ld bytes at %p; base: %p\n",
+                phdr.p_memsz, imgPtr, imgBase);
+        }
+
+        return  reinterpret_cast<T>(imgBase);
     }
 
     template<typename T>
-    T getTextBoundary(bool end) const
+    T getTextBoundary(std::ifstream &binStream, bool end) const
     {
-        const Elf64_Shdr *const shdr =
-            addPointers<Elf64_Shdr*>(binary_, (void*) elf_->e_shoff);
+        // read in all bytes and work on the buffer instead
+        Elf64_Shdr shdrs[elf_.e_shnum];
+        binStream.seekg(elf_.e_shoff, std::ios::beg);
+        if (!binStream.read((char*) shdrs, elf_.e_shnum * sizeof(Elf64_Shdr)))
+            die("Could not load section headers.\n");
 
-        const Elf64_Shdr *const sh_strtab =
-            &shdr[elf_->e_shstrndx];
+        Elf64_Shdr strTblHdr = shdrs[elf_.e_shstrndx];
 
-        const char *const sh_strtab_p =
-            addPointers<char*>(binary_, (void*)sh_strtab->sh_offset);
+        Byte strTbl[strTblHdr.sh_size];
+        binStream.seekg(strTblHdr.sh_offset, std::ios::beg);
+        if (!binStream.read((char*) strTbl, strTblHdr.sh_size))
+            die("Could not load Section String Table.\n");
 
-        for (int i = 0; i < elf_->e_shnum; i++)
+        for (int i = 0; i < elf_.e_shnum; i++)
         {
-            const char * sname = (char*) sh_strtab_p + shdr[i].sh_name;
+            const char * sname = (char*) strTbl + shdrs[i].sh_name;
             if (0 == strcmp(sname, ".text"))
                 return reinterpret_cast<T>(
                            end ?
-                           shdr[i].sh_offset + shdr[i].sh_size
+                           shdrs[i].sh_offset + shdrs[i].sh_size
                            :
-                           shdr[i].sh_offset
+                           shdrs[i].sh_offset
                        );
         }
 
         die("Could not find .text section in the binary (sections=%d)\n",
-            elf_->e_shnum);
+            elf_.e_shnum);
     }
 };
 
@@ -116,7 +166,7 @@ public:
     State(const ProgramInfo &pi);
     virtual ~State()
     {
-        delete baseAddr_;
+        delete imgBaseRoot_;
     };
 
     //memory
@@ -136,18 +186,23 @@ public:
     }
 
 private:
+    Byte * imgBaseRoot_;
+
     template<typename T>
-    T * initMemory(const ProgramInfo &pi) const
+    T initMemory(const ProgramInfo &pi)
     {
-        T * mem = new T[pi.binSize_ + pi.stackAndHeapSize];
+        const size_t memSize = pi.imgSize_ + pi.stackAndHeapSize;
+        imgBaseRoot_ = new Byte[memSize + ADRP_ALIGNMMENT];
+        Byte * mem = addPointers<Byte*>(imgBaseRoot_,
+                                        (void*) (ADRP_ALIGNMMENT - (((uintptr_t) imgBaseRoot_) % ADRP_ALIGNMMENT)));
 
-        memcpy(mem, pi.binary_, pi.binSize_);
+        dbg("Copying %ld bytes from image to new base: %p\n",
+            pi.imgSize_, mem);
+        memcpy(mem, pi.image_, pi.imgSize_);
 
-        return mem;
+        return reinterpret_cast<T>(mem);
     }
 };
-
-typedef void (*Action)();
 
 class Scripture
 {

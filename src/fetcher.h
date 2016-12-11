@@ -11,12 +11,12 @@ namespace Kraken
 class Fetcher
 {
 public:
-    Fetcher(const Word *& pc);
+    Fetcher(State * state);
     virtual ~Fetcher() {};
 
     const vixl::Instruction * fetch();
 private:
-    const Word *& pc_;
+    State *const state_;
 };
 
 } // namespace Kraken

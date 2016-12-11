@@ -149,8 +149,8 @@ main:                                   // @main
 // BB#0:                                // %entry
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
-	adrp	x8, :got:nums1k1
-	ldr	x0, [x8, :got_lo12:nums1k1]
+	adrp	x8, nums1k1
+	add	x0, x8, :lo12:nums1k1
 	movz	w1, #0
 	orr	w2, wzr, #0x400
 	bl	sort

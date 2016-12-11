@@ -1,5 +1,42 @@
 
 	.text
+	.file	"add.c"
+	.globl	main
+	.align	2
+	.type	main,@function
+main:                                   // @main
+// BB#0:                                // %entry
+	sub	sp, sp, #16             // =16
+	adrp	x8, main.a
+	add	x8, x8, :lo12:main.a
+	movz	w9, #0
+	str	w9, [sp, #12]
+	ldr	 w0, [x8]
+	add	sp, sp, #16             // =16
+	ret
+.Ltmp1:
+	.size	main, .Ltmp1-main
+
+	.type	main.a,@object          // @main.a
+	.data
+	.align	2
+main.a:
+	.word	1                       // 0x1
+	.word	3                       // 0x3
+	.word	5                       // 0x5
+	.word	4                       // 0x4
+	.word	2                       // 0x2
+	.word	7                       // 0x7
+	.word	5                       // 0x5
+	.word	3                       // 0x3
+	.word	1                       // 0x1
+	.word	5                       // 0x5
+	.size	main.a, 40
+
+
+	.ident	"clang version 3.5.0 "
+
+	.text
 	.file	"fac_it.c"
 	.globl	fac
 	.align	2
@@ -613,8 +650,8 @@ main:                                   // @main
 // BB#0:                                // %entry
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
-	adrp	x8, :got:nums1k1
-	ldr	x0, [x8, :got_lo12:nums1k1]
+	adrp	x8, nums1k1
+	add	x0, x8, :lo12:nums1k1
 	movz	w1, #0
 	orr	w2, wzr, #0x400
 	bl	sort
@@ -2827,10 +2864,10 @@ main:                                   // @main
 .LBB0_2:                                // %for.body
                                         //   in Loop: Header=BB0_1 Depth=1
 	add	x8, sp, #12             // =12
-	adrp	x9, :got:nums1k2
-	ldr	x9, [x9, :got_lo12:nums1k2]
-	adrp	x10, :got:nums1k1
-	ldr	x10, [x10, :got_lo12:nums1k1]
+	adrp	x9, nums1k2
+	add	x9, x9, :lo12:nums1k2
+	adrp	x10, nums1k1
+	add	x10, x10, :lo12:nums1k1
 	ldr	w11, [sp, #8]
 	mov	 w12, w11
 	sxtw	x12, w12

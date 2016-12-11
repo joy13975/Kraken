@@ -123,7 +123,7 @@ Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
             break;
         }
     }
-    die("Unknown instruction\n");
+    die("Unknown instruction: %8x\n", instr->InstructionBits());
 }
 
 void Decoder::AppendVisitor(DecoderVisitor* new_visitor) {

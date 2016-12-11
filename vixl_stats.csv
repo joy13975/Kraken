@@ -1,0 +1,4 @@
+# counters=23
+# sample_period=10
+Instruction,Move Immediate,Add/Sub DP,Logical DP,Other Int DP,FP DP,Conditional Select,Conditional Compare,Unconditional Branch,Compare and Branch,Test and Branch,Conditional Branch,Load Integer,Load FP,Load Pair,Load Literal,Store Integer,Store FP,Store Pair,PC Addressing,Other,NEON,Crypto,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

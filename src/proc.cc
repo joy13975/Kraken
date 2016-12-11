@@ -6,12 +6,11 @@
 #include "proc.h"
 #include "util.h"
 #include "bit_util.h"
-#include "decoder.h"
 #include "fetcher.h"
-#include "enactor.h"
 #include "scribe.h"
 
 #include "vixl/a64/decoder-a64.h"
+#include "vixl/a64/logic-a64.h"
 
 namespace Kraken
 {
@@ -35,9 +34,6 @@ void Proc::startSimulation()
         state_->getPcOffset(), state_->pc_);
 
     run();
-
-    msg("Program has exited\n");
-    wrn("TODO: stats and reg status (ret code?)\n");
 }
 
 // Private functions
@@ -51,17 +47,24 @@ void Proc::resetStateRegs()
 
 void Proc::run()
 {
-    Word *const absStart = state_->memAt<Word>(progInfo_.textStart_);
-    Word *const absEnd = state_->memAt<Word>(progInfo_.textEnd_);
-    state_->pc_ = absStart;
+    Word* absTextStart =
+        state_->memAt<Word>(progInfo_.textStart_);
+    Word* absTextEnd =
+        state_->memAt<Word>(progInfo_.textEnd_);
+    state_->pc_ = state_->memAt<Word>(progInfo_.entry_);
 
     //initialise components
-    vixl::Decoder vixlDecoder;
-    Fetcher fetcher(state_->pc_);
+    vixl::Decoder decoder;
+    Fetcher fetcher(state_);
+    vixl::Logic logic;
+    logic.set_trace_parameters(vixl::LOG_ALL);
 
-    msg("Absolute .text addresses: %p to %p\n",
-        absStart, absEnd);
-    while (state_->pc_ < absEnd)
+    msg("Absolute .text scope:  %p - %p\n",
+        absTextStart, absTextEnd);
+    msg("Absolute memory scope: %p - %p\n",
+        state_->baseAddr_,
+        addPointers<Word*>(state_->baseAddr_, (void*) progInfo_.imgSize_));
+    while (state_->pc_ < absTextEnd)
     {
         bool shouldBreak = options_.interactive;
         const ptrdiff_t pcOffset = state_->getPcOffset();
@@ -74,13 +77,23 @@ void Proc::run()
         if (shouldBreak)
             breakpoint(pcOffset);
 
-        const vixl::Instruction *instr = fetcher.fetch();
-        ActionCode ac = vixlDecoder.Decode(instr);
-        msg("Got: %s\n", ActionCodeString[ac]);
-        // Scripture script  = Enactor::enact(action, state);
+        const vixl::Instruction * instr = fetcher.fetch();
+        ActionCode ac = decoder.Decode(instr);
+        logic.set_pc(reinterpret_cast<const vixl::Instruction*>(state_->pc_));
+        logic.Execute(ac, instr);
+        state_->pc_ = reinterpret_cast<const Word*>(logic.get_pc());
         // Scribe::write(script, state);
 
+        if (state_->pc_ == 0)
+        {
+            msg("Program has returned\n");
+            break;
+        }
     }
+
+    logic.PrintRegisters();
+    logic.PrintVRegisters();
+    logic.PrintSystemRegisters();
 }
 
 void Proc::breakpoint(const ptrdiff_t pcOffset)

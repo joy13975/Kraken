@@ -33,11 +33,12 @@ else
 	GOMP_FLAG=
 endif
 
-DEFS :=
-INCS := -I./src/
-CPPFLAGS := -MMD -O3 -std=c++11 \
-			$(DEBUG_FLAG) $(GOMP_FLAG) $(DEFS) $(INCS)
-COMPILE := $(CXX) $(CPPFLAGS)
+DEFS 			:=
+INCS 			:= -I./src/
+CPPFLAGS 		:= -MMD -O3 -std=c++11 -fmax-errors=1\
+					$(DEBUG_FLAG) $(GOMP_FLAG) $(DEFS) $(INCS)
+COMPILE 		:= $(CXX) $(CPPFLAGS)
+TEST_PROG 		:= vadd
 
 #
 # start of rules
@@ -58,10 +59,10 @@ $(EXE): $(OBJS)
 all: $(EXE)
 
 test: $(EXE)
-	./$(EXE) -i bmarks/qsort.a64
+	./$(EXE) -i bmarks/$(TEST_PROG).a64
 
 testim: $(EXE)
-	./$(EXE) -i bmarks/qsort.a64 -im
+	./$(EXE) -i bmarks/$(TEST_PROG).a64 -im
 
 clean:
 	rm -rf $(EXE) $(OBJ_DIR)/* $(OBJ_DIR) *.dSYM .DS_Store
