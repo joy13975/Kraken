@@ -19,5 +19,5 @@ int main(void)
     printf("fac(%d) = %d\n", N, res);
 #endif
 
-    return 0;
+    return res;
 }

@@ -31,7 +31,9 @@
 
 #include "vixl/globals.h"
 #include "vixl/a64/instructions-a64.h"
+
 #include "visits.h"
+#include "resettable.h"
 
 namespace vixl {
 
@@ -60,9 +62,10 @@ private:
 };
 
 
-class Decoder {
+class Decoder : public Kraken::Resettable {
 public:
     Decoder() {}
+    void Reset() {};
 
     // Top-level wrappers around the actual decoding function.
     Kraken::ActionCode Decode(const Instruction* instr) {

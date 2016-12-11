@@ -83,9 +83,8 @@ main:                                   // @main
 	movz	w8, #0
 	stur	w8, [x29, #-4]
 	bl	fac
-	movz	w8, #0
 	str	w0, [sp, #8]
-	mov	 w0, w8
+	ldr	w0, [sp, #8]
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
@@ -145,9 +144,8 @@ main:                                   // @main
 	movz	w8, #0
 	stur	w8, [x29, #-4]
 	bl	fac
-	movz	w8, #0
 	str	w0, [sp, #8]
-	mov	 w0, w8
+	ldr	w0, [sp, #8]
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret

@@ -1,22 +1,24 @@
 #ifndef _FETCHER_H_
 #define _FETCHER_H_
 
-#include "proc.h"
 #include "types.h"
+#include "resettable.h"
+
 #include "vixl/a64/instructions-a64.h"
 
 namespace Kraken
 {
 
-class Fetcher
+class Fetcher : public Resettable
 {
 public:
-    Fetcher(State * state);
+    Fetcher() {};
     virtual ~Fetcher() {};
 
-    const vixl::Instruction * fetch();
+    void Reset() {};
+
+    const vixl::Instruction * Fetch(const Word ** pcPtr);
 private:
-    State *const state_;
 };
 
 } // namespace Kraken

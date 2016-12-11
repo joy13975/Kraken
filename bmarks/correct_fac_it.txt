@@ -1,0 +1,400 @@
+./kraken -i bmarks/fac_it.a64
+[35m[MSG] [0mMain is at 0x150 (global: 0x7ff8bd818150)
+[35m[MSG] [0mAbsolute .text scope:  0x7ff8bd818100 - 0x7ff8bd818180
+[35m[MSG] [0mAbsolute memory scope: 0x7ff8bd818000 - 0x7ff8bd818180
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818150 (global)
+[34m[DBG] [0mDest Reg: 29
+0x00007ff8bd818150  a9bf7bfd		stp x29, x30, [sp, #-16]!
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818154 (global)
+[34m[DBG] [0mDest Reg: 29
+0x00007ff8bd818154  910003fd		mov x29, sp
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818158 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818158  d10043ff		sub sp, sp, #0x10 (16)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81815c (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd81815c  52800140		mov w0, #0xa
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818160 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818160  52800008		mov w8, #0x0
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818164 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818164  b81fc3a8		stur w8, [x29, #-4]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818168 (global)
+[34m[DBG] [0mDest Reg: 6
+0x00007ff8bd818168  97ffffe6		bl #-0x68 (addr 0x7ff8bd818100)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818100 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818100  d10043ff		sub sp, sp, #0x10 (16)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818104 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818104  320003e8		orr w8, wzr, #0x1
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818108 (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd818108  b9000fe0		str w0, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81810c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81810c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818120 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818120  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818124 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818124  b9400be9		ldr w9, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818128 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818128  1b087d28		mul w8, w9, w8
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81812c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81812c  b9000be8		str w8, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818130 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818130  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818134 (global)
+[34m[DBG] [0mDest Reg: 9
+0x00007ff8bd818134  12800009		mov w9, #0xffffffff
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818138 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818138  0b090108		add w8, w8, w9
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81813c (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd81813c  b9000fe8		str w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818140 (global)
+[34m[DBG] [0mDest Reg: 20
+0x00007ff8bd818140  17fffff4		b #-0x30 (addr 0x7ff8bd818110)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818110 (global)
+[34m[DBG] [0mDest Reg: 8
+0x00007ff8bd818110  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818114 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818114  7100051f		cmp w8, #0x1 (1)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818118 (global)
+[34m[DBG] [0mDest Reg: 1
+0x00007ff8bd818118  54000041		b.ne #+0x8 (addr 0x7ff8bd818120)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81811c (global)
+[34m[DBG] [0mDest Reg: 10
+0x00007ff8bd81811c  1400000a		b #+0x28 (addr 0x7ff8bd818144)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818144 (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd818144  b9400be0		ldr w0, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818148 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818148  910043ff		add sp, sp, #0x10 (16)
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81814c (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd81814c  d65f03c0		ret
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81816c (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd81816c  b9000be0		str w0, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818170 (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd818170  b9400be0		ldr w0, [sp, #8]
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818174 (global)
+[34m[DBG] [0mDest Reg: 31
+0x00007ff8bd818174  910003bf		mov sp, x29
+[34m[DBG] [0mFetching at pc: 0x7ff8bd818178 (global)
+[34m[DBG] [0mDest Reg: 29
+0x00007ff8bd818178  a8c17bfd		ldp x29, x30, [sp], #16
+[34m[DBG] [0mFetching at pc: 0x7ff8bd81817c (global)
+[34m[DBG] [0mDest Reg: 0
+0x00007ff8bd81817c  d65f03c0		ret
+[35m[MSG] [0mProgram has returned
+#    x0: 0x0000000000375f00
+[35m[MSG] [0m131 instructions in 524 cycles --> 0.25

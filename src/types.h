@@ -19,6 +19,7 @@ typedef struct
 {
     std::string inputFile           = "";
     bool interactive                = false;
+    bool pipelined                  = false;
     std::vector<uintptr_t> bpoints;
 } Options;
 
@@ -103,7 +104,7 @@ private:
 
         for (Elf64_Phdr phdr : phList)
         {
-            dbg("Program section: p_type(%.4d) p_flags(%.4d) p_offset(%.8x) p_vaddr(%.8x) p_paddr(%.8x) p_filesz(%.4d) p_memsz(%.4d) p_align(%.4d)\n",
+            prf("Program section: p_type(%.4d) p_flags(%.4d) p_offset(%.8x) p_vaddr(%.8x) p_paddr(%.8x) p_filesz(%.4d) p_memsz(%.4d) p_align(%.4d)\n",
                 phdr.p_type,
                 phdr.p_flags,
                 phdr.p_offset,
@@ -120,7 +121,7 @@ private:
 
             if (!binStream.read((char*) imgPtr, phdr.p_memsz))
                 die("Could not load Elf program section.\n");
-            dbg("Loaded %ld bytes at %p; base: %p\n",
+            prf("Loaded %ld bytes at %p; base: %p\n",
                 phdr.p_memsz, imgPtr, imgBase);
         }
 
@@ -175,6 +176,20 @@ public:
     // special purpose registers
     const Word * pc_;
 
+    // General purpose registers. Register 31 is the stack pointer.
+    // SimRegister registers_[kNumberOfRegisters];
+
+    // // Vector registers
+    // SimVRegister vregisters_[kNumberOfVRegisters];
+
+    // // Program Status Register.
+    // // bits[31, 27]: Condition flags N, Z, C, and V.
+    // //               (Negative, Zero, Carry, Overflow)
+    // SimSystemRegister nzcv_;
+
+    // // Floating-Point Control Register
+    // SimSystemRegister fpcr_;
+
     // general purpose registers
 
     ptrdiff_t getPcOffset() const;
@@ -196,7 +211,7 @@ private:
         Byte * mem = addPointers<Byte*>(imgBaseRoot_,
                                         (void*) (ADRP_ALIGNMMENT - (((uintptr_t) imgBaseRoot_) % ADRP_ALIGNMMENT)));
 
-        dbg("Copying %ld bytes from image to new base: %p\n",
+        prf("Copying %ld bytes from image to new base: %p\n",
             pi.imgSize_, mem);
         memcpy(mem, pi.image_, pi.imgSize_);
 

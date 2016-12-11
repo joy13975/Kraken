@@ -264,631 +264,14 @@ void Logic::set_trace_parameters(int parameters) {
 
 void Logic::set_instruction_stats(bool value) {
     if (value != instruction_stats_) {
-        if (value) {
-            decoder_->AppendVisitor(instrumentation_);
-        } else {
-            decoder_->RemoveVisitor(instrumentation_);
-        }
+        // if (value) {
+        //     decoder_->AppendVisitor(instrumentation_);
+        // } else {
+        //     decoder_->RemoveVisitor(instrumentation_);
+        // }
         instruction_stats_ = value;
     }
 }
-
-// Helpers ---------------------------------------------------------------------
-uint64_t Logic::AddWithCarry(unsigned reg_size,
-                             bool set_flags,
-                             uint64_t left,
-                             uint64_t right,
-                             int carry_in) {
-    VIXL_ASSERT((carry_in == 0) || (carry_in == 1));
-    VIXL_ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
-
-    uint64_t max_uint = (reg_size == kWRegSize) ? kWMaxUInt : kXMaxUInt;
-    uint64_t reg_mask = (reg_size == kWRegSize) ? kWRegMask : kXRegMask;
-    uint64_t sign_mask = (reg_size == kWRegSize) ? kWSignMask : kXSignMask;
-
-    left &= reg_mask;
-    right &= reg_mask;
-    uint64_t result = (left + right + carry_in) & reg_mask;
-
-    if (set_flags) {
-        nzcv().SetN(CalcNFlag(result, reg_size));
-        nzcv().SetZ(CalcZFlag(result));
-
-        // Compute the C flag by comparing the result to the max unsigned integer.
-        uint64_t max_uint_2op = max_uint - carry_in;
-        bool C = (left > max_uint_2op) || ((max_uint_2op - left) < right);
-        nzcv().SetC(C ? 1 : 0);
-
-        // Overflow iff the sign bit is the same for the two inputs and different
-        // for the result.
-        uint64_t left_sign = left & sign_mask;
-        uint64_t right_sign = right & sign_mask;
-        uint64_t result_sign = result & sign_mask;
-        bool V = (left_sign == right_sign) && (left_sign != result_sign);
-        nzcv().SetV(V ? 1 : 0);
-
-        LogSystemRegister(NZCV);
-    }
-    return result;
-}
-
-
-int64_t Logic::ShiftOperand(unsigned reg_size,
-                            int64_t value,
-                            Shift shift_type,
-                            unsigned amount) {
-    if (amount == 0) {
-        return value;
-    }
-    int64_t mask = reg_size == kXRegSize ? kXRegMask : kWRegMask;
-    switch (shift_type) {
-    case LSL:
-        return (value << amount) & mask;
-    case LSR:
-        return static_cast<uint64_t>(value) >> amount;
-    case ASR: {
-        // Shift used to restore the sign.
-        unsigned s_shift = kXRegSize - reg_size;
-        // Value with its sign restored.
-        int64_t s_value = (value << s_shift) >> s_shift;
-        return (s_value >> amount) & mask;
-    }
-    case ROR: {
-        if (reg_size == kWRegSize) {
-            value &= kWRegMask;
-        }
-        return (static_cast<uint64_t>(value) >> amount) |
-               ((value & ((INT64_C(1) << amount) - 1)) << (reg_size - amount));
-    }
-    default:
-        VIXL_UNIMPLEMENTED();
-        return 0;
-    }
-}
-
-
-int64_t Logic::ExtendValue(unsigned reg_size,
-                           int64_t value,
-                           Extend extend_type,
-                           unsigned left_shift) {
-    switch (extend_type) {
-    case UXTB:
-        value &= kByteMask;
-        break;
-    case UXTH:
-        value &= kHalfWordMask;
-        break;
-    case UXTW:
-        value &= kWordMask;
-        break;
-    case SXTB:
-        value = (value << 56) >> 56;
-        break;
-    case SXTH:
-        value = (value << 48) >> 48;
-        break;
-    case SXTW:
-        value = (value << 32) >> 32;
-        break;
-    case UXTX:
-    case SXTX:
-        break;
-    default:
-        VIXL_UNREACHABLE();
-    }
-    int64_t mask = (reg_size == kXRegSize) ? kXRegMask : kWRegMask;
-    return (value << left_shift) & mask;
-}
-
-
-void Logic::FPCompare(double val0, double val1, FPTrapFlags trap) {
-    AssertSupportedFPCR();
-
-    // TODO: This assumes that the C++ implementation handles comparisons in the
-    // way that we expect (as per AssertSupportedFPCR()).
-    bool process_exception = false;
-    if ((std::isnan(val0) != 0) || (std::isnan(val1) != 0)) {
-        nzcv().SetRawValue(FPUnorderedFlag);
-        if (IsSignallingNaN(val0) || IsSignallingNaN(val1) ||
-                (trap == EnableTrap)) {
-            process_exception = true;
-        }
-    } else if (val0 < val1) {
-        nzcv().SetRawValue(FPLessThanFlag);
-    } else if (val0 > val1) {
-        nzcv().SetRawValue(FPGreaterThanFlag);
-    } else if (val0 == val1) {
-        nzcv().SetRawValue(FPEqualFlag);
-    } else {
-        VIXL_UNREACHABLE();
-    }
-    LogSystemRegister(NZCV);
-    if (process_exception) FPProcessException();
-}
-
-
-Logic::PrintRegisterFormat Logic::GetPrintRegisterFormatForSize(
-    unsigned reg_size, unsigned lane_size) {
-    VIXL_ASSERT(reg_size >= lane_size);
-
-    uint32_t format = 0;
-    if (reg_size != lane_size) {
-        switch (reg_size) {
-        default:
-            VIXL_UNREACHABLE();
-            break;
-        case kQRegSizeInBytes:
-            format = kPrintRegAsQVector;
-            break;
-        case kDRegSizeInBytes:
-            format = kPrintRegAsDVector;
-            break;
-        }
-    }
-
-    switch (lane_size) {
-    default:
-        VIXL_UNREACHABLE();
-        break;
-    case kQRegSizeInBytes:
-        format |= kPrintReg1Q;
-        break;
-    case kDRegSizeInBytes:
-        format |= kPrintReg1D;
-        break;
-    case kSRegSizeInBytes:
-        format |= kPrintReg1S;
-        break;
-    case kHRegSizeInBytes:
-        format |= kPrintReg1H;
-        break;
-    case kBRegSizeInBytes:
-        format |= kPrintReg1B;
-        break;
-    }
-    // These sizes would be duplicate case labels.
-    VIXL_STATIC_ASSERT(kXRegSizeInBytes == kDRegSizeInBytes);
-    VIXL_STATIC_ASSERT(kWRegSizeInBytes == kSRegSizeInBytes);
-    VIXL_STATIC_ASSERT(kPrintXReg == kPrintReg1D);
-    VIXL_STATIC_ASSERT(kPrintWReg == kPrintReg1S);
-
-    return static_cast<PrintRegisterFormat>(format);
-}
-
-
-Logic::PrintRegisterFormat Logic::GetPrintRegisterFormat(
-    VectorFormat vform) {
-    switch (vform) {
-    default:
-        VIXL_UNREACHABLE();
-        return kPrintReg16B;
-    case kFormat16B:
-        return kPrintReg16B;
-    case kFormat8B:
-        return kPrintReg8B;
-    case kFormat8H:
-        return kPrintReg8H;
-    case kFormat4H:
-        return kPrintReg4H;
-    case kFormat4S:
-        return kPrintReg4S;
-    case kFormat2S:
-        return kPrintReg2S;
-    case kFormat2D:
-        return kPrintReg2D;
-    case kFormat1D:
-        return kPrintReg1D;
-
-    case kFormatB:
-        return kPrintReg1B;
-    case kFormatH:
-        return kPrintReg1H;
-    case kFormatS:
-        return kPrintReg1S;
-    case kFormatD:
-        return kPrintReg1D;
-    }
-}
-
-
-Logic::PrintRegisterFormat Logic::GetPrintRegisterFormatFP(
-    VectorFormat vform) {
-    switch (vform) {
-    default:
-        VIXL_UNREACHABLE();
-        return kPrintReg16B;
-    case kFormat4S:
-        return kPrintReg4SFP;
-    case kFormat2S:
-        return kPrintReg2SFP;
-    case kFormat2D:
-        return kPrintReg2DFP;
-    case kFormat1D:
-        return kPrintReg1DFP;
-
-    case kFormatS:
-        return kPrintReg1SFP;
-    case kFormatD:
-        return kPrintReg1DFP;
-    }
-}
-
-
-void Logic::PrintWrittenRegisters() {
-    for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-        if (registers_[i].WrittenSinceLastLog())
-            PrintRegister(i);
-    }
-}
-
-
-void Logic::PrintWrittenVRegisters() {
-    for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-        // At this point there is no type information, so print as a raw 1Q.
-        if (vregisters_[i].WrittenSinceLastLog()) PrintVRegister(i, kPrintReg1Q);
-    }
-}
-
-
-void Logic::PrintSystemRegisters() {
-    PrintSystemRegister(NZCV);
-    PrintSystemRegister(FPCR);
-}
-
-
-void Logic::PrintRegisters() {
-    for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-        PrintRegister(i);
-    }
-}
-
-
-void Logic::PrintVRegisters() {
-    for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-        // At this point there is no type information, so print as a raw 1Q.
-        PrintVRegister(i, kPrintReg1Q);
-    }
-}
-
-
-// Print a register's name and raw value.
-//
-// Only the least-significant `size_in_bytes` bytes of the register are printed,
-// but the value is aligned as if the whole register had been printed.
-//
-// For typical register updates, size_in_bytes should be set to kXRegSizeInBytes
-// -- the default -- so that the whole register is printed. Other values of
-// size_in_bytes are intended for use when the register hasn't actually been
-// updated (such as in PrintWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a memory access annotation).
-void Logic::PrintRegisterRawHelper(unsigned code,
-                                   Reg31Mode r31mode,
-                                   int size_in_bytes) {
-    // The template for all supported sizes.
-    //   "# x{code}: 0xffeeddccbbaa9988"
-    //   "# w{code}:         0xbbaa9988"
-    //   "# w{code}<15:0>:       0x9988"
-    //   "# w{code}<7:0>:          0x88"
-    unsigned padding_chars = (kXRegSizeInBytes - size_in_bytes) * 2;
-
-    const char* name = "";
-    const char* suffix = "";
-    switch (size_in_bytes) {
-    case kXRegSizeInBytes:
-        name = XRegNameForCode(code, r31mode);
-        break;
-    case kWRegSizeInBytes:
-        name = WRegNameForCode(code, r31mode);
-        break;
-    case 2:
-        name = WRegNameForCode(code, r31mode);
-        suffix = "<15:0>";
-        padding_chars -= strlen(suffix);
-        break;
-    case 1:
-        name = WRegNameForCode(code, r31mode);
-        suffix = "<7:0>";
-        padding_chars -= strlen(suffix);
-        break;
-    default:
-        VIXL_UNREACHABLE();
-    }
-    fprintf(stream_, "# %s%5s%s: ", clr_reg_name, name, suffix);
-
-    // Print leading padding spaces.
-    VIXL_ASSERT(padding_chars < (kXRegSizeInBytes * 2));
-    for (unsigned i = 0; i < padding_chars; i++) {
-        putc(' ', stream_);
-    }
-
-    // Print the specified bits in hexadecimal format.
-    uint64_t bits = reg<uint64_t>(code, r31mode);
-    bits &= kXRegMask >> ((kXRegSizeInBytes - size_in_bytes) * 8);
-    VIXL_STATIC_ASSERT(sizeof(bits) == kXRegSizeInBytes);
-
-    int chars = size_in_bytes * 2;
-    fprintf(stream_,
-            "%s0x%0*" PRIx64 "%s",
-            clr_reg_value,
-            chars,
-            bits,
-            clr_normal);
-}
-
-
-void Logic::PrintRegister(unsigned code, Reg31Mode r31mode) {
-    registers_[code].NotifyRegisterLogged();
-
-    // Don't print writes into xzr.
-    if ((code == kZeroRegCode) && (r31mode == Reg31IsZeroRegister)) {
-        return;
-    }
-
-    // The template for all x and w registers:
-    //   "# x{code}: 0x{value}"
-    //   "# w{code}: 0x{value}"
-
-    PrintRegisterRawHelper(code, r31mode);
-    fprintf(stream_, "\n");
-}
-
-
-// Print a register's name and raw value.
-//
-// The `bytes` and `lsb` arguments can be used to limit the bytes that are
-// printed. These arguments are intended for use in cases where register hasn't
-// actually been updated (such as in PrintVWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a floating-point interpretation or a memory access annotation).
-void Logic::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
-    // The template for vector types:
-    //   "# v{code}: 0xffeeddccbbaa99887766554433221100".
-    // An example with bytes=4 and lsb=8:
-    //   "# v{code}:         0xbbaa9988                ".
-    fprintf(stream_,
-            "# %s%5s: %s",
-            clr_vreg_name,
-            VRegNameForCode(code),
-            clr_vreg_value);
-
-    int msb = lsb + bytes - 1;
-    int byte = kQRegSizeInBytes - 1;
-
-    // Print leading padding spaces. (Two spaces per byte.)
-    while (byte > msb) {
-        fprintf(stream_, "  ");
-        byte--;
-    }
-
-    // Print the specified part of the value, byte by byte.
-    qreg_t rawbits = qreg(code);
-    fprintf(stream_, "0x");
-    while (byte >= lsb) {
-        fprintf(stream_, "%02x", rawbits.val[byte]);
-        byte--;
-    }
-
-    // Print trailing padding spaces.
-    while (byte >= 0) {
-        fprintf(stream_, "  ");
-        byte--;
-    }
-    fprintf(stream_, "%s", clr_normal);
-}
-
-
-// Print each of the specified lanes of a register as a float or double value.
-//
-// The `lane_count` and `lslane` arguments can be used to limit the lanes that
-// are printed. These arguments are intended for use in cases where register
-// hasn't actually been updated (such as in PrintVWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a memory access annotation).
-void Logic::PrintVRegisterFPHelper(unsigned code,
-                                   unsigned lane_size_in_bytes,
-                                   int lane_count,
-                                   int rightmost_lane) {
-    VIXL_ASSERT((lane_size_in_bytes == kSRegSizeInBytes) ||
-                (lane_size_in_bytes == kDRegSizeInBytes));
-
-    unsigned msb = ((lane_count + rightmost_lane) * lane_size_in_bytes);
-    VIXL_ASSERT(msb <= kQRegSizeInBytes);
-
-    // For scalar types ((lane_count == 1) && (rightmost_lane == 0)), a register
-    // name is used:
-    //   " (s{code}: {value})"
-    //   " (d{code}: {value})"
-    // For vector types, "..." is used to represent one or more omitted lanes.
-    //   " (..., {value}, {value}, ...)"
-    if ((lane_count == 1) && (rightmost_lane == 0)) {
-        const char* name = (lane_size_in_bytes == kSRegSizeInBytes)
-                           ? SRegNameForCode(code)
-                           : DRegNameForCode(code);
-        fprintf(stream_, " (%s%s: ", clr_vreg_name, name);
-    } else {
-        if (msb < (kQRegSizeInBytes - 1)) {
-            fprintf(stream_, " (..., ");
-        } else {
-            fprintf(stream_, " (");
-        }
-    }
-
-    // Print the list of values.
-    const char* separator = "";
-    int leftmost_lane = rightmost_lane + lane_count - 1;
-    for (int lane = leftmost_lane; lane >= rightmost_lane; lane--) {
-        double value = (lane_size_in_bytes == kSRegSizeInBytes)
-                       ? vreg(code).Get<float>(lane)
-                       : vreg(code).Get<double>(lane);
-        fprintf(stream_, "%s%s%#g%s", separator, clr_vreg_value, value, clr_normal);
-        separator = ", ";
-    }
-
-    if (rightmost_lane > 0) {
-        fprintf(stream_, ", ...");
-    }
-    fprintf(stream_, ")");
-}
-
-
-void Logic::PrintVRegister(unsigned code, PrintRegisterFormat format) {
-    vregisters_[code].NotifyRegisterLogged();
-
-    int lane_size_log2 = format & kPrintRegLaneSizeMask;
-
-    int reg_size_log2;
-    if (format & kPrintRegAsQVector) {
-        reg_size_log2 = kQRegSizeInBytesLog2;
-    } else if (format & kPrintRegAsDVector) {
-        reg_size_log2 = kDRegSizeInBytesLog2;
-    } else {
-        // Scalar types.
-        reg_size_log2 = lane_size_log2;
-    }
-
-    int lane_count = 1 << (reg_size_log2 - lane_size_log2);
-    int lane_size = 1 << lane_size_log2;
-
-    // The template for vector types:
-    //   "# v{code}: 0x{rawbits} (..., {value}, ...)".
-    // The template for scalar types:
-    //   "# v{code}: 0x{rawbits} ({reg}:{value})".
-    // The values in parentheses after the bit representations are floating-point
-    // interpretations. They are displayed only if the kPrintVRegAsFP bit is set.
-
-    PrintVRegisterRawHelper(code);
-    if (format & kPrintRegAsFP) {
-        PrintVRegisterFPHelper(code, lane_size, lane_count);
-    }
-
-    fprintf(stream_, "\n");
-}
-
-
-void Logic::PrintSystemRegister(SystemRegister id) {
-    switch (id) {
-    case NZCV:
-        fprintf(stream_,
-                "# %sNZCV: %sN:%d Z:%d C:%d V:%d%s\n",
-                clr_flag_name,
-                clr_flag_value,
-                nzcv().N(),
-                nzcv().Z(),
-                nzcv().C(),
-                nzcv().V(),
-                clr_normal);
-        break;
-    case FPCR: {
-        static const char* rmode[] = {"0b00 (Round to Nearest)",
-                                      "0b01 (Round towards Plus Infinity)",
-                                      "0b10 (Round towards Minus Infinity)",
-                                      "0b11 (Round towards Zero)"
-                                     };
-        VIXL_ASSERT(fpcr().RMode() < (sizeof(rmode) / sizeof(rmode[0])));
-        fprintf(stream_,
-                "# %sFPCR: %sAHP:%d DN:%d FZ:%d RMode:%s%s\n",
-                clr_flag_name,
-                clr_flag_value,
-                fpcr().AHP(),
-                fpcr().DN(),
-                fpcr().FZ(),
-                rmode[fpcr().RMode()],
-                clr_normal);
-        break;
-    }
-    default:
-        VIXL_UNREACHABLE();
-    }
-}
-
-
-void Logic::PrintRead(uintptr_t address,
-                      unsigned reg_code,
-                      PrintRegisterFormat format) {
-    registers_[reg_code].NotifyRegisterLogged();
-
-    USE(format);
-
-    // The template is "# {reg}: 0x{value} <- {address}".
-    PrintRegisterRawHelper(reg_code, Reg31IsZeroRegister);
-    fprintf(stream_,
-            " <- %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-}
-
-
-void Logic::PrintVRead(uintptr_t address,
-                       unsigned reg_code,
-                       PrintRegisterFormat format,
-                       unsigned lane) {
-    vregisters_[reg_code].NotifyRegisterLogged();
-
-    // The template is "# v{code}: 0x{rawbits} <- address".
-    PrintVRegisterRawHelper(reg_code);
-    if (format & kPrintRegAsFP) {
-        PrintVRegisterFPHelper(reg_code,
-                               GetPrintRegLaneSizeInBytes(format),
-                               GetPrintRegLaneCount(format),
-                               lane);
-    }
-    fprintf(stream_,
-            " <- %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-}
-
-
-void Logic::PrintWrite(uintptr_t address,
-                       unsigned reg_code,
-                       PrintRegisterFormat format) {
-    VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-
-    // The template is "# v{code}: 0x{value} -> {address}". To keep the trace tidy
-    // and readable, the value is aligned with the values in the register trace.
-    PrintRegisterRawHelper(reg_code,
-                           Reg31IsZeroRegister,
-                           GetPrintRegSizeInBytes(format));
-    fprintf(stream_,
-            " -> %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-}
-
-
-void Logic::PrintVWrite(uintptr_t address,
-                        unsigned reg_code,
-                        PrintRegisterFormat format,
-                        unsigned lane) {
-    // The templates:
-    //   "# v{code}: 0x{rawbits} -> {address}"
-    //   "# v{code}: 0x{rawbits} (..., {value}, ...) -> {address}".
-    //   "# v{code}: 0x{rawbits} ({reg}:{value}) -> {address}"
-    // Because this trace doesn't represent a change to the source register's
-    // value, only the relevant part of the value is printed. To keep the trace
-    // tidy and readable, the raw value is aligned with the other values in the
-    // register trace.
-    int lane_count = GetPrintRegLaneCount(format);
-    int lane_size = GetPrintRegLaneSizeInBytes(format);
-    int reg_size = GetPrintRegSizeInBytes(format);
-    PrintVRegisterRawHelper(reg_code, reg_size, lane_size * lane);
-    if (format & kPrintRegAsFP) {
-        PrintVRegisterFPHelper(reg_code, lane_size, lane_count, lane);
-    }
-    fprintf(stream_,
-            " -> %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-}
-
 
 // Visitors---------------------------------------------------------------------
 
@@ -1001,38 +384,6 @@ void Logic::VisitCompareBranch(const Instruction* instr) {
 }
 
 
-void Logic::AddSubHelper(const Instruction* instr, int64_t op2) {
-    unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
-    bool set_flags = instr->FlagsUpdate();
-    int64_t new_val = 0;
-    Instr operation = instr->Mask(AddSubOpMask);
-
-    switch (operation) {
-    case ADD:
-    case ADDS: {
-        new_val = AddWithCarry(reg_size,
-                               set_flags,
-                               reg(reg_size, instr->Rn(), instr->RnMode()),
-                               op2);
-        break;
-    }
-    case SUB:
-    case SUBS: {
-        new_val = AddWithCarry(reg_size,
-                               set_flags,
-                               reg(reg_size, instr->Rn(), instr->RnMode()),
-                               ~op2,
-                               1);
-        break;
-    }
-    default:
-        VIXL_UNREACHABLE();
-    }
-
-    set_reg(reg_size, instr->Rd(), new_val, LogRegWrites, instr->RdMode());
-}
-
-
 void Logic::VisitAddSubShifted(const Instruction* instr) {
     unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
     int64_t op2 = ShiftOperand(reg_size,
@@ -1098,43 +449,6 @@ void Logic::VisitLogicalImmediate(const Instruction* instr) {
 }
 
 
-void Logic::LogicalHelper(const Instruction* instr, int64_t op2) {
-    unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
-    int64_t op1 = reg(reg_size, instr->Rn());
-    int64_t result = 0;
-    bool update_flags = false;
-
-    // Switch on the logical operation, stripping out the NOT bit, as it has a
-    // different meaning for logical immediate instructions.
-    switch (instr->Mask(LogicalOpMask & ~NOT)) {
-    case ANDS:
-        update_flags = true;
-        VIXL_FALLTHROUGH();
-    case AND:
-        result = op1 & op2;
-        break;
-    case ORR:
-        result = op1 | op2;
-        break;
-    case EOR:
-        result = op1 ^ op2;
-        break;
-    default:
-        VIXL_UNIMPLEMENTED();
-    }
-
-    if (update_flags) {
-        nzcv().SetN(CalcNFlag(result, reg_size));
-        nzcv().SetZ(CalcZFlag(result));
-        nzcv().SetC(0);
-        nzcv().SetV(0);
-        LogSystemRegister(NZCV);
-    }
-
-    set_reg(reg_size, instr->Rd(), result, LogRegWrites, instr->RdMode());
-}
-
-
 void Logic::VisitConditionalCompareRegister(const Instruction* instr) {
     unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
     ConditionalCompareHelper(instr, reg(reg_size, instr->Rm()));
@@ -1143,28 +457,6 @@ void Logic::VisitConditionalCompareRegister(const Instruction* instr) {
 
 void Logic::VisitConditionalCompareImmediate(const Instruction* instr) {
     ConditionalCompareHelper(instr, instr->ImmCondCmp());
-}
-
-
-void Logic::ConditionalCompareHelper(const Instruction* instr,
-                                     int64_t op2) {
-    unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
-    int64_t op1 = reg(reg_size, instr->Rn());
-
-    if (ConditionPassed(instr->Condition())) {
-        // If the condition passes, set the status flags to the result of comparing
-        // the operands.
-        if (instr->Mask(ConditionalCompareMask) == CCMP) {
-            AddWithCarry(reg_size, true, op1, ~op2, 1);
-        } else {
-            VIXL_ASSERT(instr->Mask(ConditionalCompareMask) == CCMN);
-            AddWithCarry(reg_size, true, op1, op2, 0);
-        }
-    } else {
-        // If the condition fails, set the status flags to the nzcv immediate.
-        nzcv().SetFlags(instr->Nzcv());
-        LogSystemRegister(NZCV);
-    }
 }
 
 
@@ -1199,118 +491,6 @@ void Logic::VisitLoadStoreRegisterOffset(const Instruction* instr) {
 }
 
 
-void Logic::LoadStoreHelper(const Instruction* instr,
-                            int64_t offset,
-                            AddrMode addrmode) {
-    unsigned srcdst = instr->Rt();
-    uintptr_t address = AddressModeHelper(instr->Rn(), offset, addrmode);
-
-    LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreMask));
-    switch (op) {
-    case LDRB_w:
-        set_wreg(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
-        break;
-    case LDRH_w:
-        set_wreg(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
-        break;
-    case LDR_w:
-        set_wreg(srcdst, Memory::Read<uint32_t>(address), NoRegLog);
-        break;
-    case LDR_x:
-        set_xreg(srcdst, Memory::Read<uint64_t>(address), NoRegLog);
-        break;
-    case LDRSB_w:
-        set_wreg(srcdst, Memory::Read<int8_t>(address), NoRegLog);
-        break;
-    case LDRSH_w:
-        set_wreg(srcdst, Memory::Read<int16_t>(address), NoRegLog);
-        break;
-    case LDRSB_x:
-        set_xreg(srcdst, Memory::Read<int8_t>(address), NoRegLog);
-        break;
-    case LDRSH_x:
-        set_xreg(srcdst, Memory::Read<int16_t>(address), NoRegLog);
-        break;
-    case LDRSW_x:
-        set_xreg(srcdst, Memory::Read<int32_t>(address), NoRegLog);
-        break;
-    case LDR_b:
-        set_breg(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
-        break;
-    case LDR_h:
-        set_hreg(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
-        break;
-    case LDR_s:
-        set_sreg(srcdst, Memory::Read<float>(address), NoRegLog);
-        break;
-    case LDR_d:
-        set_dreg(srcdst, Memory::Read<double>(address), NoRegLog);
-        break;
-    case LDR_q:
-        set_qreg(srcdst, Memory::Read<qreg_t>(address), NoRegLog);
-        break;
-
-    case STRB_w:
-        Memory::Write<uint8_t>(address, wreg(srcdst));
-        break;
-    case STRH_w:
-        Memory::Write<uint16_t>(address, wreg(srcdst));
-        break;
-    case STR_w:
-        Memory::Write<uint32_t>(address, wreg(srcdst));
-        break;
-    case STR_x:
-        Memory::Write<uint64_t>(address, xreg(srcdst));
-        break;
-    case STR_b:
-        Memory::Write<uint8_t>(address, breg(srcdst));
-        break;
-    case STR_h:
-        Memory::Write<uint16_t>(address, hreg(srcdst));
-        break;
-    case STR_s:
-        Memory::Write<float>(address, sreg(srcdst));
-        break;
-    case STR_d:
-        Memory::Write<double>(address, dreg(srcdst));
-        break;
-    case STR_q:
-        Memory::Write<qreg_t>(address, qreg(srcdst));
-        break;
-
-    // Ignore prfm hint instructions.
-    case PRFM:
-        break;
-
-    default:
-        VIXL_UNIMPLEMENTED();
-    }
-
-    unsigned access_size = 1 << instr->SizeLS();
-    if (instr->IsLoad()) {
-        if ((op == LDR_s) || (op == LDR_d)) {
-            LogVRead(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
-        } else if ((op == LDR_b) || (op == LDR_h) || (op == LDR_q)) {
-            LogVRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
-        } else {
-            LogRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
-        }
-    } else if (instr->IsStore()) {
-        if ((op == STR_s) || (op == STR_d)) {
-            LogVWrite(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
-        } else if ((op == STR_b) || (op == STR_h) || (op == STR_q)) {
-            LogVWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
-        } else {
-            LogWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
-        }
-    } else {
-        VIXL_ASSERT(op == PRFM);
-    }
-
-    local_monitor_.MaybeClear();
-}
-
-
 void Logic::VisitLoadStorePairOffset(const Instruction* instr) {
     LoadStorePairHelper(instr, Offset);
 }
@@ -1328,113 +508,6 @@ void Logic::VisitLoadStorePairPostIndex(const Instruction* instr) {
 
 void Logic::VisitLoadStorePairNonTemporal(const Instruction* instr) {
     LoadStorePairHelper(instr, Offset);
-}
-
-
-void Logic::LoadStorePairHelper(const Instruction* instr,
-                                AddrMode addrmode) {
-    unsigned rt = instr->Rt();
-    unsigned rt2 = instr->Rt2();
-    int element_size = 1 << instr->SizeLSPair();
-    int64_t offset = instr->ImmLSPair() * element_size;
-    uintptr_t address = AddressModeHelper(instr->Rn(), offset, addrmode);
-    uintptr_t address2 = address + element_size;
-
-    LoadStorePairOp op =
-        static_cast<LoadStorePairOp>(instr->Mask(LoadStorePairMask));
-
-    // 'rt' and 'rt2' can only be aliased for stores.
-    VIXL_ASSERT(((op & LoadStorePairLBit) == 0) || (rt != rt2));
-
-    switch (op) {
-    // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
-    // will print a more detailed log.
-    case LDP_w: {
-        set_wreg(rt, Memory::Read<uint32_t>(address), NoRegLog);
-        set_wreg(rt2, Memory::Read<uint32_t>(address2), NoRegLog);
-        break;
-    }
-    case LDP_s: {
-        set_sreg(rt, Memory::Read<float>(address), NoRegLog);
-        set_sreg(rt2, Memory::Read<float>(address2), NoRegLog);
-        break;
-    }
-    case LDP_x: {
-        set_xreg(rt, Memory::Read<uint64_t>(address), NoRegLog);
-        set_xreg(rt2, Memory::Read<uint64_t>(address2), NoRegLog);
-        break;
-    }
-    case LDP_d: {
-        set_dreg(rt, Memory::Read<double>(address), NoRegLog);
-        set_dreg(rt2, Memory::Read<double>(address2), NoRegLog);
-        break;
-    }
-    case LDP_q: {
-        set_qreg(rt, Memory::Read<qreg_t>(address), NoRegLog);
-        set_qreg(rt2, Memory::Read<qreg_t>(address2), NoRegLog);
-        break;
-    }
-    case LDPSW_x: {
-        set_xreg(rt, Memory::Read<int32_t>(address), NoRegLog);
-        set_xreg(rt2, Memory::Read<int32_t>(address2), NoRegLog);
-        break;
-    }
-    case STP_w: {
-        Memory::Write<uint32_t>(address, wreg(rt));
-        Memory::Write<uint32_t>(address2, wreg(rt2));
-        break;
-    }
-    case STP_s: {
-        Memory::Write<float>(address, sreg(rt));
-        Memory::Write<float>(address2, sreg(rt2));
-        break;
-    }
-    case STP_x: {
-        Memory::Write<uint64_t>(address, xreg(rt));
-        Memory::Write<uint64_t>(address2, xreg(rt2));
-        break;
-    }
-    case STP_d: {
-        Memory::Write<double>(address, dreg(rt));
-        Memory::Write<double>(address2, dreg(rt2));
-        break;
-    }
-    case STP_q: {
-        Memory::Write<qreg_t>(address, qreg(rt));
-        Memory::Write<qreg_t>(address2, qreg(rt2));
-        break;
-    }
-    default:
-        VIXL_UNREACHABLE();
-    }
-
-    // Print a detailed trace (including the memory address) instead of the basic
-    // register:value trace generated by set_*reg().
-    if (instr->IsLoad()) {
-        if ((op == LDP_s) || (op == LDP_d)) {
-            LogVRead(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
-            LogVRead(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
-        } else if (op == LDP_q) {
-            LogVRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-            LogVRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
-        } else {
-            LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-            LogRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
-        }
-    } else {
-        if ((op == STP_s) || (op == STP_d)) {
-            LogVWrite(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
-            LogVWrite(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
-        } else if (op == STP_q) {
-            LogVWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-            LogVWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
-        } else {
-            LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-            LogWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
-        }
-    }
-
-    local_monitor_.MaybeClear();
 }
 
 
@@ -1652,38 +725,6 @@ void Logic::VisitLoadLiteral(const Instruction* instr) {
     }
 
     local_monitor_.MaybeClear();
-}
-
-
-uintptr_t Logic::AddressModeHelper(unsigned addr_reg,
-                                   int64_t offset,
-                                   AddrMode addrmode) {
-    uint64_t address = xreg(addr_reg, Reg31IsStackPointer);
-
-    if ((addr_reg == 31) && ((address % 16) != 0)) {
-        // When the base register is SP the stack pointer is required to be
-        // quadword aligned prior to the address calculation and write-backs.
-        // Misalignment will cause a stack alignment fault.
-        VIXL_ALIGNMENT_EXCEPTION();
-    }
-
-    if ((addrmode == PreIndex) || (addrmode == PostIndex)) {
-        VIXL_ASSERT(offset != 0);
-        // Only preindex should log the register update here. For Postindex, the
-        // update will be printed automatically by LogWrittenRegisters _after_ the
-        // memory access itself is logged.
-        RegLogMode log_mode = (addrmode == PreIndex) ? LogRegWrites : NoRegLog;
-        set_xreg(addr_reg, address + offset, log_mode, Reg31IsStackPointer);
-    }
-
-    if ((addrmode == Offset) || (addrmode == PreIndex)) {
-        address += offset;
-    }
-
-    // Verify that the calculated address is available to the host.
-    VIXL_ASSERT(address == static_cast<uintptr_t>(address));
-
-    return static_cast<uintptr_t>(address);
 }
 
 
@@ -3743,134 +2784,6 @@ void Logic::VisitNEONExtract(const Instruction* instr) {
 }
 
 
-void Logic::NEONLoadStoreMultiStructHelper(const Instruction* instr,
-        AddrMode addr_mode) {
-    NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
-    VectorFormat vf = nfd.GetVectorFormat();
-
-    uint64_t addr_base = xreg(instr->Rn(), Reg31IsStackPointer);
-    int reg_size = RegisterSizeInBytesFromFormat(vf);
-
-    int reg[4];
-    uint64_t addr[4];
-    for (int i = 0; i < 4; i++) {
-        reg[i] = (instr->Rt() + i) % kNumberOfVRegisters;
-        addr[i] = addr_base + (i * reg_size);
-    }
-    int count = 1;
-    bool log_read = true;
-
-    Instr itype = instr->Mask(NEONLoadStoreMultiStructMask);
-    if (((itype == NEON_LD1_1v) || (itype == NEON_LD1_2v) ||
-            (itype == NEON_LD1_3v) || (itype == NEON_LD1_4v) ||
-            (itype == NEON_ST1_1v) || (itype == NEON_ST1_2v) ||
-            (itype == NEON_ST1_3v) || (itype == NEON_ST1_4v)) &&
-            (instr->Bits(20, 16) != 0)) {
-        VIXL_UNREACHABLE();
-    }
-
-    // We use the PostIndex mask here, as it works in this case for both Offset
-    // and PostIndex addressing.
-    switch (instr->Mask(NEONLoadStoreMultiStructPostIndexMask)) {
-    case NEON_LD1_4v:
-    case NEON_LD1_4v_post:
-        ld1(vf, vreg(reg[3]), addr[3]);
-        count++;
-        VIXL_FALLTHROUGH();
-    case NEON_LD1_3v:
-    case NEON_LD1_3v_post:
-        ld1(vf, vreg(reg[2]), addr[2]);
-        count++;
-        VIXL_FALLTHROUGH();
-    case NEON_LD1_2v:
-    case NEON_LD1_2v_post:
-        ld1(vf, vreg(reg[1]), addr[1]);
-        count++;
-        VIXL_FALLTHROUGH();
-    case NEON_LD1_1v:
-    case NEON_LD1_1v_post:
-        ld1(vf, vreg(reg[0]), addr[0]);
-        break;
-    case NEON_ST1_4v:
-    case NEON_ST1_4v_post:
-        st1(vf, vreg(reg[3]), addr[3]);
-        count++;
-        VIXL_FALLTHROUGH();
-    case NEON_ST1_3v:
-    case NEON_ST1_3v_post:
-        st1(vf, vreg(reg[2]), addr[2]);
-        count++;
-        VIXL_FALLTHROUGH();
-    case NEON_ST1_2v:
-    case NEON_ST1_2v_post:
-        st1(vf, vreg(reg[1]), addr[1]);
-        count++;
-        VIXL_FALLTHROUGH();
-    case NEON_ST1_1v:
-    case NEON_ST1_1v_post:
-        st1(vf, vreg(reg[0]), addr[0]);
-        log_read = false;
-        break;
-    case NEON_LD2_post:
-    case NEON_LD2:
-        ld2(vf, vreg(reg[0]), vreg(reg[1]), addr[0]);
-        count = 2;
-        break;
-    case NEON_ST2:
-    case NEON_ST2_post:
-        st2(vf, vreg(reg[0]), vreg(reg[1]), addr[0]);
-        count = 2;
-        break;
-    case NEON_LD3_post:
-    case NEON_LD3:
-        ld3(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), addr[0]);
-        count = 3;
-        break;
-    case NEON_ST3:
-    case NEON_ST3_post:
-        st3(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), addr[0]);
-        count = 3;
-        break;
-    case NEON_ST4:
-    case NEON_ST4_post:
-        st4(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), vreg(reg[3]), addr[0]);
-        count = 4;
-        break;
-    case NEON_LD4_post:
-    case NEON_LD4:
-        ld4(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), vreg(reg[3]), addr[0]);
-        count = 4;
-        break;
-    default:
-        VIXL_UNIMPLEMENTED();
-    }
-
-    // Explicitly log the register update whilst we have type information.
-    for (int i = 0; i < count; i++) {
-        // For de-interleaving loads, only print the base address.
-        int lane_size = LaneSizeInBytesFromFormat(vf);
-        PrintRegisterFormat format = GetPrintRegisterFormatTryFP(
-                                         GetPrintRegisterFormatForSize(reg_size, lane_size));
-        if (log_read) {
-            LogVRead(addr_base, reg[i], format);
-        } else {
-            LogVWrite(addr_base, reg[i], format);
-        }
-    }
-
-    if (addr_mode == PostIndex) {
-        int rm = instr->Rm();
-        // The immediate post index addressing mode is indicated by rm = 31.
-        // The immediate is implied by the number of vector registers used.
-        addr_base +=
-            (rm == 31) ? RegisterSizeInBytesFromFormat(vf) * count : xreg(rm);
-        set_xreg(instr->Rn(), addr_base);
-    } else {
-        VIXL_ASSERT(addr_mode == Offset);
-    }
-}
-
-
 void Logic::VisitNEONLoadStoreMultiStruct(const Instruction* instr) {
     NEONLoadStoreMultiStructHelper(instr, Offset);
 }
@@ -3879,214 +2792,6 @@ void Logic::VisitNEONLoadStoreMultiStruct(const Instruction* instr) {
 void Logic::VisitNEONLoadStoreMultiStructPostIndex(
     const Instruction* instr) {
     NEONLoadStoreMultiStructHelper(instr, PostIndex);
-}
-
-
-void Logic::NEONLoadStoreSingleStructHelper(const Instruction* instr,
-        AddrMode addr_mode) {
-    uint64_t addr = xreg(instr->Rn(), Reg31IsStackPointer);
-    int rt = instr->Rt();
-
-    Instr itype = instr->Mask(NEONLoadStoreSingleStructMask);
-    if (((itype == NEON_LD1_b) || (itype == NEON_LD1_h) ||
-            (itype == NEON_LD1_s) || (itype == NEON_LD1_d)) &&
-            (instr->Bits(20, 16) != 0)) {
-        VIXL_UNREACHABLE();
-    }
-
-    // We use the PostIndex mask here, as it works in this case for both Offset
-    // and PostIndex addressing.
-    bool do_load = false;
-
-    NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
-    VectorFormat vf_t = nfd.GetVectorFormat();
-
-    VectorFormat vf = kFormat16B;
-    switch (instr->Mask(NEONLoadStoreSingleStructPostIndexMask)) {
-    case NEON_LD1_b:
-    case NEON_LD1_b_post:
-    case NEON_LD2_b:
-    case NEON_LD2_b_post:
-    case NEON_LD3_b:
-    case NEON_LD3_b_post:
-    case NEON_LD4_b:
-    case NEON_LD4_b_post:
-        do_load = true;
-        VIXL_FALLTHROUGH();
-    case NEON_ST1_b:
-    case NEON_ST1_b_post:
-    case NEON_ST2_b:
-    case NEON_ST2_b_post:
-    case NEON_ST3_b:
-    case NEON_ST3_b_post:
-    case NEON_ST4_b:
-    case NEON_ST4_b_post:
-        break;
-
-    case NEON_LD1_h:
-    case NEON_LD1_h_post:
-    case NEON_LD2_h:
-    case NEON_LD2_h_post:
-    case NEON_LD3_h:
-    case NEON_LD3_h_post:
-    case NEON_LD4_h:
-    case NEON_LD4_h_post:
-        do_load = true;
-        VIXL_FALLTHROUGH();
-    case NEON_ST1_h:
-    case NEON_ST1_h_post:
-    case NEON_ST2_h:
-    case NEON_ST2_h_post:
-    case NEON_ST3_h:
-    case NEON_ST3_h_post:
-    case NEON_ST4_h:
-    case NEON_ST4_h_post:
-        vf = kFormat8H;
-        break;
-    case NEON_LD1_s:
-    case NEON_LD1_s_post:
-    case NEON_LD2_s:
-    case NEON_LD2_s_post:
-    case NEON_LD3_s:
-    case NEON_LD3_s_post:
-    case NEON_LD4_s:
-    case NEON_LD4_s_post:
-        do_load = true;
-        VIXL_FALLTHROUGH();
-    case NEON_ST1_s:
-    case NEON_ST1_s_post:
-    case NEON_ST2_s:
-    case NEON_ST2_s_post:
-    case NEON_ST3_s:
-    case NEON_ST3_s_post:
-    case NEON_ST4_s:
-    case NEON_ST4_s_post: {
-        VIXL_STATIC_ASSERT((NEON_LD1_s | (1 << NEONLSSize_offset)) == NEON_LD1_d);
-        VIXL_STATIC_ASSERT((NEON_LD1_s_post | (1 << NEONLSSize_offset)) ==
-                           NEON_LD1_d_post);
-        VIXL_STATIC_ASSERT((NEON_ST1_s | (1 << NEONLSSize_offset)) == NEON_ST1_d);
-        VIXL_STATIC_ASSERT((NEON_ST1_s_post | (1 << NEONLSSize_offset)) ==
-                           NEON_ST1_d_post);
-        vf = ((instr->NEONLSSize() & 1) == 0) ? kFormat4S : kFormat2D;
-        break;
-    }
-
-    case NEON_LD1R:
-    case NEON_LD1R_post: {
-        vf = vf_t;
-        ld1r(vf, vreg(rt), addr);
-        do_load = true;
-        break;
-    }
-
-    case NEON_LD2R:
-    case NEON_LD2R_post: {
-        vf = vf_t;
-        int rt2 = (rt + 1) % kNumberOfVRegisters;
-        ld2r(vf, vreg(rt), vreg(rt2), addr);
-        do_load = true;
-        break;
-    }
-
-    case NEON_LD3R:
-    case NEON_LD3R_post: {
-        vf = vf_t;
-        int rt2 = (rt + 1) % kNumberOfVRegisters;
-        int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-        ld3r(vf, vreg(rt), vreg(rt2), vreg(rt3), addr);
-        do_load = true;
-        break;
-    }
-
-    case NEON_LD4R:
-    case NEON_LD4R_post: {
-        vf = vf_t;
-        int rt2 = (rt + 1) % kNumberOfVRegisters;
-        int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-        int rt4 = (rt3 + 1) % kNumberOfVRegisters;
-        ld4r(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), addr);
-        do_load = true;
-        break;
-    }
-    default:
-        VIXL_UNIMPLEMENTED();
-    }
-
-    PrintRegisterFormat print_format =
-        GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
-    // Make sure that the print_format only includes a single lane.
-    print_format =
-        static_cast<PrintRegisterFormat>(print_format & ~kPrintRegAsVectorMask);
-
-    int esize = LaneSizeInBytesFromFormat(vf);
-    int index_shift = LaneSizeInBytesLog2FromFormat(vf);
-    int lane = instr->NEONLSIndex(index_shift);
-    int scale = 0;
-    int rt2 = (rt + 1) % kNumberOfVRegisters;
-    int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-    int rt4 = (rt3 + 1) % kNumberOfVRegisters;
-    switch (instr->Mask(NEONLoadStoreSingleLenMask)) {
-    case NEONLoadStoreSingle1:
-        scale = 1;
-        if (do_load) {
-            ld1(vf, vreg(rt), lane, addr);
-            LogVRead(addr, rt, print_format, lane);
-        } else {
-            st1(vf, vreg(rt), lane, addr);
-            LogVWrite(addr, rt, print_format, lane);
-        }
-        break;
-    case NEONLoadStoreSingle2:
-        scale = 2;
-        if (do_load) {
-            ld2(vf, vreg(rt), vreg(rt2), lane, addr);
-            LogVRead(addr, rt, print_format, lane);
-            LogVRead(addr + esize, rt2, print_format, lane);
-        } else {
-            st2(vf, vreg(rt), vreg(rt2), lane, addr);
-            LogVWrite(addr, rt, print_format, lane);
-            LogVWrite(addr + esize, rt2, print_format, lane);
-        }
-        break;
-    case NEONLoadStoreSingle3:
-        scale = 3;
-        if (do_load) {
-            ld3(vf, vreg(rt), vreg(rt2), vreg(rt3), lane, addr);
-            LogVRead(addr, rt, print_format, lane);
-            LogVRead(addr + esize, rt2, print_format, lane);
-            LogVRead(addr + (2 * esize), rt3, print_format, lane);
-        } else {
-            st3(vf, vreg(rt), vreg(rt2), vreg(rt3), lane, addr);
-            LogVWrite(addr, rt, print_format, lane);
-            LogVWrite(addr + esize, rt2, print_format, lane);
-            LogVWrite(addr + (2 * esize), rt3, print_format, lane);
-        }
-        break;
-    case NEONLoadStoreSingle4:
-        scale = 4;
-        if (do_load) {
-            ld4(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), lane, addr);
-            LogVRead(addr, rt, print_format, lane);
-            LogVRead(addr + esize, rt2, print_format, lane);
-            LogVRead(addr + (2 * esize), rt3, print_format, lane);
-            LogVRead(addr + (3 * esize), rt4, print_format, lane);
-        } else {
-            st4(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), lane, addr);
-            LogVWrite(addr, rt, print_format, lane);
-            LogVWrite(addr + esize, rt2, print_format, lane);
-            LogVWrite(addr + (2 * esize), rt3, print_format, lane);
-            LogVWrite(addr + (3 * esize), rt4, print_format, lane);
-        }
-        break;
-    default:
-        VIXL_UNIMPLEMENTED();
-    }
-
-    if (addr_mode == PostIndex) {
-        int rm = instr->Rm();
-        int lane_size = LaneSizeInBytesFromFormat(vf);
-        set_xreg(instr->Rn(), addr + ((rm == 31) ? (scale * lane_size) : xreg(rm)));
-    }
 }
 
 
@@ -4971,6 +3676,1302 @@ void Logic::VisitNEONPerm(const Instruction* instr) {
         break;
     default:
         VIXL_UNIMPLEMENTED();
+    }
+}
+
+// Helpers ---------------------------------------------------------------------
+uint64_t Logic::AddWithCarry(unsigned reg_size,
+                             bool set_flags,
+                             uint64_t left,
+                             uint64_t right,
+                             int carry_in) {
+    VIXL_ASSERT((carry_in == 0) || (carry_in == 1));
+    VIXL_ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
+
+    uint64_t max_uint = (reg_size == kWRegSize) ? kWMaxUInt : kXMaxUInt;
+    uint64_t reg_mask = (reg_size == kWRegSize) ? kWRegMask : kXRegMask;
+    uint64_t sign_mask = (reg_size == kWRegSize) ? kWSignMask : kXSignMask;
+
+    left &= reg_mask;
+    right &= reg_mask;
+    uint64_t result = (left + right + carry_in) & reg_mask;
+
+    if (set_flags) {
+        nzcv().SetN(CalcNFlag(result, reg_size));
+        nzcv().SetZ(CalcZFlag(result));
+
+        // Compute the C flag by comparing the result to the max unsigned integer.
+        uint64_t max_uint_2op = max_uint - carry_in;
+        bool C = (left > max_uint_2op) || ((max_uint_2op - left) < right);
+        nzcv().SetC(C ? 1 : 0);
+
+        // Overflow iff the sign bit is the same for the two inputs and different
+        // for the result.
+        uint64_t left_sign = left & sign_mask;
+        uint64_t right_sign = right & sign_mask;
+        uint64_t result_sign = result & sign_mask;
+        bool V = (left_sign == right_sign) && (left_sign != result_sign);
+        nzcv().SetV(V ? 1 : 0);
+
+        LogSystemRegister(NZCV);
+    }
+    return result;
+}
+
+
+int64_t Logic::ShiftOperand(unsigned reg_size,
+                            int64_t value,
+                            Shift shift_type,
+                            unsigned amount) {
+    if (amount == 0) {
+        return value;
+    }
+    int64_t mask = reg_size == kXRegSize ? kXRegMask : kWRegMask;
+    switch (shift_type) {
+    case LSL:
+        return (value << amount) & mask;
+    case LSR:
+        return static_cast<uint64_t>(value) >> amount;
+    case ASR: {
+        // Shift used to restore the sign.
+        unsigned s_shift = kXRegSize - reg_size;
+        // Value with its sign restored.
+        int64_t s_value = (value << s_shift) >> s_shift;
+        return (s_value >> amount) & mask;
+    }
+    case ROR: {
+        if (reg_size == kWRegSize) {
+            value &= kWRegMask;
+        }
+        return (static_cast<uint64_t>(value) >> amount) |
+               ((value & ((INT64_C(1) << amount) - 1)) << (reg_size - amount));
+    }
+    default:
+        VIXL_UNIMPLEMENTED();
+        return 0;
+    }
+}
+
+
+int64_t Logic::ExtendValue(unsigned reg_size,
+                           int64_t value,
+                           Extend extend_type,
+                           unsigned left_shift) {
+    switch (extend_type) {
+    case UXTB:
+        value &= kByteMask;
+        break;
+    case UXTH:
+        value &= kHalfWordMask;
+        break;
+    case UXTW:
+        value &= kWordMask;
+        break;
+    case SXTB:
+        value = (value << 56) >> 56;
+        break;
+    case SXTH:
+        value = (value << 48) >> 48;
+        break;
+    case SXTW:
+        value = (value << 32) >> 32;
+        break;
+    case UXTX:
+    case SXTX:
+        break;
+    default:
+        VIXL_UNREACHABLE();
+    }
+    int64_t mask = (reg_size == kXRegSize) ? kXRegMask : kWRegMask;
+    return (value << left_shift) & mask;
+}
+
+
+void Logic::FPCompare(double val0, double val1, FPTrapFlags trap) {
+    AssertSupportedFPCR();
+
+    // TODO: This assumes that the C++ implementation handles comparisons in the
+    // way that we expect (as per AssertSupportedFPCR()).
+    bool process_exception = false;
+    if ((std::isnan(val0) != 0) || (std::isnan(val1) != 0)) {
+        nzcv().SetRawValue(FPUnorderedFlag);
+        if (IsSignallingNaN(val0) || IsSignallingNaN(val1) ||
+                (trap == EnableTrap)) {
+            process_exception = true;
+        }
+    } else if (val0 < val1) {
+        nzcv().SetRawValue(FPLessThanFlag);
+    } else if (val0 > val1) {
+        nzcv().SetRawValue(FPGreaterThanFlag);
+    } else if (val0 == val1) {
+        nzcv().SetRawValue(FPEqualFlag);
+    } else {
+        VIXL_UNREACHABLE();
+    }
+    LogSystemRegister(NZCV);
+    if (process_exception) FPProcessException();
+}
+
+
+Logic::PrintRegisterFormat Logic::GetPrintRegisterFormatForSize(
+    unsigned reg_size, unsigned lane_size) {
+    VIXL_ASSERT(reg_size >= lane_size);
+
+    uint32_t format = 0;
+    if (reg_size != lane_size) {
+        switch (reg_size) {
+        default:
+            VIXL_UNREACHABLE();
+            break;
+        case kQRegSizeInBytes:
+            format = kPrintRegAsQVector;
+            break;
+        case kDRegSizeInBytes:
+            format = kPrintRegAsDVector;
+            break;
+        }
+    }
+
+    switch (lane_size) {
+    default:
+        VIXL_UNREACHABLE();
+        break;
+    case kQRegSizeInBytes:
+        format |= kPrintReg1Q;
+        break;
+    case kDRegSizeInBytes:
+        format |= kPrintReg1D;
+        break;
+    case kSRegSizeInBytes:
+        format |= kPrintReg1S;
+        break;
+    case kHRegSizeInBytes:
+        format |= kPrintReg1H;
+        break;
+    case kBRegSizeInBytes:
+        format |= kPrintReg1B;
+        break;
+    }
+    // These sizes would be duplicate case labels.
+    VIXL_STATIC_ASSERT(kXRegSizeInBytes == kDRegSizeInBytes);
+    VIXL_STATIC_ASSERT(kWRegSizeInBytes == kSRegSizeInBytes);
+    VIXL_STATIC_ASSERT(kPrintXReg == kPrintReg1D);
+    VIXL_STATIC_ASSERT(kPrintWReg == kPrintReg1S);
+
+    return static_cast<PrintRegisterFormat>(format);
+}
+
+
+Logic::PrintRegisterFormat Logic::GetPrintRegisterFormat(
+    VectorFormat vform) {
+    switch (vform) {
+    default:
+        VIXL_UNREACHABLE();
+        return kPrintReg16B;
+    case kFormat16B:
+        return kPrintReg16B;
+    case kFormat8B:
+        return kPrintReg8B;
+    case kFormat8H:
+        return kPrintReg8H;
+    case kFormat4H:
+        return kPrintReg4H;
+    case kFormat4S:
+        return kPrintReg4S;
+    case kFormat2S:
+        return kPrintReg2S;
+    case kFormat2D:
+        return kPrintReg2D;
+    case kFormat1D:
+        return kPrintReg1D;
+
+    case kFormatB:
+        return kPrintReg1B;
+    case kFormatH:
+        return kPrintReg1H;
+    case kFormatS:
+        return kPrintReg1S;
+    case kFormatD:
+        return kPrintReg1D;
+    }
+}
+
+
+Logic::PrintRegisterFormat Logic::GetPrintRegisterFormatFP(
+    VectorFormat vform) {
+    switch (vform) {
+    default:
+        VIXL_UNREACHABLE();
+        return kPrintReg16B;
+    case kFormat4S:
+        return kPrintReg4SFP;
+    case kFormat2S:
+        return kPrintReg2SFP;
+    case kFormat2D:
+        return kPrintReg2DFP;
+    case kFormat1D:
+        return kPrintReg1DFP;
+
+    case kFormatS:
+        return kPrintReg1SFP;
+    case kFormatD:
+        return kPrintReg1DFP;
+    }
+}
+
+
+void Logic::PrintWrittenRegisters() {
+    for (unsigned i = 0; i < kNumberOfRegisters; i++) {
+        if (registers_[i].WrittenSinceLastLog())
+            PrintRegister(i);
+    }
+}
+
+
+void Logic::PrintWrittenVRegisters() {
+    for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
+        // At this point there is no type information, so print as a raw 1Q.
+        if (vregisters_[i].WrittenSinceLastLog()) PrintVRegister(i, kPrintReg1Q);
+    }
+}
+
+
+void Logic::PrintSystemRegisters() {
+    PrintSystemRegister(NZCV);
+    PrintSystemRegister(FPCR);
+}
+
+
+void Logic::PrintRegisters() {
+    for (unsigned i = 0; i < kNumberOfRegisters; i++) {
+        PrintRegister(i);
+    }
+}
+
+
+void Logic::PrintVRegisters() {
+    for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
+        // At this point there is no type information, so print as a raw 1Q.
+        PrintVRegister(i, kPrintReg1Q);
+    }
+}
+
+
+// Print a register's name and raw value.
+//
+// Only the least-significant `size_in_bytes` bytes of the register are printed,
+// but the value is aligned as if the whole register had been printed.
+//
+// For typical register updates, size_in_bytes should be set to kXRegSizeInBytes
+// -- the default -- so that the whole register is printed. Other values of
+// size_in_bytes are intended for use when the register hasn't actually been
+// updated (such as in PrintWrite).
+//
+// No newline is printed. This allows the caller to print more details (such as
+// a memory access annotation).
+void Logic::PrintRegister(unsigned code, Reg31Mode r31mode) {
+    registers_[code].NotifyRegisterLogged();
+
+    // Don't print writes into xzr.
+    if ((code == kZeroRegCode) && (r31mode == Reg31IsZeroRegister)) {
+        return;
+    }
+
+    // The template for all x and w registers:
+    //   "# x{code}: 0x{value}"
+    //   "# w{code}: 0x{value}"
+
+    PrintRegisterRawHelper(code, r31mode);
+    fprintf(stream_, "\n");
+}
+
+
+// Print a register's name and raw value.
+//
+// The `bytes` and `lsb` arguments can be used to limit the bytes that are
+// printed. These arguments are intended for use in cases where register hasn't
+// actually been updated (such as in PrintVWrite).
+//
+// No newline is printed. This allows the caller to print more details (such as
+// a floating-point interpretation or a memory access annotation).
+// Print each of the specified lanes of a register as a float or double value.
+//
+// The `lane_count` and `lslane` arguments can be used to limit the lanes that
+// are printed. These arguments are intended for use in cases where register
+// hasn't actually been updated (such as in PrintVWrite).
+//
+// No newline is printed. This allows the caller to print more details (such as
+// a memory access annotation).
+void Logic::PrintVRegister(unsigned code, PrintRegisterFormat format) {
+    vregisters_[code].NotifyRegisterLogged();
+
+    int lane_size_log2 = format & kPrintRegLaneSizeMask;
+
+    int reg_size_log2;
+    if (format & kPrintRegAsQVector) {
+        reg_size_log2 = kQRegSizeInBytesLog2;
+    } else if (format & kPrintRegAsDVector) {
+        reg_size_log2 = kDRegSizeInBytesLog2;
+    } else {
+        // Scalar types.
+        reg_size_log2 = lane_size_log2;
+    }
+
+    int lane_count = 1 << (reg_size_log2 - lane_size_log2);
+    int lane_size = 1 << lane_size_log2;
+
+    // The template for vector types:
+    //   "# v{code}: 0x{rawbits} (..., {value}, ...)".
+    // The template for scalar types:
+    //   "# v{code}: 0x{rawbits} ({reg}:{value})".
+    // The values in parentheses after the bit representations are floating-point
+    // interpretations. They are displayed only if the kPrintVRegAsFP bit is set.
+
+    PrintVRegisterRawHelper(code);
+    if (format & kPrintRegAsFP) {
+        PrintVRegisterFPHelper(code, lane_size, lane_count);
+    }
+
+    fprintf(stream_, "\n");
+}
+
+
+void Logic::PrintSystemRegister(SystemRegister id) {
+    switch (id) {
+    case NZCV:
+        fprintf(stream_,
+                "# %sNZCV: %sN:%d Z:%d C:%d V:%d%s\n",
+                clr_flag_name,
+                clr_flag_value,
+                nzcv().N(),
+                nzcv().Z(),
+                nzcv().C(),
+                nzcv().V(),
+                clr_normal);
+        break;
+    case FPCR: {
+        static const char* rmode[] = {"0b00 (Round to Nearest)",
+                                      "0b01 (Round towards Plus Infinity)",
+                                      "0b10 (Round towards Minus Infinity)",
+                                      "0b11 (Round towards Zero)"
+                                     };
+        VIXL_ASSERT(fpcr().RMode() < (sizeof(rmode) / sizeof(rmode[0])));
+        fprintf(stream_,
+                "# %sFPCR: %sAHP:%d DN:%d FZ:%d RMode:%s%s\n",
+                clr_flag_name,
+                clr_flag_value,
+                fpcr().AHP(),
+                fpcr().DN(),
+                fpcr().FZ(),
+                rmode[fpcr().RMode()],
+                clr_normal);
+        break;
+    }
+    default:
+        VIXL_UNREACHABLE();
+    }
+}
+
+
+void Logic::PrintRead(uintptr_t address,
+                      unsigned reg_code,
+                      PrintRegisterFormat format) {
+    registers_[reg_code].NotifyRegisterLogged();
+
+    USE(format);
+
+    // The template is "# {reg}: 0x{value} <- {address}".
+    PrintRegisterRawHelper(reg_code, Reg31IsZeroRegister);
+    fprintf(stream_,
+            " <- %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+}
+
+
+void Logic::PrintVRead(uintptr_t address,
+                       unsigned reg_code,
+                       PrintRegisterFormat format,
+                       unsigned lane) {
+    vregisters_[reg_code].NotifyRegisterLogged();
+
+    // The template is "# v{code}: 0x{rawbits} <- address".
+    PrintVRegisterRawHelper(reg_code);
+    if (format & kPrintRegAsFP) {
+        PrintVRegisterFPHelper(reg_code,
+                               GetPrintRegLaneSizeInBytes(format),
+                               GetPrintRegLaneCount(format),
+                               lane);
+    }
+    fprintf(stream_,
+            " <- %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+}
+
+
+void Logic::PrintWrite(uintptr_t address,
+                       unsigned reg_code,
+                       PrintRegisterFormat format) {
+    VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+
+    // The template is "# v{code}: 0x{value} -> {address}". To keep the trace tidy
+    // and readable, the value is aligned with the values in the register trace.
+    PrintRegisterRawHelper(reg_code,
+                           Reg31IsZeroRegister,
+                           GetPrintRegSizeInBytes(format));
+    fprintf(stream_,
+            " -> %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+}
+
+
+void Logic::PrintVWrite(uintptr_t address,
+                        unsigned reg_code,
+                        PrintRegisterFormat format,
+                        unsigned lane) {
+    // The templates:
+    //   "# v{code}: 0x{rawbits} -> {address}"
+    //   "# v{code}: 0x{rawbits} (..., {value}, ...) -> {address}".
+    //   "# v{code}: 0x{rawbits} ({reg}:{value}) -> {address}"
+    // Because this trace doesn't represent a change to the source register's
+    // value, only the relevant part of the value is printed. To keep the trace
+    // tidy and readable, the raw value is aligned with the other values in the
+    // register trace.
+    int lane_count = GetPrintRegLaneCount(format);
+    int lane_size = GetPrintRegLaneSizeInBytes(format);
+    int reg_size = GetPrintRegSizeInBytes(format);
+    PrintVRegisterRawHelper(reg_code, reg_size, lane_size * lane);
+    if (format & kPrintRegAsFP) {
+        PrintVRegisterFPHelper(reg_code, lane_size, lane_count, lane);
+    }
+    fprintf(stream_,
+            " -> %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+}
+
+
+
+
+void Logic::PrintRegisterRawHelper(unsigned code,
+                                   Reg31Mode r31mode,
+                                   int size_in_bytes) {
+    // The template for all supported sizes.
+    //   "# x{code}: 0xffeeddccbbaa9988"
+    //   "# w{code}:         0xbbaa9988"
+    //   "# w{code}<15:0>:       0x9988"
+    //   "# w{code}<7:0>:          0x88"
+    unsigned padding_chars = (kXRegSizeInBytes - size_in_bytes) * 2;
+
+    const char* name = "";
+    const char* suffix = "";
+    switch (size_in_bytes) {
+    case kXRegSizeInBytes:
+        name = XRegNameForCode(code, r31mode);
+        break;
+    case kWRegSizeInBytes:
+        name = WRegNameForCode(code, r31mode);
+        break;
+    case 2:
+        name = WRegNameForCode(code, r31mode);
+        suffix = "<15:0>";
+        padding_chars -= strlen(suffix);
+        break;
+    case 1:
+        name = WRegNameForCode(code, r31mode);
+        suffix = "<7:0>";
+        padding_chars -= strlen(suffix);
+        break;
+    default:
+        VIXL_UNREACHABLE();
+    }
+    fprintf(stream_, "# %s%5s%s: ", clr_reg_name, name, suffix);
+
+    // Print leading padding spaces.
+    VIXL_ASSERT(padding_chars < (kXRegSizeInBytes * 2));
+    for (unsigned i = 0; i < padding_chars; i++) {
+        putc(' ', stream_);
+    }
+
+    // Print the specified bits in hexadecimal format.
+    uint64_t bits = reg<uint64_t>(code, r31mode);
+    bits &= kXRegMask >> ((kXRegSizeInBytes - size_in_bytes) * 8);
+    VIXL_STATIC_ASSERT(sizeof(bits) == kXRegSizeInBytes);
+
+    int chars = size_in_bytes * 2;
+    fprintf(stream_,
+            "%s0x%0*" PRIx64 "%s",
+            clr_reg_value,
+            chars,
+            bits,
+            clr_normal);
+}
+
+
+void Logic::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
+    // The template for vector types:
+    //   "# v{code}: 0xffeeddccbbaa99887766554433221100".
+    // An example with bytes=4 and lsb=8:
+    //   "# v{code}:         0xbbaa9988                ".
+    fprintf(stream_,
+            "# %s%5s: %s",
+            clr_vreg_name,
+            VRegNameForCode(code),
+            clr_vreg_value);
+
+    int msb = lsb + bytes - 1;
+    int byte = kQRegSizeInBytes - 1;
+
+    // Print leading padding spaces. (Two spaces per byte.)
+    while (byte > msb) {
+        fprintf(stream_, "  ");
+        byte--;
+    }
+
+    // Print the specified part of the value, byte by byte.
+    qreg_t rawbits = qreg(code);
+    fprintf(stream_, "0x");
+    while (byte >= lsb) {
+        fprintf(stream_, "%02x", rawbits.val[byte]);
+        byte--;
+    }
+
+    // Print trailing padding spaces.
+    while (byte >= 0) {
+        fprintf(stream_, "  ");
+        byte--;
+    }
+    fprintf(stream_, "%s", clr_normal);
+}
+
+
+void Logic::PrintVRegisterFPHelper(unsigned code,
+                                   unsigned lane_size_in_bytes,
+                                   int lane_count,
+                                   int rightmost_lane) {
+    VIXL_ASSERT((lane_size_in_bytes == kSRegSizeInBytes) ||
+                (lane_size_in_bytes == kDRegSizeInBytes));
+
+    unsigned msb = ((lane_count + rightmost_lane) * lane_size_in_bytes);
+    VIXL_ASSERT(msb <= kQRegSizeInBytes);
+
+    // For scalar types ((lane_count == 1) && (rightmost_lane == 0)), a register
+    // name is used:
+    //   " (s{code}: {value})"
+    //   " (d{code}: {value})"
+    // For vector types, "..." is used to represent one or more omitted lanes.
+    //   " (..., {value}, {value}, ...)"
+    if ((lane_count == 1) && (rightmost_lane == 0)) {
+        const char* name = (lane_size_in_bytes == kSRegSizeInBytes)
+                           ? SRegNameForCode(code)
+                           : DRegNameForCode(code);
+        fprintf(stream_, " (%s%s: ", clr_vreg_name, name);
+    } else {
+        if (msb < (kQRegSizeInBytes - 1)) {
+            fprintf(stream_, " (..., ");
+        } else {
+            fprintf(stream_, " (");
+        }
+    }
+
+    // Print the list of values.
+    const char* separator = "";
+    int leftmost_lane = rightmost_lane + lane_count - 1;
+    for (int lane = leftmost_lane; lane >= rightmost_lane; lane--) {
+        double value = (lane_size_in_bytes == kSRegSizeInBytes)
+                       ? vreg(code).Get<float>(lane)
+                       : vreg(code).Get<double>(lane);
+        fprintf(stream_, "%s%s%#g%s", separator, clr_vreg_value, value, clr_normal);
+        separator = ", ";
+    }
+
+    if (rightmost_lane > 0) {
+        fprintf(stream_, ", ...");
+    }
+    fprintf(stream_, ")");
+}
+
+
+void Logic::AddSubHelper(const Instruction* instr, int64_t op2) {
+    unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
+    bool set_flags = instr->FlagsUpdate();
+    int64_t new_val = 0;
+    Instr operation = instr->Mask(AddSubOpMask);
+
+    switch (operation) {
+    case ADD:
+    case ADDS: {
+        new_val = AddWithCarry(reg_size,
+                               set_flags,
+                               reg(reg_size, instr->Rn(), instr->RnMode()),
+                               op2);
+        break;
+    }
+    case SUB:
+    case SUBS: {
+        new_val = AddWithCarry(reg_size,
+                               set_flags,
+                               reg(reg_size, instr->Rn(), instr->RnMode()),
+                               ~op2,
+                               1);
+        break;
+    }
+    default:
+        VIXL_UNREACHABLE();
+    }
+
+    set_reg(reg_size, instr->Rd(), new_val, LogRegWrites, instr->RdMode());
+}
+
+
+void Logic::LogicalHelper(const Instruction* instr, int64_t op2) {
+    unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
+    int64_t op1 = reg(reg_size, instr->Rn());
+    int64_t result = 0;
+    bool update_flags = false;
+
+    // Switch on the logical operation, stripping out the NOT bit, as it has a
+    // different meaning for logical immediate instructions.
+    switch (instr->Mask(LogicalOpMask & ~NOT)) {
+    case ANDS:
+        update_flags = true;
+        VIXL_FALLTHROUGH();
+    case AND:
+        result = op1 & op2;
+        break;
+    case ORR:
+        result = op1 | op2;
+        break;
+    case EOR:
+        result = op1 ^ op2;
+        break;
+    default:
+        VIXL_UNIMPLEMENTED();
+    }
+
+    if (update_flags) {
+        nzcv().SetN(CalcNFlag(result, reg_size));
+        nzcv().SetZ(CalcZFlag(result));
+        nzcv().SetC(0);
+        nzcv().SetV(0);
+        LogSystemRegister(NZCV);
+    }
+
+    set_reg(reg_size, instr->Rd(), result, LogRegWrites, instr->RdMode());
+}
+
+
+void Logic::ConditionalCompareHelper(const Instruction* instr,
+                                     int64_t op2) {
+    unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
+    int64_t op1 = reg(reg_size, instr->Rn());
+
+    if (ConditionPassed(instr->Condition())) {
+        // If the condition passes, set the status flags to the result of comparing
+        // the operands.
+        if (instr->Mask(ConditionalCompareMask) == CCMP) {
+            AddWithCarry(reg_size, true, op1, ~op2, 1);
+        } else {
+            VIXL_ASSERT(instr->Mask(ConditionalCompareMask) == CCMN);
+            AddWithCarry(reg_size, true, op1, op2, 0);
+        }
+    } else {
+        // If the condition fails, set the status flags to the nzcv immediate.
+        nzcv().SetFlags(instr->Nzcv());
+        LogSystemRegister(NZCV);
+    }
+}
+
+
+void Logic::LoadStoreHelper(const Instruction* instr,
+                            int64_t offset,
+                            AddrMode addrmode) {
+    unsigned srcdst = instr->Rt();
+    uintptr_t address = AddressModeHelper(instr->Rn(), offset, addrmode);
+
+    LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreMask));
+    switch (op) {
+    case LDRB_w:
+        set_wreg(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
+        break;
+    case LDRH_w:
+        set_wreg(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
+        break;
+    case LDR_w:
+        set_wreg(srcdst, Memory::Read<uint32_t>(address), NoRegLog);
+        break;
+    case LDR_x:
+        set_xreg(srcdst, Memory::Read<uint64_t>(address), NoRegLog);
+        break;
+    case LDRSB_w:
+        set_wreg(srcdst, Memory::Read<int8_t>(address), NoRegLog);
+        break;
+    case LDRSH_w:
+        set_wreg(srcdst, Memory::Read<int16_t>(address), NoRegLog);
+        break;
+    case LDRSB_x:
+        set_xreg(srcdst, Memory::Read<int8_t>(address), NoRegLog);
+        break;
+    case LDRSH_x:
+        set_xreg(srcdst, Memory::Read<int16_t>(address), NoRegLog);
+        break;
+    case LDRSW_x:
+        set_xreg(srcdst, Memory::Read<int32_t>(address), NoRegLog);
+        break;
+    case LDR_b:
+        set_breg(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
+        break;
+    case LDR_h:
+        set_hreg(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
+        break;
+    case LDR_s:
+        set_sreg(srcdst, Memory::Read<float>(address), NoRegLog);
+        break;
+    case LDR_d:
+        set_dreg(srcdst, Memory::Read<double>(address), NoRegLog);
+        break;
+    case LDR_q:
+        set_qreg(srcdst, Memory::Read<qreg_t>(address), NoRegLog);
+        break;
+
+    case STRB_w:
+        Memory::Write<uint8_t>(address, wreg(srcdst));
+        break;
+    case STRH_w:
+        Memory::Write<uint16_t>(address, wreg(srcdst));
+        break;
+    case STR_w:
+        Memory::Write<uint32_t>(address, wreg(srcdst));
+        break;
+    case STR_x:
+        Memory::Write<uint64_t>(address, xreg(srcdst));
+        break;
+    case STR_b:
+        Memory::Write<uint8_t>(address, breg(srcdst));
+        break;
+    case STR_h:
+        Memory::Write<uint16_t>(address, hreg(srcdst));
+        break;
+    case STR_s:
+        Memory::Write<float>(address, sreg(srcdst));
+        break;
+    case STR_d:
+        Memory::Write<double>(address, dreg(srcdst));
+        break;
+    case STR_q:
+        Memory::Write<qreg_t>(address, qreg(srcdst));
+        break;
+
+    // Ignore prfm hint instructions.
+    case PRFM:
+        break;
+
+    default:
+        VIXL_UNIMPLEMENTED();
+    }
+
+    unsigned access_size = 1 << instr->SizeLS();
+    if (instr->IsLoad()) {
+        if ((op == LDR_s) || (op == LDR_d)) {
+            LogVRead(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
+        } else if ((op == LDR_b) || (op == LDR_h) || (op == LDR_q)) {
+            LogVRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+        } else {
+            LogRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+        }
+    } else if (instr->IsStore()) {
+        if ((op == STR_s) || (op == STR_d)) {
+            LogVWrite(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
+        } else if ((op == STR_b) || (op == STR_h) || (op == STR_q)) {
+            LogVWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+        } else {
+            LogWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+        }
+    } else {
+        VIXL_ASSERT(op == PRFM);
+    }
+
+    local_monitor_.MaybeClear();
+}
+
+
+void Logic::LoadStorePairHelper(const Instruction* instr,
+                                AddrMode addrmode) {
+    unsigned rt = instr->Rt();
+    unsigned rt2 = instr->Rt2();
+    int element_size = 1 << instr->SizeLSPair();
+    int64_t offset = instr->ImmLSPair() * element_size;
+    uintptr_t address = AddressModeHelper(instr->Rn(), offset, addrmode);
+    uintptr_t address2 = address + element_size;
+
+    LoadStorePairOp op =
+        static_cast<LoadStorePairOp>(instr->Mask(LoadStorePairMask));
+
+    // 'rt' and 'rt2' can only be aliased for stores.
+    VIXL_ASSERT(((op & LoadStorePairLBit) == 0) || (rt != rt2));
+
+    switch (op) {
+    // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
+    // will print a more detailed log.
+    case LDP_w: {
+        set_wreg(rt, Memory::Read<uint32_t>(address), NoRegLog);
+        set_wreg(rt2, Memory::Read<uint32_t>(address2), NoRegLog);
+        break;
+    }
+    case LDP_s: {
+        set_sreg(rt, Memory::Read<float>(address), NoRegLog);
+        set_sreg(rt2, Memory::Read<float>(address2), NoRegLog);
+        break;
+    }
+    case LDP_x: {
+        set_xreg(rt, Memory::Read<uint64_t>(address), NoRegLog);
+        set_xreg(rt2, Memory::Read<uint64_t>(address2), NoRegLog);
+        break;
+    }
+    case LDP_d: {
+        set_dreg(rt, Memory::Read<double>(address), NoRegLog);
+        set_dreg(rt2, Memory::Read<double>(address2), NoRegLog);
+        break;
+    }
+    case LDP_q: {
+        set_qreg(rt, Memory::Read<qreg_t>(address), NoRegLog);
+        set_qreg(rt2, Memory::Read<qreg_t>(address2), NoRegLog);
+        break;
+    }
+    case LDPSW_x: {
+        set_xreg(rt, Memory::Read<int32_t>(address), NoRegLog);
+        set_xreg(rt2, Memory::Read<int32_t>(address2), NoRegLog);
+        break;
+    }
+    case STP_w: {
+        Memory::Write<uint32_t>(address, wreg(rt));
+        Memory::Write<uint32_t>(address2, wreg(rt2));
+        break;
+    }
+    case STP_s: {
+        Memory::Write<float>(address, sreg(rt));
+        Memory::Write<float>(address2, sreg(rt2));
+        break;
+    }
+    case STP_x: {
+        Memory::Write<uint64_t>(address, xreg(rt));
+        Memory::Write<uint64_t>(address2, xreg(rt2));
+        break;
+    }
+    case STP_d: {
+        Memory::Write<double>(address, dreg(rt));
+        Memory::Write<double>(address2, dreg(rt2));
+        break;
+    }
+    case STP_q: {
+        Memory::Write<qreg_t>(address, qreg(rt));
+        Memory::Write<qreg_t>(address2, qreg(rt2));
+        break;
+    }
+    default:
+        VIXL_UNREACHABLE();
+    }
+
+    // Print a detailed trace (including the memory address) instead of the basic
+    // register:value trace generated by set_*reg().
+    if (instr->IsLoad()) {
+        if ((op == LDP_s) || (op == LDP_d)) {
+            LogVRead(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
+            LogVRead(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
+        } else if (op == LDP_q) {
+            LogVRead(address, rt, GetPrintRegisterFormatForSize(element_size));
+            LogVRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+        } else {
+            LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
+            LogRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+        }
+    } else {
+        if ((op == STP_s) || (op == STP_d)) {
+            LogVWrite(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
+            LogVWrite(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
+        } else if (op == STP_q) {
+            LogVWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+            LogVWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+        } else {
+            LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+            LogWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+        }
+    }
+
+    local_monitor_.MaybeClear();
+}
+
+
+uintptr_t Logic::AddressModeHelper(unsigned addr_reg,
+                                   int64_t offset,
+                                   AddrMode addrmode) {
+    uint64_t address = xreg(addr_reg, Reg31IsStackPointer);
+
+    if ((addr_reg == 31) && ((address % 16) != 0)) {
+        // When the base register is SP the stack pointer is required to be
+        // quadword aligned prior to the address calculation and write-backs.
+        // Misalignment will cause a stack alignment fault.
+        VIXL_ALIGNMENT_EXCEPTION();
+    }
+
+    if ((addrmode == PreIndex) || (addrmode == PostIndex)) {
+        VIXL_ASSERT(offset != 0);
+        // Only preindex should log the register update here. For Postindex, the
+        // update will be printed automatically by LogWrittenRegisters _after_ the
+        // memory access itself is logged.
+        RegLogMode log_mode = (addrmode == PreIndex) ? LogRegWrites : NoRegLog;
+        set_xreg(addr_reg, address + offset, log_mode, Reg31IsStackPointer);
+    }
+
+    if ((addrmode == Offset) || (addrmode == PreIndex)) {
+        address += offset;
+    }
+
+    // Verify that the calculated address is available to the host.
+    VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+
+    return static_cast<uintptr_t>(address);
+}
+
+
+void Logic::NEONLoadStoreMultiStructHelper(const Instruction* instr,
+        AddrMode addr_mode) {
+    NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
+    VectorFormat vf = nfd.GetVectorFormat();
+
+    uint64_t addr_base = xreg(instr->Rn(), Reg31IsStackPointer);
+    int reg_size = RegisterSizeInBytesFromFormat(vf);
+
+    int reg[4];
+    uint64_t addr[4];
+    for (int i = 0; i < 4; i++) {
+        reg[i] = (instr->Rt() + i) % kNumberOfVRegisters;
+        addr[i] = addr_base + (i * reg_size);
+    }
+    int count = 1;
+    bool log_read = true;
+
+    Instr itype = instr->Mask(NEONLoadStoreMultiStructMask);
+    if (((itype == NEON_LD1_1v) || (itype == NEON_LD1_2v) ||
+            (itype == NEON_LD1_3v) || (itype == NEON_LD1_4v) ||
+            (itype == NEON_ST1_1v) || (itype == NEON_ST1_2v) ||
+            (itype == NEON_ST1_3v) || (itype == NEON_ST1_4v)) &&
+            (instr->Bits(20, 16) != 0)) {
+        VIXL_UNREACHABLE();
+    }
+
+    // We use the PostIndex mask here, as it works in this case for both Offset
+    // and PostIndex addressing.
+    switch (instr->Mask(NEONLoadStoreMultiStructPostIndexMask)) {
+    case NEON_LD1_4v:
+    case NEON_LD1_4v_post:
+        ld1(vf, vreg(reg[3]), addr[3]);
+        count++;
+        VIXL_FALLTHROUGH();
+    case NEON_LD1_3v:
+    case NEON_LD1_3v_post:
+        ld1(vf, vreg(reg[2]), addr[2]);
+        count++;
+        VIXL_FALLTHROUGH();
+    case NEON_LD1_2v:
+    case NEON_LD1_2v_post:
+        ld1(vf, vreg(reg[1]), addr[1]);
+        count++;
+        VIXL_FALLTHROUGH();
+    case NEON_LD1_1v:
+    case NEON_LD1_1v_post:
+        ld1(vf, vreg(reg[0]), addr[0]);
+        break;
+    case NEON_ST1_4v:
+    case NEON_ST1_4v_post:
+        st1(vf, vreg(reg[3]), addr[3]);
+        count++;
+        VIXL_FALLTHROUGH();
+    case NEON_ST1_3v:
+    case NEON_ST1_3v_post:
+        st1(vf, vreg(reg[2]), addr[2]);
+        count++;
+        VIXL_FALLTHROUGH();
+    case NEON_ST1_2v:
+    case NEON_ST1_2v_post:
+        st1(vf, vreg(reg[1]), addr[1]);
+        count++;
+        VIXL_FALLTHROUGH();
+    case NEON_ST1_1v:
+    case NEON_ST1_1v_post:
+        st1(vf, vreg(reg[0]), addr[0]);
+        log_read = false;
+        break;
+    case NEON_LD2_post:
+    case NEON_LD2:
+        ld2(vf, vreg(reg[0]), vreg(reg[1]), addr[0]);
+        count = 2;
+        break;
+    case NEON_ST2:
+    case NEON_ST2_post:
+        st2(vf, vreg(reg[0]), vreg(reg[1]), addr[0]);
+        count = 2;
+        break;
+    case NEON_LD3_post:
+    case NEON_LD3:
+        ld3(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), addr[0]);
+        count = 3;
+        break;
+    case NEON_ST3:
+    case NEON_ST3_post:
+        st3(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), addr[0]);
+        count = 3;
+        break;
+    case NEON_ST4:
+    case NEON_ST4_post:
+        st4(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), vreg(reg[3]), addr[0]);
+        count = 4;
+        break;
+    case NEON_LD4_post:
+    case NEON_LD4:
+        ld4(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), vreg(reg[3]), addr[0]);
+        count = 4;
+        break;
+    default:
+        VIXL_UNIMPLEMENTED();
+    }
+
+    // Explicitly log the register update whilst we have type information.
+    for (int i = 0; i < count; i++) {
+        // For de-interleaving loads, only print the base address.
+        int lane_size = LaneSizeInBytesFromFormat(vf);
+        PrintRegisterFormat format = GetPrintRegisterFormatTryFP(
+                                         GetPrintRegisterFormatForSize(reg_size, lane_size));
+        if (log_read) {
+            LogVRead(addr_base, reg[i], format);
+        } else {
+            LogVWrite(addr_base, reg[i], format);
+        }
+    }
+
+    if (addr_mode == PostIndex) {
+        int rm = instr->Rm();
+        // The immediate post index addressing mode is indicated by rm = 31.
+        // The immediate is implied by the number of vector registers used.
+        addr_base +=
+            (rm == 31) ? RegisterSizeInBytesFromFormat(vf) * count : xreg(rm);
+        set_xreg(instr->Rn(), addr_base);
+    } else {
+        VIXL_ASSERT(addr_mode == Offset);
+    }
+}
+
+
+void Logic::NEONLoadStoreSingleStructHelper(const Instruction* instr,
+        AddrMode addr_mode) {
+    uint64_t addr = xreg(instr->Rn(), Reg31IsStackPointer);
+    int rt = instr->Rt();
+
+    Instr itype = instr->Mask(NEONLoadStoreSingleStructMask);
+    if (((itype == NEON_LD1_b) || (itype == NEON_LD1_h) ||
+            (itype == NEON_LD1_s) || (itype == NEON_LD1_d)) &&
+            (instr->Bits(20, 16) != 0)) {
+        VIXL_UNREACHABLE();
+    }
+
+    // We use the PostIndex mask here, as it works in this case for both Offset
+    // and PostIndex addressing.
+    bool do_load = false;
+
+    NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
+    VectorFormat vf_t = nfd.GetVectorFormat();
+
+    VectorFormat vf = kFormat16B;
+    switch (instr->Mask(NEONLoadStoreSingleStructPostIndexMask)) {
+    case NEON_LD1_b:
+    case NEON_LD1_b_post:
+    case NEON_LD2_b:
+    case NEON_LD2_b_post:
+    case NEON_LD3_b:
+    case NEON_LD3_b_post:
+    case NEON_LD4_b:
+    case NEON_LD4_b_post:
+        do_load = true;
+        VIXL_FALLTHROUGH();
+    case NEON_ST1_b:
+    case NEON_ST1_b_post:
+    case NEON_ST2_b:
+    case NEON_ST2_b_post:
+    case NEON_ST3_b:
+    case NEON_ST3_b_post:
+    case NEON_ST4_b:
+    case NEON_ST4_b_post:
+        break;
+
+    case NEON_LD1_h:
+    case NEON_LD1_h_post:
+    case NEON_LD2_h:
+    case NEON_LD2_h_post:
+    case NEON_LD3_h:
+    case NEON_LD3_h_post:
+    case NEON_LD4_h:
+    case NEON_LD4_h_post:
+        do_load = true;
+        VIXL_FALLTHROUGH();
+    case NEON_ST1_h:
+    case NEON_ST1_h_post:
+    case NEON_ST2_h:
+    case NEON_ST2_h_post:
+    case NEON_ST3_h:
+    case NEON_ST3_h_post:
+    case NEON_ST4_h:
+    case NEON_ST4_h_post:
+        vf = kFormat8H;
+        break;
+    case NEON_LD1_s:
+    case NEON_LD1_s_post:
+    case NEON_LD2_s:
+    case NEON_LD2_s_post:
+    case NEON_LD3_s:
+    case NEON_LD3_s_post:
+    case NEON_LD4_s:
+    case NEON_LD4_s_post:
+        do_load = true;
+        VIXL_FALLTHROUGH();
+    case NEON_ST1_s:
+    case NEON_ST1_s_post:
+    case NEON_ST2_s:
+    case NEON_ST2_s_post:
+    case NEON_ST3_s:
+    case NEON_ST3_s_post:
+    case NEON_ST4_s:
+    case NEON_ST4_s_post: {
+        VIXL_STATIC_ASSERT((NEON_LD1_s | (1 << NEONLSSize_offset)) == NEON_LD1_d);
+        VIXL_STATIC_ASSERT((NEON_LD1_s_post | (1 << NEONLSSize_offset)) ==
+                           NEON_LD1_d_post);
+        VIXL_STATIC_ASSERT((NEON_ST1_s | (1 << NEONLSSize_offset)) == NEON_ST1_d);
+        VIXL_STATIC_ASSERT((NEON_ST1_s_post | (1 << NEONLSSize_offset)) ==
+                           NEON_ST1_d_post);
+        vf = ((instr->NEONLSSize() & 1) == 0) ? kFormat4S : kFormat2D;
+        break;
+    }
+
+    case NEON_LD1R:
+    case NEON_LD1R_post: {
+        vf = vf_t;
+        ld1r(vf, vreg(rt), addr);
+        do_load = true;
+        break;
+    }
+
+    case NEON_LD2R:
+    case NEON_LD2R_post: {
+        vf = vf_t;
+        int rt2 = (rt + 1) % kNumberOfVRegisters;
+        ld2r(vf, vreg(rt), vreg(rt2), addr);
+        do_load = true;
+        break;
+    }
+
+    case NEON_LD3R:
+    case NEON_LD3R_post: {
+        vf = vf_t;
+        int rt2 = (rt + 1) % kNumberOfVRegisters;
+        int rt3 = (rt2 + 1) % kNumberOfVRegisters;
+        ld3r(vf, vreg(rt), vreg(rt2), vreg(rt3), addr);
+        do_load = true;
+        break;
+    }
+
+    case NEON_LD4R:
+    case NEON_LD4R_post: {
+        vf = vf_t;
+        int rt2 = (rt + 1) % kNumberOfVRegisters;
+        int rt3 = (rt2 + 1) % kNumberOfVRegisters;
+        int rt4 = (rt3 + 1) % kNumberOfVRegisters;
+        ld4r(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), addr);
+        do_load = true;
+        break;
+    }
+    default:
+        VIXL_UNIMPLEMENTED();
+    }
+
+    PrintRegisterFormat print_format =
+        GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
+    // Make sure that the print_format only includes a single lane.
+    print_format =
+        static_cast<PrintRegisterFormat>(print_format & ~kPrintRegAsVectorMask);
+
+    int esize = LaneSizeInBytesFromFormat(vf);
+    int index_shift = LaneSizeInBytesLog2FromFormat(vf);
+    int lane = instr->NEONLSIndex(index_shift);
+    int scale = 0;
+    int rt2 = (rt + 1) % kNumberOfVRegisters;
+    int rt3 = (rt2 + 1) % kNumberOfVRegisters;
+    int rt4 = (rt3 + 1) % kNumberOfVRegisters;
+    switch (instr->Mask(NEONLoadStoreSingleLenMask)) {
+    case NEONLoadStoreSingle1:
+        scale = 1;
+        if (do_load) {
+            ld1(vf, vreg(rt), lane, addr);
+            LogVRead(addr, rt, print_format, lane);
+        } else {
+            st1(vf, vreg(rt), lane, addr);
+            LogVWrite(addr, rt, print_format, lane);
+        }
+        break;
+    case NEONLoadStoreSingle2:
+        scale = 2;
+        if (do_load) {
+            ld2(vf, vreg(rt), vreg(rt2), lane, addr);
+            LogVRead(addr, rt, print_format, lane);
+            LogVRead(addr + esize, rt2, print_format, lane);
+        } else {
+            st2(vf, vreg(rt), vreg(rt2), lane, addr);
+            LogVWrite(addr, rt, print_format, lane);
+            LogVWrite(addr + esize, rt2, print_format, lane);
+        }
+        break;
+    case NEONLoadStoreSingle3:
+        scale = 3;
+        if (do_load) {
+            ld3(vf, vreg(rt), vreg(rt2), vreg(rt3), lane, addr);
+            LogVRead(addr, rt, print_format, lane);
+            LogVRead(addr + esize, rt2, print_format, lane);
+            LogVRead(addr + (2 * esize), rt3, print_format, lane);
+        } else {
+            st3(vf, vreg(rt), vreg(rt2), vreg(rt3), lane, addr);
+            LogVWrite(addr, rt, print_format, lane);
+            LogVWrite(addr + esize, rt2, print_format, lane);
+            LogVWrite(addr + (2 * esize), rt3, print_format, lane);
+        }
+        break;
+    case NEONLoadStoreSingle4:
+        scale = 4;
+        if (do_load) {
+            ld4(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), lane, addr);
+            LogVRead(addr, rt, print_format, lane);
+            LogVRead(addr + esize, rt2, print_format, lane);
+            LogVRead(addr + (2 * esize), rt3, print_format, lane);
+            LogVRead(addr + (3 * esize), rt4, print_format, lane);
+        } else {
+            st4(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), lane, addr);
+            LogVWrite(addr, rt, print_format, lane);
+            LogVWrite(addr + esize, rt2, print_format, lane);
+            LogVWrite(addr + (2 * esize), rt3, print_format, lane);
+            LogVWrite(addr + (3 * esize), rt4, print_format, lane);
+        }
+        break;
+    default:
+        VIXL_UNIMPLEMENTED();
+    }
+
+    if (addr_mode == PostIndex) {
+        int rm = instr->Rm();
+        int lane_size = LaneSizeInBytesFromFormat(vf);
+        set_xreg(instr->Rn(), addr + ((rm == 31) ? (scale * lane_size) : xreg(rm)));
     }
 }
 

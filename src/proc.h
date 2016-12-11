@@ -5,11 +5,17 @@
 
 #include "types.h"
 #include "bit_util.h"
+#include "fetcher.h"
+#include "scribe.h"
+#include "resettable.h"
+
+#include "vixl/a64/decoder-a64.h"
+#include "vixl/a64/logic-a64.h"
 
 namespace Kraken
 {
 
-class Proc
+class Proc : public Resettable
 {
 public:
 
@@ -17,12 +23,17 @@ public:
     virtual ~Proc()
     { delete state_; };
 
+    void Reset() {};
     void startSimulation();
 
 private:
     const Options options_;
     const ProgramInfo progInfo_;
     State *state_;
+
+    vixl::Decoder decoder_;
+    Fetcher fetcher_;
+    vixl::Logic logic_;
 
     void resetStateRegs();
     void run();

@@ -11,11 +11,11 @@ extern "C" {
 //enum-string generation
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
-#define DECL_ENUM_AND_STRING(TYPE_NAME, FOREACH_MACRO) \
+#define DECL_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_MACRO) \
     typedef enum { \
         FOREACH_MACRO(GENERATE_ENUM) \
     } TYPE_NAME; \
-    static const char *TYPE_NAME ## _String[] = { \
+    static const char *TYPE_STRING_NAME[] = { \
         FOREACH_MACRO(GENERATE_STRING) \
     };
 
@@ -51,7 +51,7 @@ DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
     MACRO(LOG_ERROR) \
     MACRO(LOG_DEATH)
 
-DECL_ENUM_AND_STRING(Log_Level, FOREACH_LOG_LEVEL);
+DECL_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 
