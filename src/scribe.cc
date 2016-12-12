@@ -3,10 +3,10 @@
 namespace Kraken
 {
 
-void Scribe::write(Scripture script, State *const state)
-{
-    err("Unimplemented: write()\n");
-}
+// void Scribe::commit(Scripture script, State *const state)
+// {
+//     err("Unimplemented: commit()\n");
+// }
 
 
 } // namespace Kraken

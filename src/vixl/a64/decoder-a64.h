@@ -33,7 +33,8 @@
 #include "vixl/a64/instructions-a64.h"
 
 #include "visits.h"
-#include "resettable.h"
+#include "component_base.h"
+#include "util.h"
 
 namespace vixl {
 
@@ -62,21 +63,58 @@ private:
 };
 
 
-class Decoder : public Kraken::Resettable {
+class Decoder : public Kraken::ComponentBase {
 public:
     Decoder() {}
-    void Reset() {};
+    void reset() {
+        decodedAction_ = Kraken::AC_Unallocated;
+        cachedAction_ = Kraken::AC_Unallocated;
+        decodedInstr_ = 0;
+        cachedInstr_ = 0;
+        decodedPc_ = 0;
+        cachedPc_ = 0;
+    }
+    void update() {
+        cachedPc_ = decodedPc_;
+        dbg("   Decode cachedPc_ <- %p\n", cachedPc_);
+        cachedAction_ = decodedAction_;
+        dbg("   Decode cachedAction_ <- %d\n", decodedAction_);
+        cachedInstr_ = decodedInstr_;
+        dbg("   Decode cachedInstr_ <- %p\n", decodedInstr_);
+    }
+    const Instruction * cachedPc() { return cachedPc_; }
+    Kraken::ActionCode cachedAction() { return cachedAction_; }
+    const Instruction *  cachedInstr() { return cachedInstr_; }
+
+    Kraken::ActionCode decodedAction_, cachedAction_;
+    const Instruction * decodedInstr_, * cachedInstr_;
+    const Instruction * decodedPc_, * cachedPc_;
 
     // Top-level wrappers around the actual decoding function.
-    Kraken::ActionCode Decode(const Instruction* instr) {
-        std::list<DecoderVisitor*>::iterator it;
-        for (it = visitors_.begin(); it != visitors_.end(); it++) {
-            VIXL_ASSERT((*it)->IsConstVisitor());
+    // void Decode(const Instruction* instr) {
+    //     std::list<DecoderVisitor*>::iterator it;
+    //     for (it = visitors_.begin(); it != visitors_.end(); it++) {
+    //         VIXL_ASSERT((*it)->IsConstVisitor());
+    //     }
+    //     DecodeInstruction(instr);
+    // }
+    void Decode(const Instruction* instr, const Instruction * pc) {
+        if (instr)
+        {
+            dbg("   Decode with %p\n", instr);
+            // dbg("   Decode with Rd: %d\n", decodeInstr->Rd());
+
+            decodedPc_ = pc;
+            dbg("   Decode decodedPc_ <- %p\n", pc);
+            decodedAction_ = DecodeInstruction(const_cast<const Instruction*>(instr));
+            dbg("   Decode decodedAction_ <- %d\n", decodedAction_);
+            decodedInstr_ = instr;
+            dbg("   Decode decodedInstr_ <- %p\n", decodedInstr_);
         }
-        return DecodeInstruction(instr);
-    }
-    Kraken::ActionCode Decode(Instruction* instr) {
-        return DecodeInstruction(const_cast<const Instruction*>(instr));
+        else
+        {
+            dbg("   No Decode (instr == 0)\n");
+        }
     }
 
     // Register a new visitor class with the decoder.

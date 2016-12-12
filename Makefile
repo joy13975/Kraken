@@ -59,10 +59,10 @@ $(EXE): $(OBJS)
 all: $(EXE)
 
 test: $(EXE)
-	./$(EXE) -i bmarks/$(TEST_PROG).a64
+	./$(EXE) -i bmarks/$(TEST_PROG).a64 $(ARGS)
 
 testim: $(EXE)
-	./$(EXE) -i bmarks/$(TEST_PROG).a64 -im
+	./$(EXE) -i bmarks/$(TEST_PROG).a64 -im $(ARGS)
 
 clean:
 	rm -rf $(EXE) $(OBJ_DIR)/* $(OBJ_DIR) *.dSYM .DS_Store

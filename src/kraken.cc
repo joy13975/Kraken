@@ -13,6 +13,7 @@ DECL_ARG_CALLBACK(setLogLevel) { set_log_level((Log_Level) parse_long(arg_in)); 
 DECL_ARG_CALLBACK(helpAndExit);
 DECL_ARG_CALLBACK(enableInteractiveMode) { options.interactive = true; }
 DECL_ARG_CALLBACK(addBreakpoint) { options.bpoints.push_back(strtoul(arg_in, 0, 16)); }
+DECL_ARG_CALLBACK(enablePipelining) { options.pipelined = true; }
 
 const argument_bundle argbv[] = {
     {"-i", "--input", "Set input binary", true, setInputFile},
@@ -20,6 +21,7 @@ const argument_bundle argbv[] = {
     {"-lg", "--loglevel", "Set log level", true, setLogLevel},
     {"-im", "--interactivemode", "Enable interactive mode", false, enableInteractiveMode},
     {"-b", "--breakat", "Set breakpoint at address", true, addBreakpoint},
+    {"-pl", "--pipeline", "Enable pipelining mode", false, enablePipelining},
 };
 #define ARG_BUND_SIZE (sizeof(argbv) / sizeof(argbv[0]))
 
@@ -40,6 +42,7 @@ DECL_ARG_CALLBACK(helpAndExit)
 DECL_ARG_IN_FAIL_CALLBACK(argParseFail)
 {
     printf("Argument parsing failed on string: \"%s\"\n", arg_in);
+    helpAndExit("");
     exit(1);
 }
 

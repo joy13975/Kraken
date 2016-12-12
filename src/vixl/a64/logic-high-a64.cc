@@ -127,27 +127,6 @@ Logic::~Logic() {
 }
 
 
-void Logic::Execute(const Kraken::ActionCode &ac,
-                    const Instruction * instr) {
-    // dbg("ActionCode: %s\n", Kraken::ActionCodeString[ac]);
-    switch (ac)
-    {
-#define GEN_AC_CASES(ITEM) \
-        case Kraken::AC_##ITEM: \
-        print_disasm_->Visit##ITEM(instr); \
-        Visit##ITEM(instr); \
-        break;
-        VISITOR_LIST(GEN_AC_CASES);
-#undef GEN_AC_CASES
-    default:
-        die("Unknown ActionCode: %d (%s)\n",
-            ac, Kraken::ActionCodeString[ac]);
-    }
-
-    LogAllWrittenRegisters();
-}
-
-
 const char* Logic::xreg_names[] = {"x0",  "x1",  "x2",  "x3",  "x4",  "x5",
                                    "x6",  "x7",  "x8",  "x9",  "x10", "x11",
                                    "x12", "x13", "x14", "x15", "x16", "x17",

@@ -23,6 +23,8 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#ifndef _LOGIC_A64_H_
+#define _LOGIC_A64_H_
 
 #include "vixl/globals.h"
 #include "vixl/utils.h"
@@ -36,7 +38,7 @@
 
 #include "visits.h"
 #include "util.h"
-#include "resettable.h"
+#include "component_base.h"
 
 namespace vixl {
 
@@ -237,17 +239,84 @@ T FPRound(int64_t sign,
     }
 }
 
-class Logic : public Kraken::Resettable {
+class Logic : public Kraken::ComponentBase {
 public:
     explicit Logic(FILE* stream = stdout);
     ~Logic();
 
-    void Reset() { ResetState(); };
-    void ResetState();
+    void reset() { ResetState(); };
+    void update() {
+        cachedHasExecuted_ = hasExecuted_;
+        dbg("   Execute cachedHasExecuted_ <- %d\n", cachedHasExecuted_);
+        cachedExePc_ = exePc_;
+        dbg("   Execute cachedExePc_ <- %p\n", cachedExePc_);
+        cachedPcIsDirty_ = pcIsDirty_;
+        dbg("   Execute cachedPcIsDirty_ <- %d\n", cachedPcIsDirty_);
 
-    // Run the simulator.
-    virtual void Execute(const Kraken::ActionCode & ac,
-                         const Instruction * instr);
+        //TODO: update register cache?
+    };
+
+    const Instruction * exePc_, * cachedExePc_;
+    const Instruction * cachedExePc() { return cachedExePc_; }
+
+    bool cachedHasExecuted() { return cachedHasExecuted_; }
+    bool hasExecuted_ = false, cachedHasExecuted_ = false;
+
+    bool pcIsDirty() { return cachedPcIsDirty_; }
+    bool pcIsDirty_ = false, cachedPcIsDirty_ = false;
+
+    bool resetFlags() {
+        dbg("   Execute clear flags\n");
+        // clear flags
+        hasExecuted_ = false;
+        exePc_ = 0; //only set if executed
+        pcIsDirty_ = false;
+    }
+
+    void Execute(const Instruction * pc,
+                 const Kraken::ActionCode & ac,
+                 const Instruction * instr) {
+
+        if (instr)
+        {
+            set_pc(reinterpret_cast<const vixl::Instruction*>(pc));
+            dbg("   Execute with pc: %p\n", pc);
+            dbg("   Execute with instr: %p\n", instr);
+            dbg("   Execute with ac: %d\n", ac);
+
+            // execute instruction
+            {
+                switch (ac)
+                {
+#define GEN_AC_CASES(ITEM) \
+        case Kraken::AC_##ITEM: \
+        print_disasm_->Visit##ITEM(instr); \
+        Visit##ITEM(instr); \
+        break;
+                    VISITOR_LIST(GEN_AC_CASES);
+#undef GEN_AC_CASES
+                default:
+                    die("Unknown ActionCode: %d (%s)\n",
+                        ac, Kraken::ActionCodeString[ac]);
+                }
+
+                LogAllWrittenRegisters();
+            }
+
+            hasExecuted_ = true;
+            dbg("   Execute hasExecuted_ <- %d\n", hasExecuted_);
+            exePc_ = reinterpret_cast<const Instruction *>(pc_);
+            dbg("   Execute exePc_ <- %p\n", exePc_);
+            pcIsDirty_ = (pc != exePc_);
+            dbg("   Execute pcIsDirty_ <- %d\n", pcIsDirty_);
+        }
+        else
+        {
+            dbg("   No Execute (instr == 0)\n");
+        }
+    }
+
+    void ResetState();
 
     // Execution ends when the PC hits this address.
     static const Instruction* kEndOfSimAddress;
@@ -268,6 +337,12 @@ public:
             pc_ = pc_->NextInstruction();
         }
     }
+
+    // register getters
+    const SimRegister *const getRegisters() { return registers_; };
+    const SimVRegister *const getVRegisters() { return vregisters_; };
+    const SimSystemRegister *const getNZCV() { return &nzcv_; };
+    const SimSystemRegister *const getFPCR() { return &fpcr_; };
 
 // Declare all Visitor functions.
 #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
@@ -2166,3 +2241,5 @@ private:
 };
 
 }  // namespace vixl
+
+#endif /* include guard */

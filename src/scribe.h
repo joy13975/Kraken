@@ -14,7 +14,7 @@ public:
     Scribe();
     virtual ~Scribe() {};
 
-    void write(Scripture script, State *const state);
+    // void commit(Scripture script, State *const state);
 private:
 };
 

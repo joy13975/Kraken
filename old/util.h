@@ -9,14 +9,24 @@ extern "C" {
 #include <stdbool.h>
 
 //enum-string generation
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
-#define DECL_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_MACRO) \
+#define GEN_ENUM(ITEM) ITEM,
+#define GEN_STRING(STRING) #STRING,
+#define GEN_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM) \
     typedef enum { \
-        FOREACH_MACRO(GENERATE_ENUM) \
+        FOREACH_ITEM(GEN_ENUM) \
     } TYPE_NAME; \
     static const char *TYPE_STRING_NAME[] = { \
-        FOREACH_MACRO(GENERATE_STRING) \
+        FOREACH_ITEM(GEN_STRING) \
+    };
+
+#define GEN_ITEM_VAL(ITEM, VAL) ITEM = VAL,
+#define GEN_STRING_VAL(STRING, VAL) if(e == VAL) return #STRING;
+#define GEN_ENUM_VAL_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM_VAL) \
+    typedef enum { \
+        FOREACH_ITEM_VAL(GEN_ITEM_VAL) \
+    } TYPE_NAME; \
+    static const char * TYPE_STRING_NAME(TYPE_NAME e) { \
+        FOREACH_ITEM_VAL(GEN_STRING_VAL) \
     };
 
 //enum-string example
@@ -39,7 +49,7 @@ extern "C" {
     MACRO(DIV) \
     MACRO(CMP) \
 
-DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
+GEN_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
 */
 
 #define FOREACH_LOG_LEVEL(MACRO) \
@@ -51,7 +61,7 @@ DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
     MACRO(LOG_ERROR) \
     MACRO(LOG_DEATH)
 
-DECL_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
+GEN_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 

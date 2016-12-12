@@ -7,7 +7,7 @@
 #include "bit_util.h"
 #include "fetcher.h"
 #include "scribe.h"
-#include "resettable.h"
+#include "component_base.h"
 
 #include "vixl/a64/decoder-a64.h"
 #include "vixl/a64/logic-a64.h"
@@ -15,27 +15,30 @@
 namespace Kraken
 {
 
-class Proc : public Resettable
+class Proc : public ComponentBase
 {
 public:
 
     Proc(const Options &_options);
-    virtual ~Proc()
-    { delete state_; };
+    virtual ~Proc() {};
 
-    void Reset() {};
+    void reset();
+    void update();
     void startSimulation();
 
 private:
+    // "ROM"
     const Options options_;
     const ProgramInfo progInfo_;
-    State *state_;
 
+    // components
     vixl::Decoder decoder_;
     Fetcher fetcher_;
     vixl::Logic logic_;
 
-    void resetStateRegs();
+    // state
+    const Word * pc_;
+
     void run();
     void breakpoint(const ptrdiff_t addr);
 };

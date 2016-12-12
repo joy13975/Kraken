@@ -12,6 +12,8 @@
 #include "bit_util.h"
 #include "util.h"
 
+#include "vixl/a64/logic-regs-a64.h"
+
 namespace Kraken
 {
 
@@ -20,6 +22,7 @@ typedef struct
     std::string inputFile           = "";
     bool interactive                = false;
     bool pipelined                  = false;
+    short n_superscalar             = 1;
     std::vector<uintptr_t> bpoints;
 } Options;
 
@@ -37,11 +40,12 @@ public:
     const Word *const       textEnd_;
 
     ProgramInfo(std::ifstream &&binStream);
-    virtual ~ProgramInfo() {
-        delete imgBaseRoot_;
-    };
+    virtual ~ProgramInfo() { delete imgBaseRoot_; }
 
     static size_t getImgSize(std::ifstream &binStream);
+    template<typename T>
+    T offset(const void* ptr) const
+    { return subPointers<T>(ptr, image_); }
 private:
     Elf64_Ehdr elfPriv_;
     size_t imgSizePriv_;
@@ -104,7 +108,7 @@ private:
 
         for (Elf64_Phdr phdr : phList)
         {
-            prf("Program section: p_type(%.4d) p_flags(%.4d) p_offset(%.8x) p_vaddr(%.8x) p_paddr(%.8x) p_filesz(%.4d) p_memsz(%.4d) p_align(%.4d)\n",
+            dbg("Program section: p_type(%.4d) p_flags(%.4d) p_offset(%.8x) p_vaddr(%.8x) p_paddr(%.8x) p_filesz(%.4d) p_memsz(%.4d) p_align(%.4d)\n",
                 phdr.p_type,
                 phdr.p_flags,
                 phdr.p_offset,
@@ -121,7 +125,7 @@ private:
 
             if (!binStream.read((char*) imgPtr, phdr.p_memsz))
                 die("Could not load Elf program section.\n");
-            prf("Loaded %ld bytes at %p; base: %p\n",
+            dbg("Loaded %ld bytes at %p; base: %p\n",
                 phdr.p_memsz, imgPtr, imgBase);
         }
 
@@ -159,73 +163,6 @@ private:
         die("Could not find .text section in the binary (sections=%d)\n",
             elf_.e_shnum);
     }
-};
-
-class State
-{
-public:
-    State(const ProgramInfo &pi);
-    virtual ~State()
-    {
-        delete imgBaseRoot_;
-    };
-
-    //memory
-    const Word * baseAddr_;
-
-    // special purpose registers
-    const Word * pc_;
-
-    // General purpose registers. Register 31 is the stack pointer.
-    // SimRegister registers_[kNumberOfRegisters];
-
-    // // Vector registers
-    // SimVRegister vregisters_[kNumberOfVRegisters];
-
-    // // Program Status Register.
-    // // bits[31, 27]: Condition flags N, Z, C, and V.
-    // //               (Negative, Zero, Carry, Overflow)
-    // SimSystemRegister nzcv_;
-
-    // // Floating-Point Control Register
-    // SimSystemRegister fpcr_;
-
-    // general purpose registers
-
-    ptrdiff_t getPcOffset() const;
-
-    template<typename T>
-    T * memAt(const T * offset) const
-    {
-        return addPointers<T*>(baseAddr_, offset);
-    }
-
-private:
-    Byte * imgBaseRoot_;
-
-    template<typename T>
-    T initMemory(const ProgramInfo &pi)
-    {
-        const size_t memSize = pi.imgSize_ + pi.stackAndHeapSize;
-        imgBaseRoot_ = new Byte[memSize + ADRP_ALIGNMMENT];
-        Byte * mem = addPointers<Byte*>(imgBaseRoot_,
-                                        (void*) (ADRP_ALIGNMMENT - (((uintptr_t) imgBaseRoot_) % ADRP_ALIGNMMENT)));
-
-        prf("Copying %ld bytes from image to new base: %p\n",
-            pi.imgSize_, mem);
-        memcpy(mem, pi.image_, pi.imgSize_);
-
-        return reinterpret_cast<T>(mem);
-    }
-};
-
-class Scripture
-{
-public:
-    Scripture() {};
-    virtual ~Scripture() {};
-
-private:
 };
 
 } // namespace

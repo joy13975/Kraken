@@ -30,6 +30,7 @@
 #define _LOGIC_REGS_A64_H_
 
 #include "vixl/a64/logic-constants-a64.h"
+#include "vixl/a64/logic-memory-a64.h"
 
 namespace vixl
 {
@@ -38,7 +39,9 @@ namespace vixl
 template <int kSizeInBytes>
 class SimRegisterBase {
 public:
-    SimRegisterBase() : written_since_last_log_(false) {}
+    SimRegisterBase()
+        : written_since_last_log_(false),
+          written_since_last_commit(false) {};
 
     // Write the specified value. The value is zero-extended if necessary.
     template <typename T>
@@ -82,13 +85,21 @@ public:
 
     void NotifyRegisterLogged() { written_since_last_log_ = false; }
 
+    bool WrittenSinceLastCommit() const { return written_since_last_commit; }
+
+    void NotifyRegisterCommitted() { written_since_last_commit = false; }
+
 protected:
     uint8_t value_[kSizeInBytes];
 
     // Helpers to aid with register tracing.
     bool written_since_last_log_;
+    bool written_since_last_commit;
 
-    void NotifyRegisterWrite() { written_since_last_log_ = true; }
+    void NotifyRegisterWrite() {
+        written_since_last_log_ = true;
+        written_since_last_commit = true;
+    };
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
 typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
