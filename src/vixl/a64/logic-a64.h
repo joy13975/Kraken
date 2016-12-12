@@ -246,6 +246,7 @@ public:
 
     void reset() { ResetState(); };
     void update() {
+
         cachedHasExecuted_ = hasExecuted_;
         dbg("   Execute cachedHasExecuted_ <- %d\n", cachedHasExecuted_);
         cachedExePc_ = exePc_;
@@ -277,6 +278,8 @@ public:
                  const Kraken::ActionCode & ac,
                  const Instruction * instr) {
 
+        resetFlags();
+
         if (instr)
         {
             set_pc(reinterpret_cast<const vixl::Instruction*>(pc));
@@ -290,7 +293,8 @@ public:
                 {
 #define GEN_AC_CASES(ITEM) \
         case Kraken::AC_##ITEM: \
-        print_disasm_->Visit##ITEM(instr); \
+        if (get_log_level() < LOG_MESSAGE) \
+            print_disasm_->Visit##ITEM(instr); \
         Visit##ITEM(instr); \
         break;
                     VISITOR_LIST(GEN_AC_CASES);
@@ -300,7 +304,8 @@ public:
                         ac, Kraken::ActionCodeString[ac]);
                 }
 
-                LogAllWrittenRegisters();
+                if (get_log_level() < LOG_MESSAGE)
+                    LogAllWrittenRegisters();
             }
 
             hasExecuted_ = true;

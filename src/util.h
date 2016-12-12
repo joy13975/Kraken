@@ -107,12 +107,12 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define CLR_CYN "\x1B[36m"
 #define CLR_WHT "\x1B[37m"
 
-#define prf(fmt, ...) _log(__FILE__, __LINE__, LOG_PROOF, fmt, ##__VA_ARGS__)
-#define dbg(fmt, ...) _log(__FILE__, __LINE__, LOG_DEBUG, fmt, ##__VA_ARGS__)
-#define wrn(fmt, ...) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__)
+#define prf(fmt, ...) do { if (LOG_PROOF >= get_log_level()) _log(__FILE__, __LINE__, LOG_PROOF, fmt, ##__VA_ARGS__); } while(0)
+#define dbg(fmt, ...) do { if (LOG_DEBUG >= get_log_level()) _log(__FILE__, __LINE__, LOG_DEBUG, fmt, ##__VA_ARGS__); } while(0)
+#define wrn(fmt, ...) do { if (LOG_WARN >= get_log_level()) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__); } while(0)
 #define err(fmt, ...) _log(__FILE__, __LINE__, LOG_ERROR, fmt, ##__VA_ARGS__)
-#define msg(fmt, ...) _log(__FILE__, __LINE__, LOG_MESSAGE, fmt, ##__VA_ARGS__)
-#define raw(fmt, ...) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__)
+#define msg(fmt, ...) do { if (LOG_MESSAGE >= get_log_level()) _log(__FILE__, __LINE__, LOG_MESSAGE, fmt, ##__VA_ARGS__); } while(0)
+#define raw(fmt, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__); } while(0)
 #define raw_at(lvl, fmt, ...) do{ if (lvl >= get_log_level()) raw(fmt, ##__VA_ARGS__); } while(0)
 #define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__)
 

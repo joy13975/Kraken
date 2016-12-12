@@ -103,6 +103,7 @@ private:
 
         // now we know the max image address, create the space
         imgBaseRoot_ = new Byte[imgSizePriv_ + ADRP_ALIGNMMENT];
+        memset(imgBaseRoot_, 0, imgSizePriv_ + ADRP_ALIGNMMENT);
         Byte * imgBase = addPointers<Byte*>(imgBaseRoot_,
                                             (void*) (ADRP_ALIGNMMENT - (((uintptr_t) imgBaseRoot_) % ADRP_ALIGNMMENT)));
 

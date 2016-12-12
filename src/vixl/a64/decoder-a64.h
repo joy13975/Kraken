@@ -67,6 +67,7 @@ class Decoder : public Kraken::ComponentBase {
 public:
     Decoder() {}
     void reset() {
+        dbg("   Decoder reset\n");
         decodedAction_ = Kraken::AC_Unallocated;
         cachedAction_ = Kraken::AC_Unallocated;
         decodedInstr_ = 0;

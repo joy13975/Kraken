@@ -149,12 +149,18 @@ main:                                   // @main
 // BB#0:                                // %entry
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
+	sub	sp, sp, #16             // =16
 	adrp	x8, nums1k1
 	add	x0, x8, :lo12:nums1k1
-	movz	w1, #0
-	orr	w2, wzr, #0x400
+	movz	w9, #0
+	movz	w2, #0x5
+	stur	w9, [x29, #-4]
+	mov	 w1, w9
 	bl	sort
-	movz	w0, #0
+	adrp	x8, nums1k1
+	add	x8, x8, :lo12:nums1k1
+	ldr	w0, [x8, #20]
+	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
 .Ltmp3:

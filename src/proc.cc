@@ -49,7 +49,9 @@ void Proc::reset()
     fetcher_.reset();
     decoder_.reset();
     logic_.reset();
-    logic_.set_trace_parameters(vixl::LOG_ALL);
+
+    if (get_log_level() < LOG_MESSAGE)
+        logic_.set_trace_parameters(vixl::LOG_ALL);
     //scribe_.Reset();
 }
 
@@ -91,10 +93,9 @@ void Proc::run()
         progInfo_.image_,
         addPointers<Word*>(progInfo_.image_, (void*) progInfo_.imgSize_));
 
+    bool shouldHalt = false;
+
     // data paths
-    const vixl::Instruction *  instrD2E[2] = {0};
-    const Word * logicPc                = 0;
-    short throwPipe                     = 0;
     vixl::SimRegister       dpRegs[vixl::kNumberOfRegisters];
     vixl::SimVRegister      dpVregs[vixl::kNumberOfVRegisters];
     vixl::SimSystemRegister dpNZCV;
@@ -106,145 +107,184 @@ void Proc::run()
     // execution loop
     ProcStage stage = options_.pipelined ? PIPELINED : FETCH;
     ClkState clkState = HIGH;
-    while (true)
+
+    #pragma omp parallel
     {
-        //check for breakpoint
-        const ptrdiff_t pcOffset = progInfo_.offset<ptrdiff_t>(pc_);
-        if (clkState == HIGH)
+        while (!shouldHalt)
         {
-            if (options_.interactive)
-                breakpoint(pcOffset);
-            else
-                // check whether to break
-                for (uintptr_t bAddr : options_.bpoints)
-                    if (bAddr == pcOffset)
-                    { breakpoint(pcOffset); break; };
-        }
+            #pragma omp barrier
 
-        prf("Clk: %s, Stage: %s\n",
-            ClkStateString[clkState], ProcStageString(stage));
-
-        switch (clkState)
-        {
-        case HIGH:
-        {
-            dbg("======================= Compute[%d/%d] =======================\n",
-                cycleCount, instrCount);
-            dbg("PC Offsest: %p\n", pcOffset);
-            prf("Clock HIGH: %s\n", ProcStageString(stage));
-
-            if (stage & FETCH)
+            #pragma omp single nowait
             {
-                if (logic_.pcIsDirty())
+                //check for breakpoint
+                const ptrdiff_t pcOffset = progInfo_.offset<ptrdiff_t>(pc_);
+                if (clkState == HIGH)
                 {
-                    fetcher_.reset();
-                    pc_ = reinterpret_cast<const Word*>(logic_.cachedExePc());
+                    if (options_.interactive)
+                        breakpoint(pcOffset);
+                    else
+                        // check whether to break
+                        for (uintptr_t bAddr : options_.bpoints)
+                            if (bAddr == pcOffset)
+                            { breakpoint(pcOffset); break; };
                 }
 
-                if (pc_ >= absTextEnd)
-                    msg("   Fetcher has halted\n");
-                else
-                    fetcher_.Fetch(pc_, options_.n_superscalar);
-            }
+                wrn("Clk: %s, Stage: %s\n",
+                    ClkStateString[clkState], ProcStageString(stage));
 
-            if (stage & DECODE)
-            {
-                if (logic_.pcIsDirty())
-                    decoder_.reset();
+                switch (clkState)
+                {
+                case HIGH:
+                {
+                    dbg("======================================== Compute[%d/%d]\n",
+                        cycleCount, instrCount);
+                    dbg("PC Offsest: %p\n", pcOffset);
+                    prf("Clock HIGH: %s\n", ProcStageString(stage));
 
-                decoder_.Decode(fetcher_.cachedInstr(), fetcher_.cachedPc());
-            }
+                    #pragma omp task
+                    if (stage & FETCH)
+                    {
+                        if (pc_ >= absTextEnd)
+                            dbg("   Fetcher has halted\n");
+                        else
+                            fetcher_.Fetch(pc_, options_.n_superscalar);
+                    }
 
-            if (stage & EXECUTE)
-            {
-                if (logic_.pcIsDirty())
-                    logic_.resetFlags();
-                logic_.Execute(decoder_.cachedPc(),
-                               decoder_.cachedAction(),
-                               decoder_.cachedInstr());
+                    #pragma omp task
+                    if (stage & DECODE)
+                    {
+                        decoder_.Decode(fetcher_.cachedInstr(), fetcher_.cachedPc());
+                    }
 
-                // memcpy(dpRegs, logic_.getRegisters(),
-                //        sizeof(vixl::SimRegister) * vixl::kNumberOfRegisters);
-                // memcpy(dpRegs, logic_.getVRegisters(),
-                //        sizeof(vixl::SimRegister) * vixl::kNumberOfVRegisters);
-                // memcpy(&dpNZCV, logic_.getNZCV(),
-                //        sizeof(vixl::SimRegister));
-                // memcpy(&dpFPCR, logic_.getFPCR(),
-                //        sizeof(vixl::SimRegister));
-            }
+                    #pragma omp task
+                    if (stage & EXECUTE)
+                    {
+                        logic_.Execute(decoder_.cachedPc(),
+                                       decoder_.cachedAction(),
+                                       decoder_.cachedInstr());
 
-            if (stage & WRITEBACK)
-            {
-                // commit modified reg vals
-                // Scribe::commit(script, state);
-            }
+                        // memcpy(dpRegs, logic_.getRegisters(),
+                        //        sizeof(vixl::SimRegister) * vixl::kNumberOfRegisters);
+                        // memcpy(dpRegs, logic_.getVRegisters(),
+                        //        sizeof(vixl::SimRegister) * vixl::kNumberOfVRegisters);
+                        // memcpy(&dpNZCV, logic_.getNZCV(),
+                        //        sizeof(vixl::SimRegister));
+                        // memcpy(&dpFPCR, logic_.getFPCR(),
+                        //        sizeof(vixl::SimRegister));
+                    }
 
-            break;
-        }
-        case FALLING:
-        {
-            prf("Clock FALLING: %s\n", ProcStageString(stage));
-            break;
-        }
-        case LOW:
-        {
-            prf("Clock LOW: %s\n", ProcStageString(stage));
-            break;
-        }
-        case RISING:
-        {
-            prf("Clock RISING: %s\n", ProcStageString(stage));
-            dbg("======================= Update[%d/%d] =======================\n",
-                cycleCount, instrCount);
+                    #pragma omp task
+                    if (stage & WRITEBACK)
+                    {
+                        // commit modified reg vals
+                        // Scribe::commit(script, state);
+                    }
 
-            if (stage & FETCH)
-            {
-                fetcher_.update();
-                pc_ = reinterpret_cast<const Word*>(fetcher_.cachedPc());
-            }
-            if (stage & DECODE)
-                decoder_.update();
-            if (stage & EXECUTE)
-            {
-                logic_.update();
+                    break;
+                }
+                case FALLING:
+                {
+                    break;
+                }
+                case LOW:
+                {
+                    dbg("======================================== Update[%d/%d] \n",
+                        cycleCount, instrCount);
 
-                if (logic_.cachedHasExecuted())
-                    instrCount += options_.n_superscalar;
-            }
-            if (stage & WRITEBACK)
-            {
-                // gather only MODIFIED register values
-                // dbg("   WRITEBACK COPIED: ??\n");
-            }
+                    #pragma omp task
+                    if (stage & FETCH)
+                    {
+                        fetcher_.update();
+                        pc_ = reinterpret_cast<const Word*>(fetcher_.cachedPc());
+                    }
 
-            break;
-        }
-        default:
-            die("Unused clock state: %s\n", ClkStateString[clkState]);
-        }
+                    #pragma omp task
+                    if (stage & DECODE)
+                        decoder_.update();
 
-        // check program ret and sensible pc
-        if (pc_ == 0)
-        {
-            msg("Program has returned\n");
-            break;
-        }
-        else if (pc_ < absTextStart || pc_ > absTextEnd)
-        {
-            err("PC went out of bound!\n");
-            die("PC: %p is not inside [%p, %p]\n",
-                pc_, absTextStart, absTextEnd);
-        }
-        else
-        {
-            if (clkState == RISING)
-            {
-                // dbg("======================= Cycle End =======================\n");
-                stage = nextStage(stage);
-                cycleCount++;
-            }
-            clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);
-        }
+                    #pragma omp task
+                    if (stage & EXECUTE)
+                        logic_.update();
+
+                    #pragma omp task
+                    if (stage & WRITEBACK)
+                    {
+                        // gather only MODIFIED register values
+                        // dbg("   WRITEBACK COPIED: ??\n");
+                    }
+
+                    break;
+                }
+                case RISING:
+                {
+                    dbg("======================================== Sync [%d/%d] \n",
+                        cycleCount, instrCount);
+
+                    #pragma omp task
+                    if (stage & FETCH)
+                    {
+                    }
+
+                    #pragma omp task
+                    if (stage & DECODE)
+                    {
+                        if (logic_.cachedHasExecuted())
+                            instrCount += options_.n_superscalar;
+                    }
+
+                    #pragma omp task
+                    if (stage & EXECUTE)
+                    {
+                        fflush(stdout);
+                        wrn("DO IT\n");
+                        if (logic_.pcIsDirty())
+                        {
+                            fetcher_.reset();
+                            decoder_.reset();
+
+                            wrn("Insert cachedExePc_: %p\n", logic_.cachedExePc());
+                            pc_ = reinterpret_cast<const Word*>(logic_.cachedExePc());
+                        }
+                    }
+
+                    #pragma omp task
+                    if (stage & WRITEBACK)
+                    {
+                    }
+
+                    break;
+                }
+                default:
+                    die("Unused clock state: %s\n", ClkStateString[clkState]);
+                }
+
+                #pragma omp taskwait
+
+                // below code must run only after task sync
+                if (clkState == RISING)
+                {
+                    stage = nextStage(stage);
+                    cycleCount++;
+                    dbg("======================================== Cycle End\n");
+                }
+
+                if (pc_ == 0)
+                {
+                    shouldHalt = true;
+                    dbg("======================================== Proc Halts\n");
+                }
+                else if (pc_ < absTextStart || pc_ > absTextEnd)
+                {
+                    err("PC went out of bound!\n");
+                    die("PC: %p is not inside [%p, %p]\n",
+                        pc_, absTextStart, absTextEnd);
+                }
+
+                clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);
+            } // omp single
+
+            #pragma omp barrier
+        } // while(!shouldHalt)
     }
 
     logic_.PrintRegister(0);

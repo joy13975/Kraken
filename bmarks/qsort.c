@@ -29,7 +29,7 @@ void sort(int arr[], int beg, int end)
 
 int main(void)
 {
-    sort(nums1k1, 0, 1024);
+    sort(nums1k1, 0, 5);
 
 #ifdef _DEBUG
     printf("Front: ");
@@ -42,4 +42,6 @@ int main(void)
         printf("%-3d ", nums1k1[i]);
     printf("\n");
 #endif
+
+    return nums1k1[5];
 }

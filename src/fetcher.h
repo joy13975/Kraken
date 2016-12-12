@@ -17,7 +17,7 @@ public:
     virtual ~Fetcher() {}
 
     void reset() {
-        wrn("fetcher reset\n");
+        dbg("   Fetcher reset\n");
         fetchedInstr_ = 0;
         cachedInstr_ = 0;
         fetchedPc_ = 0;
