@@ -6,15 +6,14 @@
 main:                                   // @main
 // BB#0:                                // %entry
 	stp	x28, x27, [sp, #-16]!
-	sub	sp, sp, #1, lsl #12     // =4096
-	sub	sp, sp, #16             // =16
+	sub	sp, sp, #2064           // =2064
 	movz	w8, #0
-	str	w8, [sp, #4108]
+	str	w8, [sp, #2060]
 	str	w8, [sp, #8]
 .LBB0_1:                                // %for.cond
                                         // =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #8]
-	cmp	 w8, #1024              // =1024
+	cmp	 w8, #512               // =512
 	b.lt	.LBB0_2
 	b	.LBB0_4
 .LBB0_2:                                // %for.body
@@ -54,9 +53,13 @@ main:                                   // @main
 	str	w8, [sp, #8]
 	b	.LBB0_1
 .LBB0_4:                                // %for.end
-	movz	w0, #0
-	add	sp, sp, #1, lsl #12     // =4096
-	add	sp, sp, #16             // =16
+	orr	w8, wzr, #0xff
+	ldr	w9, [sp, #2056]
+	sdiv	w0, w9, w8
+	msub	w0, w0, w8, w9
+	str	w0, [sp, #4]
+	ldr	w0, [sp, #4]
+	add	sp, sp, #2064           // =2064
 	ldp	x28, x27, [sp], #16
 	ret
 .Ltmp0:

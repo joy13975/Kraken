@@ -7,36 +7,36 @@ start address 0x0000000000000100
 
 Program Header:
     LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
-         filesz 0x00000000000001bc memsz 0x00000000000001bc flags r-x
-    LOAD off    0x00000000000001bc vaddr 0x00000000000101bc paddr 0x00000000000101bc align 2**16
+         filesz 0x00000000000001c8 memsz 0x00000000000001c8 flags r-x
+    LOAD off    0x00000000000001c8 vaddr 0x00000000000101c8 paddr 0x00000000000101c8 align 2**16
          filesz 0x0000000000002000 memsz 0x0000000000002000 flags rw-
 private flags = 0:
 
 Sections:
 Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         000000bc  0000000000000100  0000000000000100  00000100  2**2
+  0 .text         000000c8  0000000000000100  0000000000000100  00000100  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00002000  00000000000101bc  00000000000101bc  000001bc  2**2
+  1 .data         00002000  00000000000101c8  00000000000101c8  000001c8  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000015  0000000000000000  0000000000000000  000021bc  2**0
+  2 .comment      00000015  0000000000000000  0000000000000000  000021c8  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 0000000000000100 l    d  .text	0000000000000000 .text
-00000000000101bc l    d  .data	0000000000000000 .data
+00000000000101c8 l    d  .data	0000000000000000 .data
 0000000000000000 l    d  .comment	0000000000000000 .comment
 0000000000000000 l    df *ABS*	0000000000000000 vadd.c
-00000000000121bc g       .data	0000000000000000 _bss_end__
-00000000000121bc g       .data	0000000000000000 __bss_start__
-00000000000121bc g       .data	0000000000000000 __bss_end__
-00000000000101bc g     O .data	0000000000001000 nums1k1
-00000000000121bc g       .data	0000000000000000 __bss_start
-0000000000000100 g     F .text	00000000000000bc main
-00000000000121c0 g       .data	0000000000000000 __end__
-00000000000121bc g       .data	0000000000000000 _edata
-00000000000121c0 g       .data	0000000000000000 _end
+00000000000121c8 g       .data	0000000000000000 _bss_end__
+00000000000121c8 g       .data	0000000000000000 __bss_start__
+00000000000121c8 g       .data	0000000000000000 __bss_end__
+00000000000101c8 g     O .data	0000000000001000 nums1k1
+00000000000121c8 g       .data	0000000000000000 __bss_start
+0000000000000100 g     F .text	00000000000000c8 main
+00000000000121c8 g       .data	0000000000000000 __end__
+00000000000121c8 g       .data	0000000000000000 _edata
+00000000000121c8 g       .data	0000000000000000 _end
 0000000000080000 g       .comment	0000000000000000 _stack
-00000000000101bc g       .data	0000000000000000 __data_start
-00000000000111bc g     O .data	0000000000001000 nums1k2
+00000000000101c8 g       .data	0000000000000000 __data_start
+00000000000111c8 g     O .data	0000000000001000 nums1k2
 
 
 
@@ -44,49 +44,52 @@ Disassembly of section .text:
 
 0000000000000100 <main>:
  100:	a9bf6ffc 	stp	x28, x27, [sp,#-16]!
- 104:	d14007ff 	sub	sp, sp, #0x1, lsl #12
- 108:	d10043ff 	sub	sp, sp, #0x10
- 10c:	52800008 	mov	w8, #0x0                   	// #0
- 110:	b9100fe8 	str	w8, [sp,#4108]
- 114:	b9000be8 	str	w8, [sp,#8]
- 118:	b9400be8 	ldr	w8, [sp,#8]
- 11c:	7110011f 	cmp	w8, #0x400
- 120:	5400004b 	b.lt	128 <main+0x28>
- 124:	14000021 	b	1a8 <main+0xa8>
- 128:	910033e8 	add	x8, sp, #0xc
- 12c:	b0000089 	adrp	x9, 11000 <__data_start+0xe44>
- 130:	9106f129 	add	x9, x9, #0x1bc
- 134:	9000008a 	adrp	x10, 10000 <main+0xff00>
- 138:	9106f14a 	add	x10, x10, #0x1bc
- 13c:	b9400beb 	ldr	w11, [sp,#8]
- 140:	2a0b03ec 	mov	w12, w11
- 144:	93407d8c 	sxtw	x12, w12
- 148:	b27f03ed 	orr	x13, xzr, #0x2
- 14c:	9acd218c 	lsl	x12, x12, x13
- 150:	8b0c014a 	add	x10, x10, x12
- 154:	b940014b 	ldr	w11, [x10]
- 158:	b9400bee 	ldr	w14, [sp,#8]
- 15c:	2a0e03ea 	mov	w10, w14
- 160:	93407d4a 	sxtw	x10, w10
- 164:	b27f03ec 	orr	x12, xzr, #0x2
- 168:	9acc214a 	lsl	x10, x10, x12
- 16c:	8b0a0129 	add	x9, x9, x10
- 170:	b940012e 	ldr	w14, [x9]
- 174:	0b0e016b 	add	w11, w11, w14
- 178:	b9400bee 	ldr	w14, [sp,#8]
- 17c:	2a0e03e9 	mov	w9, w14
- 180:	93407d29 	sxtw	x9, w9
- 184:	b27f03ea 	orr	x10, xzr, #0x2
- 188:	9aca2129 	lsl	x9, x9, x10
- 18c:	8b090108 	add	x8, x8, x9
- 190:	b900010b 	str	w11, [x8]
- 194:	b9400be8 	ldr	w8, [sp,#8]
- 198:	320003e9 	orr	w9, wzr, #0x1
- 19c:	0b090108 	add	w8, w8, w9
- 1a0:	b9000be8 	str	w8, [sp,#8]
- 1a4:	17ffffdd 	b	118 <main+0x18>
- 1a8:	52800000 	mov	w0, #0x0                   	// #0
- 1ac:	914007ff 	add	sp, sp, #0x1, lsl #12
- 1b0:	910043ff 	add	sp, sp, #0x10
- 1b4:	a8c16ffc 	ldp	x28, x27, [sp],#16
- 1b8:	d65f03c0 	ret
+ 104:	d12043ff 	sub	sp, sp, #0x810
+ 108:	52800008 	mov	w8, #0x0                   	// #0
+ 10c:	b9080fe8 	str	w8, [sp,#2060]
+ 110:	b9000be8 	str	w8, [sp,#8]
+ 114:	b9400be8 	ldr	w8, [sp,#8]
+ 118:	7108011f 	cmp	w8, #0x200
+ 11c:	5400004b 	b.lt	124 <main+0x24>
+ 120:	14000021 	b	1a4 <main+0xa4>
+ 124:	910033e8 	add	x8, sp, #0xc
+ 128:	b0000089 	adrp	x9, 11000 <__data_start+0xe38>
+ 12c:	91072129 	add	x9, x9, #0x1c8
+ 130:	9000008a 	adrp	x10, 10000 <main+0xff00>
+ 134:	9107214a 	add	x10, x10, #0x1c8
+ 138:	b9400beb 	ldr	w11, [sp,#8]
+ 13c:	2a0b03ec 	mov	w12, w11
+ 140:	93407d8c 	sxtw	x12, w12
+ 144:	b27f03ed 	orr	x13, xzr, #0x2
+ 148:	9acd218c 	lsl	x12, x12, x13
+ 14c:	8b0c014a 	add	x10, x10, x12
+ 150:	b940014b 	ldr	w11, [x10]
+ 154:	b9400bee 	ldr	w14, [sp,#8]
+ 158:	2a0e03ea 	mov	w10, w14
+ 15c:	93407d4a 	sxtw	x10, w10
+ 160:	b27f03ec 	orr	x12, xzr, #0x2
+ 164:	9acc214a 	lsl	x10, x10, x12
+ 168:	8b0a0129 	add	x9, x9, x10
+ 16c:	b940012e 	ldr	w14, [x9]
+ 170:	0b0e016b 	add	w11, w11, w14
+ 174:	b9400bee 	ldr	w14, [sp,#8]
+ 178:	2a0e03e9 	mov	w9, w14
+ 17c:	93407d29 	sxtw	x9, w9
+ 180:	b27f03ea 	orr	x10, xzr, #0x2
+ 184:	9aca2129 	lsl	x9, x9, x10
+ 188:	8b090108 	add	x8, x8, x9
+ 18c:	b900010b 	str	w11, [x8]
+ 190:	b9400be8 	ldr	w8, [sp,#8]
+ 194:	320003e9 	orr	w9, wzr, #0x1
+ 198:	0b090108 	add	w8, w8, w9
+ 19c:	b9000be8 	str	w8, [sp,#8]
+ 1a0:	17ffffdd 	b	114 <main+0x14>
+ 1a4:	32001fe8 	orr	w8, wzr, #0xff
+ 1a8:	b9480be9 	ldr	w9, [sp,#2056]
+ 1ac:	1ac80d20 	sdiv	w0, w9, w8
+ 1b0:	1b08a400 	msub	w0, w0, w8, w9
+ 1b4:	b90007e0 	str	w0, [sp,#4]
+ 1b8:	b94007e0 	ldr	w0, [sp,#4]
+ 1bc:	912043ff 	add	sp, sp, #0x810
+ 1c0:	a8c16ffc 	ldp	x28, x27, [sp],#16
+ 1c4:	d65f03c0 	ret

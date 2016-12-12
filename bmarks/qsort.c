@@ -4,6 +4,8 @@
 
 #include "nums1k.h"
 
+#define N 1024
+
 void swap(int *a, int *b)
 {
     int t = *a; *a = *b; *b = t;
@@ -29,7 +31,9 @@ void sort(int arr[], int beg, int end)
 
 int main(void)
 {
-    sort(nums1k1, 0, 5);
+    sort(nums1k1, 0, N - 1);
+
+    int ret = nums1k1[N - 1] % 255;
 
 #ifdef _DEBUG
     printf("Front: ");
@@ -38,10 +42,12 @@ int main(void)
     printf("\n");
 
     printf("Back:  ");
-    for (int i = 1023; i > 1023-10; i--)
+    for (int i = N - 1; i > N - 1 - 10; i--)
         printf("%-3d ", nums1k1[i]);
     printf("\n");
+
+    printf("Ret: %d\n", ret);
 #endif
 
-    return nums1k1[5];
+    return ret;
 }

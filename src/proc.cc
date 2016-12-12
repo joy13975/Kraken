@@ -236,14 +236,13 @@ void Proc::run()
                     if (stage & EXECUTE)
                     {
                         fflush(stdout);
-                        wrn("DO IT\n");
                         if (logic_.pcIsDirty())
                         {
                             fetcher_.reset();
                             decoder_.reset();
 
-                            wrn("Insert cachedExePc_: %p\n", logic_.cachedExePc());
                             pc_ = reinterpret_cast<const Word*>(logic_.cachedExePc());
+                            dbg("   Execute pc_ <- cachedExePc_: %p\n", logic_.cachedExePc());
                         }
                     }
 
