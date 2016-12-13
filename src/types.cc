@@ -10,8 +10,10 @@ ProgramInfo::ProgramInfo(std::ifstream &&binStream)
       elf_(elfPriv_),
       imgSize_(imgSizePriv_),
       entry_(reinterpret_cast<Word*>(elf_.e_entry)),
-      textStart_(getTextBoundary<Word * >(binStream, false)),
-      textEnd_(getTextBoundary<Word * >(binStream, true))
+      textStart_(getBoundary<Word * >(binStream, ".text", false)),
+      textEnd_(getBoundary<Word * >(binStream, ".text", true)),
+      dataStart_(getBoundary<Word * >(binStream, ".data", false)),
+      dataEnd_(getBoundary<Word * >(binStream, ".data", true))
 {
 }
 

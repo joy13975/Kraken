@@ -20,6 +20,7 @@ namespace Kraken
 typedef struct
 {
     std::string inputFile           = "";
+    std::string outputFile          = "dump.bin";
     bool interactive                = false;
     bool pipelined                  = false;
     short n_superscalar             = 1;
@@ -38,6 +39,8 @@ public:
     const Word *const       entry_;
     const Word *const       textStart_;
     const Word *const       textEnd_;
+    const Word *const       dataStart_;
+    const Word *const       dataEnd_;
 
     ProgramInfo(std::ifstream &&binStream);
     virtual ~ProgramInfo() { delete imgBaseRoot_; }
@@ -57,7 +60,7 @@ private:
         // get the elf header
         binStream.seekg(0, std::ios::beg);
         if (!binStream.read((char*) &elfPriv_, sizeof(elfPriv_)))
-            die("Could not load Elf header.\n");
+            die("Could not load Elf header\n");
 
         // do some elf checks
 #define checkField(field, expectedVal, name) \
@@ -134,7 +137,7 @@ private:
     }
 
     template<typename T>
-    T getTextBoundary(std::ifstream &binStream, bool end) const
+    T getBoundary(std::ifstream &binStream, const std::string &name, bool end) const
     {
         // read in all bytes and work on the buffer instead
         Elf64_Shdr shdrs[elf_.e_shnum];
@@ -152,17 +155,17 @@ private:
         for (int i = 0; i < elf_.e_shnum; i++)
         {
             const char * sname = (char*) strTbl + shdrs[i].sh_name;
-            if (0 == strcmp(sname, ".text"))
+            if (name == sname)
                 return reinterpret_cast<T>(
                            end ?
-                           shdrs[i].sh_offset + shdrs[i].sh_size
+                           shdrs[i].sh_addr + shdrs[i].sh_size
                            :
-                           shdrs[i].sh_offset
+                           shdrs[i].sh_addr
                        );
         }
 
-        die("Could not find .text section in the binary (sections=%d)\n",
-            elf_.e_shnum);
+        die("Could not find section named \"%s\" (sections=%d)\n",
+            name.c_str(), elf_.e_shnum);
     }
 };
 

@@ -1,0 +1,2 @@
+#!/bin/bash
+od -An -vtu1 dump.bin > dec.txt

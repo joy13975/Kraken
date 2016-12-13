@@ -64,14 +64,14 @@ void Proc::startSimulation()
 {
     reset();
 
-    {
-        if (options_.interactive)
-            msg("Interactive mode is enabled\n");
-        if (options_.pipelined)
-            msg("Pipelining is enabled\n");
-    }
+    if (options_.interactive)
+        msg("Interactive mode is enabled\n");
+    if (options_.pipelined)
+        msg("Pipelining is enabled\n");
 
     run();
+
+    dumpDataMemory();
 }
 
 // Private functions
@@ -129,7 +129,7 @@ void Proc::run()
                             { breakpoint(pcOffset); break; };
                 }
 
-                wrn("Clk: %s, Stage: %s\n",
+                prf("Clk: %s, Stage: %s\n",
                     ClkStateString[clkState], ProcStageString(stage));
 
                 switch (clkState)
@@ -302,6 +302,30 @@ void Proc::breakpoint(const ptrdiff_t pcOffset)
     wrn("TODO: brekapoint()\n");
 
     getchar();
+}
+
+void Proc::dumpDataMemory()
+{
+    FILE *outFile = fopen(options_.outputFile.c_str(), "wb");
+
+    if (!outFile)
+        die("Could not open output file \"%s\"\n", options_.outputFile.c_str());
+
+    size_t bytesToWrite = sizeof(Word) * (progInfo_.dataEnd_ - progInfo_.dataStart_);
+
+    const Word * absDataStart = addPointers<Word*>(progInfo_.image_, progInfo_.dataStart_);
+
+    while (bytesToWrite > 0)
+    {
+        const size_t wrote = fwrite(absDataStart, bytesToWrite, 1, outFile);
+
+        if (wrote == 0)
+            break;
+
+        bytesToWrite -= (bytesToWrite * wrote);
+    }
+
+    fclose(outFile);
 }
 
 } // namespace Kraken

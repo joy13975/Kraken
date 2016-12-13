@@ -9,6 +9,7 @@ using namespace std;
 Kraken::Options options;
 
 DECL_ARG_CALLBACK(setInputFile) { options.inputFile = arg_in; }
+DECL_ARG_CALLBACK(setOutputFile) { options.outputFile = arg_in; }
 DECL_ARG_CALLBACK(setLogLevel) { set_log_level((Log_Level) parse_long(arg_in)); }
 DECL_ARG_CALLBACK(helpAndExit);
 DECL_ARG_CALLBACK(enableInteractiveMode) { options.interactive = true; }
@@ -16,11 +17,12 @@ DECL_ARG_CALLBACK(addBreakpoint) { options.bpoints.push_back(strtoul(arg_in, 0, 
 DECL_ARG_CALLBACK(enablePipelining) { options.pipelined = true; }
 
 const argument_bundle argbv[] = {
-    {"-i", "--input", "Set input binary", true, setInputFile},
+    {"-i", "--input <file>", "Set input binary", true, setInputFile},
     {"-h", "--help", "Print this help text and exit", false, helpAndExit},
-    {"-lg", "--loglevel", "Set log level", true, setLogLevel},
+    {"-lg", "--loglevel <0-4>", "Set log level", true, setLogLevel},
+    {"-o", "--output <file>", "Set memory dump file", true, setOutputFile},
     {"-im", "--interactivemode", "Enable interactive mode", false, enableInteractiveMode},
-    {"-b", "--breakat", "Set breakpoint at address", true, addBreakpoint},
+    {"-b", "--breakat <hex addr>", "Set breakpoint at address", true, addBreakpoint},
     {"-pl", "--pipeline", "Enable pipelining mode", false, enablePipelining},
 };
 #define ARG_BUND_SIZE (sizeof(argbv) / sizeof(argbv[0]))
@@ -60,6 +62,8 @@ int main(int argc, const char *argv[])
     parse_args(argc, argv, ARG_BUND_SIZE, argbv, argParseFail);
 
     checkOptions();
+
+    msg("Using input binary \"%s\"\n", options.inputFile.c_str());
 
     // start simulation
     Kraken::Proc(options).startSimulation();

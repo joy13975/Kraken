@@ -41,6 +41,7 @@ private:
 
     void run();
     void breakpoint(const ptrdiff_t addr);
+    void dumpDataMemory();
 };
 
 } // namespace Kraken
