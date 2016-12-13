@@ -321,6 +321,9 @@ public:
         }
     }
 
+    byte * stackBegin() { return stack_; }
+    size_t stackSize() { return stack_size_; }
+
     void ResetState();
 
     // Execution ends when the PC hits this address.

@@ -19,8 +19,9 @@ namespace Kraken
 
 typedef struct
 {
-    std::string inputFile           = "";
-    std::string outputFile          = "dump.bin";
+    std::string input               = "";
+    std::string dataOutput          = "data.bin";
+    std::string stackOutput         = "stack.bin";
     bool interactive                = false;
     bool pipelined                  = false;
     short n_superscalar             = 1;

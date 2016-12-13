@@ -40,7 +40,7 @@ GEN_ENUM_AND_STRING(ClkState, ClkStateString, FOREACH_CLKSTATE);
 
 Proc::Proc(const Options &options)
     : options_(options),
-      progInfo_(ProgramInfo(std::ifstream(options_.inputFile, std::ios::binary)))
+      progInfo_(ProgramInfo(std::ifstream(options_.input, std::ios::binary)))
 {
 }
 
@@ -71,7 +71,8 @@ void Proc::startSimulation()
 
     run();
 
-    dumpDataMemory();
+    dumpData();
+    dumpStack();
 }
 
 // Private functions
@@ -304,28 +305,16 @@ void Proc::breakpoint(const ptrdiff_t pcOffset)
     getchar();
 }
 
-void Proc::dumpDataMemory()
+void Proc::dumpData()
 {
-    FILE *outFile = fopen(options_.outputFile.c_str(), "wb");
-
-    if (!outFile)
-        die("Could not open output file \"%s\"\n", options_.outputFile.c_str());
-
     size_t bytesToWrite = sizeof(Word) * (progInfo_.dataEnd_ - progInfo_.dataStart_);
+    const char * absDataStart = addPointers<char*>(progInfo_.image_, progInfo_.dataStart_);
+    write_binary(options_.dataOutput.c_str(), absDataStart, bytesToWrite);
+}
 
-    const Word * absDataStart = addPointers<Word*>(progInfo_.image_, progInfo_.dataStart_);
-
-    while (bytesToWrite > 0)
-    {
-        const size_t wrote = fwrite(absDataStart, bytesToWrite, 1, outFile);
-
-        if (wrote == 0)
-            break;
-
-        bytesToWrite -= (bytesToWrite * wrote);
-    }
-
-    fclose(outFile);
+void Proc::dumpStack()
+{
+    write_binary(options_.stackOutput.c_str(), (char*) logic_.stackBegin(), logic_.stackSize());
 }
 
 } // namespace Kraken

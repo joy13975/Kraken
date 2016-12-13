@@ -16,6 +16,27 @@ extern "C" {
 Log_Level log_level         = UTIL_DEFAULT_LOG_LEVEL;
 int print_leading_spaces    = 0;
 
+void write_binary(const char* filename, const char* ptr, size_t write_size)
+{
+    FILE *outFile = fopen(filename, "wb");
+
+    if (!outFile)
+        die("Could not open output file \"%s\"\n", filename);
+
+    while (write_size > 0)
+    {
+        const size_t wrote = fwrite(ptr, write_size, 1, outFile);
+
+        if (wrote == 0)
+            break;
+
+        write_size -= (write_size * wrote);
+    }
+
+    fclose(outFile);
+}
+
+
 void print_arg_title(const char *title)
 {
     set_leading_spaces(4);

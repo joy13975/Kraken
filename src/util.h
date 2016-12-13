@@ -78,6 +78,7 @@ typedef struct argument_bundle
     void (*const call_back)(const char *arg_in);
 } argument_bundle;
 
+void write_binary(const char* filename, const char* ptr, size_t write_size);
 void parse_args(const int argc,
                 char const *argv[],
                 const int argbc,
