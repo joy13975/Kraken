@@ -18,26 +18,41 @@ namespace Kraken
 class Proc : public ComponentBase
 {
 public:
+    Proc(const Options &_options)
+        : options(_options),
+          progInfo(ProgramInfo(std::ifstream(options.input, std::ios::binary))),
+          absTextStart(progInfo.offset<InstrPtr >(progInfo.textStart)),
+          absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
+          pc(progInfo.offset<InstrPtr >(progInfo.entry)),
+          branchRecords(_options.bpMode, _options.nBPBits, absTextEnd)
+    {}
 
-    Proc(const Options &_options);
-    virtual ~Proc() {};
+    virtual ~Proc() {}
 
     void reset();
     void update();
     void startSimulation();
 
 private:
-    // "ROM"
-    const Options options_;
-    const ProgramInfo progInfo_;
+    const Options options;
+    const ProgramInfo progInfo;
+    const InstrPtr absTextStart;
+    const InstrPtr absTextEnd;
 
     // components
-    vixl::Decoder decoder_;
-    Fetcher fetcher_;
-    vixl::Logic logic_;
+    vixl::Decoder decoder;
+    Fetcher fetcher;
+    vixl::Logic logic;
 
-    // state
-    const Word * pc_;
+    // registers
+    InstrPtr pc;
+    // vixl::SimRegister               regs_[vixl::kNumberOfRegisters];
+    // vixl::SimVRegister              vregs_[vixl::kNumberOfVRegisters];
+    // vixl::SimSystemRegister         nzcv;
+    // vixl::SimSystemRegister         fpcr;
+
+    // buffers
+    BranchRecords branchRecords;
 
     void run();
     void breakpoint(const ptrdiff_t addr);

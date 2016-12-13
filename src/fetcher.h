@@ -18,25 +18,19 @@ public:
 
     void reset() {
         dbg("   Fetcher reset\n");
-        fetchedInstr_ = 0;
-        cachedInstr_ = 0;
-        fetchedPc_ = 0;
-        cachedPc_ = 0;
+        fetchedInstr = 0;
+        cachedInstr = 0;
     }
     void update() {
-        cachedPc_ = fetchedPc_;
-        dbg("   Fetch cachedPc_ <- %p\n", cachedPc_);
-        cachedInstr_ = fetchedInstr_;
-        dbg("   Fetch cachedInstr_ <- %p\n", cachedInstr_);
+        cachedInstr = fetchedInstr;
+        dbg("   Fetch cachedInstr <- %p\n", cachedInstr);
     }
-    const vixl::Instruction * cachedInstr() { return cachedInstr_; }
-    const vixl::Instruction * cachedPc() { return cachedPc_; }
+    const vixl::Instruction * getInstr() { return cachedInstr; }
 
-    void Fetch(const Word * pc, const short &n_superscalar);
+    void Fetch(const vixl::Instruction * pc);
 
 private:
-    const vixl::Instruction * fetchedInstr_, * cachedInstr_;
-    const vixl::Instruction * fetchedPc_, * cachedPc_;
+    const vixl::Instruction * fetchedInstr, * cachedInstr;
 };
 
 } // namespace Kraken

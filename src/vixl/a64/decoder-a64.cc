@@ -123,7 +123,8 @@ Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
             break;
         }
     }
-    die("Unknown instruction: %8x\n", instr->InstructionBits());
+    wrn("Unknown instruction: %8x\n", instr->InstructionBits());
+    return Kraken::AC_Unallocated;
 }
 
 void Decoder::AppendVisitor(DecoderVisitor* new_visitor) {
@@ -868,13 +869,18 @@ Kraken::ActionCode Decoder::DecodeNEONScalarDataProcessing(const Instruction* in
 }
 
 
-#define DEFINE_VISITOR_CALLERS(A)                               \
+// #define DEFINE_VISITOR_CALLERS(A)                               \
+//   Kraken::ActionCode Decoder::Visit##A(const Instruction* instr) {            \
+//     VIXL_ASSERT(instr->Mask(A##FMask) == A##Fixed);             \
+//     std::list<DecoderVisitor*>::iterator it;                    \
+//     for (it = visitors_.begin(); it != visitors_.end(); it++) { \
+//       (*it)->Visit##A(instr);                                   \
+//     }                                                           \
+//   }
+  #define DEFINE_VISITOR_CALLERS(A)                               \
   Kraken::ActionCode Decoder::Visit##A(const Instruction* instr) {            \
     VIXL_ASSERT(instr->Mask(A##FMask) == A##Fixed);             \
     std::list<DecoderVisitor*>::iterator it;                    \
-    for (it = visitors_.begin(); it != visitors_.end(); it++) { \
-      (*it)->Visit##A(instr);                                   \
-    }                                                           \
   }
 VISITOR_LIST(DEFINE_VISITOR_CALLERS)
 #undef DEFINE_VISITOR_CALLERS

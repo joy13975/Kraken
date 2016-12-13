@@ -5,17 +5,12 @@
 namespace Kraken
 {
 
-void Fetcher::Fetch(const Word * const pc, const short &n_superscalar)
+void Fetcher::Fetch(const vixl::Instruction * const pc)
 {
     dbg("   Fetch with pc: %p\n", pc);
 
-    fetchedInstr_ =
-        reinterpret_cast<const vixl::Instruction*>(pc);
-    dbg("   Fetch fetchedInstr_ <- %p\n", fetchedInstr_);
-
-    fetchedPc_ =
-        reinterpret_cast<const vixl::Instruction*>(pc + n_superscalar);
-    dbg("   Fetch fetchedPc_ <- %p\n", fetchedPc_);
+    fetchedInstr = pc;
+    dbg("   Fetch fetchedInstr <- %p\n", fetchedInstr);
 }
 
 } // namespace Kraken

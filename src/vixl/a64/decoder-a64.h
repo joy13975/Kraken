@@ -68,28 +68,22 @@ public:
     Decoder() {}
     void reset() {
         dbg("   Decoder reset\n");
-        decodedAction_ = Kraken::AC_Unallocated;
-        cachedAction_ = Kraken::AC_Unallocated;
-        decodedInstr_ = 0;
-        cachedInstr_ = 0;
-        decodedPc_ = 0;
-        cachedPc_ = 0;
+        decodedAction = Kraken::AC_Unallocated;
+        cachedAction = Kraken::AC_Unallocated;
+        decodedInstr = 0;
+        cachedInstr = 0;
     }
     void update() {
-        cachedPc_ = decodedPc_;
-        dbg("   Decode cachedPc_ <- %p\n", cachedPc_);
-        cachedAction_ = decodedAction_;
-        dbg("   Decode cachedAction_ <- %d\n", decodedAction_);
-        cachedInstr_ = decodedInstr_;
-        dbg("   Decode cachedInstr_ <- %p\n", decodedInstr_);
+        cachedAction = decodedAction;
+        dbg("   Decode cachedAction <- %d\n", decodedAction);
+        cachedInstr = decodedInstr;
+        dbg("   Decode cachedInstr <- %p\n", decodedInstr);
     }
-    const Instruction * cachedPc() { return cachedPc_; }
-    Kraken::ActionCode cachedAction() { return cachedAction_; }
-    const Instruction *  cachedInstr() { return cachedInstr_; }
+    Kraken::ActionCode getAction() { return cachedAction; }
+    const Instruction *  getInstr() { return cachedInstr; }
 
-    Kraken::ActionCode decodedAction_, cachedAction_;
-    const Instruction * decodedInstr_, * cachedInstr_;
-    const Instruction * decodedPc_, * cachedPc_;
+    Kraken::ActionCode decodedAction, cachedAction;
+    const Instruction * decodedInstr, * cachedInstr;
 
     // Top-level wrappers around the actual decoding function.
     // void Decode(const Instruction* instr) {
@@ -99,22 +93,36 @@ public:
     //     }
     //     DecodeInstruction(instr);
     // }
-    void Decode(const Instruction* instr, const Instruction * pc) {
+    void Decode(const Instruction* instr) {
         if (instr)
         {
-            dbg("   Decode with %p\n", instr);
+            dbg("   Decode instr %p\n", instr);
             // dbg("   Decode with Rd: %d\n", decodeInstr->Rd());
 
-            decodedPc_ = pc;
-            dbg("   Decode decodedPc_ <- %p\n", pc);
-            decodedAction_ = DecodeInstruction(const_cast<const Instruction*>(instr));
-            dbg("   Decode decodedAction_ <- %d\n", decodedAction_);
-            decodedInstr_ = instr;
-            dbg("   Decode decodedInstr_ <- %p\n", decodedInstr_);
+            decodedAction = DecodeInstruction(instr);
+            dbg("   Decode decodedAction <- %d\n", decodedAction);
+            decodedInstr = instr;
+            dbg("   Decode decodedInstr <- %p\n", decodedInstr);
         }
         else
         {
             dbg("   No Decode (instr == 0)\n");
+        }
+    }
+
+    static bool isBranch(const Instruction* instr)
+    {
+        const Kraken::ActionCode ac = DecodeInstruction(instr);
+        switch (ac)
+        {
+        case Kraken::AC_UnconditionalBranch:
+        case Kraken::AC_UnconditionalBranchToRegister:
+        case Kraken::AC_CompareBranch:
+        case Kraken::AC_TestBranch:
+        case Kraken::AC_ConditionalBranch:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -157,7 +165,7 @@ public:
     // of visitors stored by the decoder.
     void RemoveVisitor(DecoderVisitor* visitor);
 
-#define DECLARE(A) Kraken::ActionCode Visit##A(const Instruction* instr);
+#define DECLARE(A) static Kraken::ActionCode Visit##A(const Instruction* instr);
     VISITOR_LIST(DECLARE)
 #undef DECLARE
 
@@ -167,62 +175,62 @@ public:
 private:
     // Decodes an instruction and calls the visitor functions registered with the
     // Decoder class.
-    Kraken::ActionCode DecodeInstruction(const Instruction* instr);
+    static Kraken::ActionCode DecodeInstruction(const Instruction* instr);
 
     // Decode the PC relative addressing instruction, and call the corresponding
     // visitors.
     // On entry, instruction bits 27:24 = 0x0.
-    Kraken::ActionCode DecodePCRelAddressing(const Instruction* instr);
+    static Kraken::ActionCode DecodePCRelAddressing(const Instruction* instr);
 
     // Decode the add/subtract immediate instruction, and call the correspoding
     // visitors.
     // On entry, instruction bits 27:24 = 0x1.
-    Kraken::ActionCode DecodeAddSubImmediate(const Instruction* instr);
+    static Kraken::ActionCode DecodeAddSubImmediate(const Instruction* instr);
 
     // Decode the branch, system command, and exception generation parts of
     // the instruction tree, and call the corresponding visitors.
     // On entry, instruction bits 27:24 = {0x4, 0x5, 0x6, 0x7}.
-    Kraken::ActionCode DecodeBranchSystemException(const Instruction* instr);
+    static Kraken::ActionCode DecodeBranchSystemException(const Instruction* instr);
 
     // Decode the load and store parts of the instruction tree, and call
     // the corresponding visitors.
     // On entry, instruction bits 27:24 = {0x8, 0x9, 0xC, 0xD}.
-    Kraken::ActionCode DecodeLoadStore(const Instruction* instr);
+    static Kraken::ActionCode DecodeLoadStore(const Instruction* instr);
 
     // Decode the logical immediate and move wide immediate parts of the
     // instruction tree, and call the corresponding visitors.
     // On entry, instruction bits 27:24 = 0x2.
-    Kraken::ActionCode DecodeLogical(const Instruction* instr);
+    static Kraken::ActionCode DecodeLogical(const Instruction* instr);
 
     // Decode the bitfield and extraction parts of the instruction tree,
     // and call the corresponding visitors.
     // On entry, instruction bits 27:24 = 0x3.
-    Kraken::ActionCode DecodeBitfieldExtract(const Instruction* instr);
+    static Kraken::ActionCode DecodeBitfieldExtract(const Instruction* instr);
 
     // Decode the data processing parts of the instruction tree, and call the
     // corresponding visitors.
     // On entry, instruction bits 27:24 = {0x1, 0xA, 0xB}.
-    Kraken::ActionCode DecodeDataProcessing(const Instruction* instr);
+    static Kraken::ActionCode DecodeDataProcessing(const Instruction* instr);
 
     // Decode the floating point parts of the instruction tree, and call the
     // corresponding visitors.
     // On entry, instruction bits 27:24 = {0xE, 0xF}.
-    Kraken::ActionCode DecodeFP(const Instruction* instr);
+    static Kraken::ActionCode DecodeFP(const Instruction* instr);
 
     // Decode the Advanced SIMD (NEON) load/store part of the instruction tree,
     // and call the corresponding visitors.
     // On entry, instruction bits 29:25 = 0x6.
-    Kraken::ActionCode DecodeNEONLoadStore(const Instruction* instr);
+    static Kraken::ActionCode DecodeNEONLoadStore(const Instruction* instr);
 
     // Decode the Advanced SIMD (NEON) vector data processing part of the
     // instruction tree, and call the corresponding visitors.
     // On entry, instruction bits 28:25 = 0x7.
-    Kraken::ActionCode DecodeNEONVectorDataProcessing(const Instruction* instr);
+    static Kraken::ActionCode DecodeNEONVectorDataProcessing(const Instruction* instr);
 
     // Decode the Advanced SIMD (NEON) scalar data processing part of the
     // instruction tree, and call the corresponding visitors.
     // On entry, instruction bits 28:25 = 0xF.
-    Kraken::ActionCode DecodeNEONScalarDataProcessing(const Instruction* instr);
+    static Kraken::ActionCode DecodeNEONScalarDataProcessing(const Instruction* instr);
 
 private:
     // Visitors are registered in a list.

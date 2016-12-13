@@ -244,76 +244,96 @@ public:
     explicit Logic(FILE* stream = stdout);
     ~Logic();
 
-    void reset() { ResetState(); };
+    void reset() {
+        ResetState();
+    };
     void update() {
 
-        cachedHasExecuted_ = hasExecuted_;
-        dbg("   Execute cachedHasExecuted_ <- %d\n", cachedHasExecuted_);
-        cachedExePc_ = exePc_;
-        dbg("   Execute cachedExePc_ <- %p\n", cachedExePc_);
-        cachedPcIsDirty_ = pcIsDirty_;
-        dbg("   Execute cachedPcIsDirty_ <- %d\n", cachedPcIsDirty_);
+        cachedHasExecuted = hasExecuted;
+        dbg("   Execute cachedHasExecuted <- %d\n", cachedHasExecuted);
+        cachedNewPc = newPc;
+        dbg("   Execute cachedNewPc <- %p\n", cachedNewPc);
+        cachedAction = action;
+        dbg("   Execute cachedAction <- %s\n", Kraken::ActionCodeString[cachedAction]);
+        cachedExeInstr = exeInstr;
+        dbg("   Execute cachedExeInstr <- %p\n", cachedExeInstr);
+        cachedPcIsDirty = pcIsDirty;
+        dbg("   Execute cachedPcIsDirty <- %d\n", cachedPcIsDirty);
 
         //TODO: update register cache?
     };
 
-    const Instruction * exePc_, * cachedExePc_;
-    const Instruction * cachedExePc() { return cachedExePc_; }
+    const Instruction * newPc, * cachedNewPc;
+    const Instruction * getNewPc() { return cachedNewPc; }
 
-    bool cachedHasExecuted() { return cachedHasExecuted_; }
-    bool hasExecuted_ = false, cachedHasExecuted_ = false;
+    Kraken::ActionCode action, cachedAction;
+    Kraken::ActionCode getAction() { return cachedAction; }
 
-    bool pcIsDirty() { return cachedPcIsDirty_; }
-    bool pcIsDirty_ = false, cachedPcIsDirty_ = false;
+    const Instruction * exeInstr, * cachedExeInstr;
+    const Instruction * getExeInstr() { return cachedExeInstr; }
 
-    bool resetFlags() {
-        dbg("   Execute clear flags\n");
-        // clear flags
-        hasExecuted_ = false;
-        exePc_ = 0; //only set if executed
-        pcIsDirty_ = false;
+    bool hasExecuted = false, cachedHasExecuted = false;
+    bool getHasExecuted() { return cachedHasExecuted; }
+
+    bool pcIsDirty = false, cachedPcIsDirty = false;
+    bool getPcIsDirty() { return cachedPcIsDirty; }
+
+    void resetFlags() {
+        newPc = 0;
+        cachedNewPc = 0;
+        action = Kraken::AC_Unallocated;
+        cachedAction = Kraken::AC_Unallocated;
+        exeInstr = 0;
+        cachedExeInstr = 0;
+        hasExecuted = false;
+        cachedHasExecuted = false;
+        pcIsDirty = false;
+        cachedPcIsDirty = false;
     }
 
-    void Execute(const Instruction * pc,
-                 const Kraken::ActionCode & ac,
+    void Execute(const Kraken::ActionCode & ac,
                  const Instruction * instr) {
 
-        resetFlags();
+        // clear flags
+        hasExecuted = false;
+        newPc = 0; //only set if executed
+        pcIsDirty = false;
 
         if (instr)
         {
-            set_pc(reinterpret_cast<const vixl::Instruction*>(pc));
-            dbg("   Execute with pc: %p\n", pc);
-            dbg("   Execute with instr: %p\n", instr);
-            dbg("   Execute with ac: %d\n", ac);
+            // logic assumes pc has been incremented
+            const Instruction *const oldPC = instr->NextInstruction();
+            set_pc(oldPC);
 
             // execute instruction
+            switch (ac)
             {
-                switch (ac)
-                {
 #define GEN_AC_CASES(ITEM) \
         case Kraken::AC_##ITEM: \
         if (get_log_level() < LOG_MESSAGE) \
             print_disasm_->Visit##ITEM(instr); \
         Visit##ITEM(instr); \
         break;
-                    VISITOR_LIST(GEN_AC_CASES);
+                VISITOR_LIST(GEN_AC_CASES);
 #undef GEN_AC_CASES
-                default:
-                    die("Unknown ActionCode: %d (%s)\n",
-                        ac, Kraken::ActionCodeString[ac]);
-                }
-
-                if (get_log_level() < LOG_MESSAGE)
-                    LogAllWrittenRegisters();
+            default:
+                die("Unknown ActionCode: %d (%s)\n",
+                    ac, Kraken::ActionCodeString[ac]);
             }
 
-            hasExecuted_ = true;
-            dbg("   Execute hasExecuted_ <- %d\n", hasExecuted_);
-            exePc_ = reinterpret_cast<const Instruction *>(pc_);
-            dbg("   Execute exePc_ <- %p\n", exePc_);
-            pcIsDirty_ = (pc != exePc_);
-            dbg("   Execute pcIsDirty_ <- %d\n", pcIsDirty_);
+            if (get_log_level() < LOG_MESSAGE)
+                LogAllWrittenRegisters();
+
+            hasExecuted = true;
+            dbg("   Execute hasExecuted <- %d\n", hasExecuted);
+            newPc = pc_;
+            dbg("   Execute newPc <- %p\n", newPc);
+            action = ac;
+            dbg("   Execute action <- %s\n", Kraken::ActionCodeString[action]);
+            exeInstr = instr;
+            dbg("   Execute exeInstr <- %p\n", exeInstr);
+            pcIsDirty = (newPc != oldPC);
+            dbg("   Execute pcIsDirty <- %d\n", pcIsDirty);
         }
         else
         {

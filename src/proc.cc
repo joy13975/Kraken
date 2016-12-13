@@ -38,20 +38,14 @@ ProcStage nextStage(const ProcStage &s)
 
 GEN_ENUM_AND_STRING(ClkState, ClkStateString, FOREACH_CLKSTATE);
 
-Proc::Proc(const Options &options)
-    : options_(options),
-      progInfo_(ProgramInfo(std::ifstream(options_.input, std::ios::binary)))
-{
-}
-
 void Proc::reset()
 {
-    fetcher_.reset();
-    decoder_.reset();
-    logic_.reset();
+    fetcher.reset();
+    decoder.reset();
+    logic.reset();
 
     if (get_log_level() < LOG_MESSAGE)
-        logic_.set_trace_parameters(vixl::LOG_ALL);
+        logic.set_trace_parameters(vixl::LOG_ALL);
     //scribe_.Reset();
 }
 
@@ -64,9 +58,9 @@ void Proc::startSimulation()
 {
     reset();
 
-    if (options_.interactive)
+    if (options.interactive)
         msg("Interactive mode is enabled\n");
-    if (options_.pipelined)
+    if (options.pipelined)
         msg("Pipelining is enabled\n");
 
     run();
@@ -79,35 +73,25 @@ void Proc::startSimulation()
 
 void Proc::run()
 {
-    // memory housekeeping
-    pc_ = addPointers<Word*>(progInfo_.image_, progInfo_.entry_);
-    const Word * absTextStart =
-        addPointers<Word*>(progInfo_.image_, progInfo_.textStart_);
-    const Word * absTextEnd =
-        addPointers<Word*>(progInfo_.image_, progInfo_.textEnd_);
-
-    msg("Main is at %p (global: %p)\n",
-        progInfo_.offset<ptrdiff_t>(pc_), pc_);
+    msg("PC at entry (main): %p (global: %p)\n",
+        progInfo.offset<ptrdiff_t>(pc), pc);
     msg("Absolute .text scope:  %p - %p\n",
         absTextStart, absTextEnd);
     msg("Absolute memory scope: %p - %p\n",
-        progInfo_.image_,
-        addPointers<Word*>(progInfo_.image_, (void*) progInfo_.imgSize_));
+        progInfo.image,
+        progInfo.offset<void*>((void*) progInfo.imgSize));
 
     bool shouldHalt = false;
 
-    // data paths
-    vixl::SimRegister       dpRegs[vixl::kNumberOfRegisters];
-    vixl::SimVRegister      dpVregs[vixl::kNumberOfVRegisters];
-    vixl::SimSystemRegister dpNZCV;
-    vixl::SimSystemRegister dpFPCR;
-
     // statistics
-    long cycleCount = 0, instrCount = 0;
+    long cycleCount = 0, instrCount = 0, bpCorrectCount = 0, bpWrongCount = 0;
 
     // execution loop
-    ProcStage stage = options_.pipelined ? PIPELINED : FETCH;
+    ProcStage stage = options.pipelined ? PIPELINED : FETCH;
     ClkState clkState = HIGH;
+
+    // debugging
+    bool breakSubsequent = false;
 
     #pragma omp parallel
     {
@@ -118,15 +102,15 @@ void Proc::run()
             #pragma omp single nowait
             {
                 //check for breakpoint
-                const ptrdiff_t pcOffset = progInfo_.offset<ptrdiff_t>(pc_);
+                const ptrdiff_t pcOffset = progInfo.fromBase<ptrdiff_t>(pc);
                 if (clkState == HIGH)
                 {
-                    if (options_.interactive)
+                    if (options.interactive || breakSubsequent)
                         breakpoint(pcOffset);
                     else
                         // check whether to break
-                        for (uintptr_t bAddr : options_.bpoints)
-                            if (bAddr == pcOffset)
+                        for (uintptr_t bAddr : options.bpoints)
+                            if (breakSubsequent = (bAddr == pcOffset))
                             { breakpoint(pcOffset); break; };
                 }
 
@@ -145,32 +129,31 @@ void Proc::run()
                     #pragma omp task
                     if (stage & FETCH)
                     {
-                        if (pc_ >= absTextEnd)
-                            dbg("   Fetcher has halted\n");
+                        if (pc < absTextEnd)
+                            fetcher.Fetch(pc);
                         else
-                            fetcher_.Fetch(pc_, options_.n_superscalar);
+                            dbg("   Fetcher has halted\n");
                     }
 
                     #pragma omp task
                     if (stage & DECODE)
                     {
-                        decoder_.Decode(fetcher_.cachedInstr(), fetcher_.cachedPc());
+                        decoder.Decode(fetcher.getInstr());
                     }
 
                     #pragma omp task
                     if (stage & EXECUTE)
                     {
-                        logic_.Execute(decoder_.cachedPc(),
-                                       decoder_.cachedAction(),
-                                       decoder_.cachedInstr());
+                        logic.Execute(decoder.getAction(),
+                                      decoder.getInstr());
 
-                        // memcpy(dpRegs, logic_.getRegisters(),
+                        // memcpy(dpRegs, logic.getRegisters(),
                         //        sizeof(vixl::SimRegister) * vixl::kNumberOfRegisters);
-                        // memcpy(dpRegs, logic_.getVRegisters(),
+                        // memcpy(dpRegs, logic.getVRegisters(),
                         //        sizeof(vixl::SimRegister) * vixl::kNumberOfVRegisters);
-                        // memcpy(&dpNZCV, logic_.getNZCV(),
+                        // memcpy(&dpNZCV, logic.getNZCV(),
                         //        sizeof(vixl::SimRegister));
-                        // memcpy(&dpFPCR, logic_.getFPCR(),
+                        // memcpy(&dpFPCR, logic.getFPCR(),
                         //        sizeof(vixl::SimRegister));
                     }
 
@@ -195,17 +178,29 @@ void Proc::run()
                     #pragma omp task
                     if (stage & FETCH)
                     {
-                        fetcher_.update();
-                        pc_ = reinterpret_cast<const Word*>(fetcher_.cachedPc());
+                        if (pc < absTextEnd)
+                        {
+                            fetcher.update();
+
+                            // check branch prediction
+                            const InstrPtr bpSuggest =
+                                branchRecords.predict(pc);
+                            wrn("Suggest: %p, pc: %p\n",
+                                progInfo.offset<InstrPtr>(bpSuggest),
+                                progInfo.offset<InstrPtr>(pc));
+
+                            pc = bpSuggest;
+                        }
+
                     }
 
                     #pragma omp task
                     if (stage & DECODE)
-                        decoder_.update();
+                        decoder.update();
 
                     #pragma omp task
                     if (stage & EXECUTE)
-                        logic_.update();
+                        logic.update();
 
                     #pragma omp task
                     if (stage & WRITEBACK)
@@ -229,21 +224,39 @@ void Proc::run()
                     #pragma omp task
                     if (stage & DECODE)
                     {
-                        if (logic_.cachedHasExecuted())
-                            instrCount += options_.n_superscalar;
+                        if (logic.getHasExecuted())
+                            instrCount++;
                     }
 
                     #pragma omp task
                     if (stage & EXECUTE)
                     {
-                        fflush(stdout);
-                        if (logic_.pcIsDirty())
-                        {
-                            fetcher_.reset();
-                            decoder_.reset();
+                        InstrPtr newPc = logic.getNewPc();
+                        const InstrPtr exeInstr = logic.getExeInstr();
+                        const bool wasBrInstr =
+                            exeInstr && vixl::Decoder::isBranch(exeInstr);
 
-                            pc_ = reinterpret_cast<const Word*>(logic_.cachedExePc());
-                            dbg("   Execute pc_ <- cachedExePc_: %p\n", logic_.cachedExePc());
+                        if (wasBrInstr)
+                        {
+                            branchRecords.updateRecord(exeInstr,
+                                                       newPc);
+                            if (decoder.getInstr() == newPc)
+                            {
+                                bpCorrectCount++;
+                                dbg("   Branch prediction was correct: %d\n",
+                                    bpCorrectCount);
+                            }
+                            else
+                            {
+                                bpWrongCount++;
+                                fetcher.reset();
+                                decoder.reset();
+                                logic.resetFlags();
+
+                                pc = newPc;
+                                dbg("   Branch prediction was wrong: %d; pc <- newPc: %p\n",
+                                    bpWrongCount, newPc);
+                            }
                         }
                     }
 
@@ -260,7 +273,7 @@ void Proc::run()
 
                 #pragma omp taskwait
 
-                // below code must run only after task sync
+                // below code MUST run AFTER task sync
                 if (clkState == RISING)
                 {
                     stage = nextStage(stage);
@@ -268,16 +281,17 @@ void Proc::run()
                     dbg("======================================== Cycle End\n");
                 }
 
-                if (pc_ == 0)
+                if (pc == 0)
                 {
                     shouldHalt = true;
                     dbg("======================================== Proc Halts\n");
                 }
-                else if (pc_ < absTextStart || pc_ > absTextEnd)
+                else if (pc < absTextStart || pc > absTextEnd)
                 {
-                    err("PC went out of bound!\n");
+                    err("Invalid PC: [%d, %d]\n",
+                        pc < absTextStart, pc > absTextStart);
                     die("PC: %p is not inside [%p, %p]\n",
-                        pc_, absTextStart, absTextEnd);
+                        pc, absTextStart, absTextEnd);
                 }
 
                 clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);
@@ -287,12 +301,18 @@ void Proc::run()
         } // while(!shouldHalt)
     }
 
-    logic_.PrintRegister(0);
-    // logic_.PrintVRegisters();
-    // logic_.PrintSystemRegisters();
+    logic.PrintRegister(0);
+    // logic.PrintVRegisters();
+    // logic.PrintSystemRegisters();
+
+    msg("Return code as long:  %ld\n", logic.getRegisters()[0].Get<uint64_t>());
 
     msg("%ld instructions in %ld cycles; I/C = %.2f\n",
         instrCount, cycleCount, (float) instrCount / cycleCount);
+
+    float bpAccuracy = (float) 100.0f * bpCorrectCount / (bpCorrectCount + bpWrongCount);
+    msg("Branch Prediction: %d correct %d wrong; ACC = %.2f%%\n",
+        bpCorrectCount, bpWrongCount, bpAccuracy);
 }
 
 void Proc::breakpoint(const ptrdiff_t pcOffset)
@@ -307,14 +327,14 @@ void Proc::breakpoint(const ptrdiff_t pcOffset)
 
 void Proc::dumpData()
 {
-    size_t bytesToWrite = sizeof(Word) * (progInfo_.dataEnd_ - progInfo_.dataStart_);
-    const char * absDataStart = addPointers<char*>(progInfo_.image_, progInfo_.dataStart_);
-    write_binary(options_.dataOutput.c_str(), absDataStart, bytesToWrite);
+    size_t bytesToWrite = sizeof(Word) * (progInfo.dataEnd - progInfo.dataStart);
+    const char * absDataStart = addPointers<char*>(progInfo.image, progInfo.dataStart);
+    write_binary(options.dataOutput.c_str(), absDataStart, bytesToWrite);
 }
 
 void Proc::dumpStack()
 {
-    write_binary(options_.stackOutput.c_str(), (char*) logic_.stackBegin(), logic_.stackSize());
+    write_binary(options.stackOutput.c_str(), (char*) logic.stackBegin(), logic.stackSize());
 }
 
 } // namespace Kraken

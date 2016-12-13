@@ -32,7 +32,6 @@
 namespace vixl
 {
 
-
 // Representation of memory, with typed getters and setters for access.
 class Memory {
 public:
