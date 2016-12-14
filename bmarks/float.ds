@@ -1,0 +1,247 @@
+
+float.a64:     file format elf64-littleaarch64
+float.a64
+architecture: aarch64, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x00000000000003b8
+
+Program Header:
+    LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
+         filesz 0x0000000000000420 memsz 0x0000000000000420 flags r-x
+private flags = 0:
+
+Sections:
+Idx Name          Size      VMA               LMA               File off  Algn
+  0 .text         000002f0  0000000000000100  0000000000000100  00000100  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .rodata       00000030  00000000000003f0  00000000000003f0  000003f0  2**3
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  2 .comment      00000015  0000000000000000  0000000000000000  00000420  2**0
+                  CONTENTS, READONLY
+SYMBOL TABLE:
+0000000000000100 l    d  .text	0000000000000000 .text
+00000000000003f0 l    d  .rodata	0000000000000000 .rodata
+0000000000000000 l    d  .comment	0000000000000000 .comment
+0000000000000000 l    df *ABS*	0000000000000000 float.c
+000000000000022c g     F .text	000000000000006c fpow
+0000000000010420 g       .rodata	0000000000000000 _bss_end__
+0000000000010420 g       .rodata	0000000000000000 __bss_start__
+0000000000000194 g     F .text	0000000000000030 fastlog
+000000000000037c g     F .text	000000000000003c fabsolute
+0000000000010420 g       .rodata	0000000000000000 __bss_end__
+0000000000000298 g     F .text	00000000000000e4 sqroot
+0000000000010420 g       .rodata	0000000000000000 __bss_start
+00000000000003b8 g     F .text	0000000000000038 main
+0000000000010420 g       .rodata	0000000000000000 __end__
+0000000000010420 g       .rodata	0000000000000000 _edata
+0000000000010420 g       .rodata	0000000000000000 _end
+0000000000000100 g     F .text	0000000000000094 fastlog2
+0000000000080000 g       .comment	0000000000000000 _stack
+0000000000010420 g       .rodata	0000000000000000 __data_start
+00000000000001c4 g     F .text	0000000000000068 ipow
+
+
+
+Disassembly of section .text:
+
+0000000000000100 <fastlog2>:
+ 100:	d10083ff 	sub	sp, sp, #0x20
+ 104:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 108:	bd43f101 	ldr	s1, [x8,#1008]
+ 10c:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 110:	bd43f502 	ldr	s2, [x8,#1012]
+ 114:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 118:	bd43f903 	ldr	s3, [x8,#1016]
+ 11c:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 120:	bd43fd04 	ldr	s4, [x8,#1020]
+ 124:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 128:	bd440105 	ldr	s5, [x8,#1024]
+ 12c:	bd001fe0 	str	s0, [sp,#28]
+ 130:	bd401fe0 	ldr	s0, [sp,#28]
+ 134:	bd001be0 	str	s0, [sp,#24]
+ 138:	b9401be9 	ldr	w9, [sp,#24]
+ 13c:	32005bea 	orr	w10, wzr, #0x7fffff
+ 140:	0a0a0129 	and	w9, w9, w10
+ 144:	320817ea 	orr	w10, wzr, #0x3f000000
+ 148:	2a0a0129 	orr	w9, w9, w10
+ 14c:	b90013e9 	str	w9, [sp,#16]
+ 150:	b9401be9 	ldr	w9, [sp,#24]
+ 154:	1e230120 	ucvtf	s0, w9
+ 158:	bd000fe0 	str	s0, [sp,#12]
+ 15c:	bd400fe0 	ldr	s0, [sp,#12]
+ 160:	1e250800 	fmul	s0, s0, s5
+ 164:	bd000fe0 	str	s0, [sp,#12]
+ 168:	bd400fe0 	ldr	s0, [sp,#12]
+ 16c:	1e243800 	fsub	s0, s0, s4
+ 170:	bd4013e4 	ldr	s4, [sp,#16]
+ 174:	1e240863 	fmul	s3, s3, s4
+ 178:	1e233800 	fsub	s0, s0, s3
+ 17c:	bd4013e3 	ldr	s3, [sp,#16]
+ 180:	1e232842 	fadd	s2, s2, s3
+ 184:	1e221821 	fdiv	s1, s1, s2
+ 188:	1e213800 	fsub	s0, s0, s1
+ 18c:	910083ff 	add	sp, sp, #0x20
+ 190:	d65f03c0 	ret
+
+0000000000000194 <fastlog>:
+ 194:	a9bf7bfd 	stp	x29, x30, [sp,#-16]!
+ 198:	910003fd 	mov	x29, sp
+ 19c:	d10043ff 	sub	sp, sp, #0x10
+ 1a0:	bc1fc3a0 	stur	s0, [x29,#-4]
+ 1a4:	bc5fc3a0 	ldur	s0, [x29,#-4]
+ 1a8:	97ffffd6 	bl	100 <fastlog2>
+ 1ac:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 1b0:	bd440501 	ldr	s1, [x8,#1028]
+ 1b4:	1e200820 	fmul	s0, s1, s0
+ 1b8:	910003bf 	mov	sp, x29
+ 1bc:	a8c17bfd 	ldp	x29, x30, [sp],#16
+ 1c0:	d65f03c0 	ret
+
+00000000000001c4 <ipow>:
+ 1c4:	d10043ff 	sub	sp, sp, #0x10
+ 1c8:	52800008 	mov	w8, #0x0                   	// #0
+ 1cc:	320003e9 	orr	w9, wzr, #0x1
+ 1d0:	b9000fe0 	str	w0, [sp,#12]
+ 1d4:	b9000be1 	str	w1, [sp,#8]
+ 1d8:	b90003e9 	str	w9, [sp]
+ 1dc:	b90007e8 	str	w8, [sp,#4]
+ 1e0:	b94007e8 	ldr	w8, [sp,#4]
+ 1e4:	b9400be9 	ldr	w9, [sp,#8]
+ 1e8:	6b09011f 	cmp	w8, w9
+ 1ec:	5400004b 	b.lt	1f4 <ipow+0x30>
+ 1f0:	1400000a 	b	218 <ipow+0x54>
+ 1f4:	b9400fe8 	ldr	w8, [sp,#12]
+ 1f8:	b94003e9 	ldr	w9, [sp]
+ 1fc:	1b087d28 	mul	w8, w9, w8
+ 200:	b90003e8 	str	w8, [sp]
+ 204:	b94007e8 	ldr	w8, [sp,#4]
+ 208:	320003e9 	orr	w9, wzr, #0x1
+ 20c:	0b090108 	add	w8, w8, w9
+ 210:	b90007e8 	str	w8, [sp,#4]
+ 214:	17fffff3 	b	1e0 <ipow+0x1c>
+ 218:	b94003e8 	ldr	w8, [sp]
+ 21c:	2a0803e9 	mov	w9, w8
+ 220:	93407d20 	sxtw	x0, w9
+ 224:	910043ff 	add	sp, sp, #0x10
+ 228:	d65f03c0 	ret
+
+000000000000022c <fpow>:
+ 22c:	d10043ff 	sub	sp, sp, #0x10
+ 230:	d2800008 	mov	x8, #0x0                   	// #0
+ 234:	9e220102 	scvtf	s2, x8
+ 238:	b24003e8 	orr	x8, xzr, #0x1
+ 23c:	9e220103 	scvtf	s3, x8
+ 240:	bd000fe0 	str	s0, [sp,#12]
+ 244:	bd000be1 	str	s1, [sp,#8]
+ 248:	bd0003e3 	str	s3, [sp]
+ 24c:	bd0007e2 	str	s2, [sp,#4]
+ 250:	bd4007e0 	ldr	s0, [sp,#4]
+ 254:	bd400be1 	ldr	s1, [sp,#8]
+ 258:	1e212000 	fcmp	s0, s1
+ 25c:	54000044 	b.mi	264 <fpow+0x38>
+ 260:	1400000b 	b	28c <fpow+0x60>
+ 264:	bd400fe0 	ldr	s0, [sp,#12]
+ 268:	bd4003e1 	ldr	s1, [sp]
+ 26c:	1e200820 	fmul	s0, s1, s0
+ 270:	bd0003e0 	str	s0, [sp]
+ 274:	b24003e8 	orr	x8, xzr, #0x1
+ 278:	9e220100 	scvtf	s0, x8
+ 27c:	bd4007e1 	ldr	s1, [sp,#4]
+ 280:	1e202820 	fadd	s0, s1, s0
+ 284:	bd0007e0 	str	s0, [sp,#4]
+ 288:	17fffff2 	b	250 <fpow+0x24>
+ 28c:	bd4003e0 	ldr	s0, [sp]
+ 290:	910043ff 	add	sp, sp, #0x10
+ 294:	d65f03c0 	ret
+
+0000000000000298 <sqroot>:
+ 298:	d10083ff 	sub	sp, sp, #0x20
+ 29c:	b24003e8 	orr	x8, xzr, #0x1
+ 2a0:	9e220101 	scvtf	s1, x8
+ 2a4:	b24007e8 	orr	x8, xzr, #0x3
+ 2a8:	9e220102 	scvtf	s2, x8
+ 2ac:	bd001be0 	str	s0, [sp,#24]
+ 2b0:	bd401be0 	ldr	s0, [sp,#24]
+ 2b4:	1e221800 	fdiv	s0, s0, s2
+ 2b8:	bd0017e0 	str	s0, [sp,#20]
+ 2bc:	bd000fe1 	str	s1, [sp,#12]
+ 2c0:	bd401be0 	ldr	s0, [sp,#24]
+ 2c4:	1e202008 	fcmp	s0, #0.0
+ 2c8:	54000049 	b.ls	2d0 <sqroot+0x38>
+ 2cc:	14000005 	b	2e0 <sqroot+0x48>
+ 2d0:	d2800008 	mov	x8, #0x0                   	// #0
+ 2d4:	9e220100 	scvtf	s0, x8
+ 2d8:	bd001fe0 	str	s0, [sp,#28]
+ 2dc:	14000025 	b	370 <sqroot+0xd8>
+ 2e0:	14000001 	b	2e4 <sqroot+0x4c>
+ 2e4:	b27f03e8 	orr	x8, xzr, #0x2
+ 2e8:	9e220100 	scvtf	s0, x8
+ 2ec:	bd4017e1 	ldr	s1, [sp,#20]
+ 2f0:	bd0013e1 	str	s1, [sp,#16]
+ 2f4:	bd4017e1 	ldr	s1, [sp,#20]
+ 2f8:	bd401be2 	ldr	s2, [sp,#24]
+ 2fc:	bd4017e3 	ldr	s3, [sp,#20]
+ 300:	1e231842 	fdiv	s2, s2, s3
+ 304:	1e222821 	fadd	s1, s1, s2
+ 308:	1e201820 	fdiv	s0, s1, s0
+ 30c:	bd0017e0 	str	s0, [sp,#20]
+ 310:	bd4017e0 	ldr	s0, [sp,#20]
+ 314:	bd4013e1 	ldr	s1, [sp,#16]
+ 318:	1e213800 	fsub	s0, s0, s1
+ 31c:	bd000fe0 	str	s0, [sp,#12]
+ 320:	320003e8 	orr	w8, wzr, #0x1
+ 324:	90000009 	adrp	x9, 0 <fastlog2-0x100>
+ 328:	fd420920 	ldr	d0, [x9,#1040]
+ 32c:	bd400fe1 	ldr	s1, [sp,#12]
+ 330:	1e22c022 	fcvt	d2, s1
+ 334:	1e602040 	fcmp	d2, d0
+ 338:	b9000be8 	str	w8, [sp,#8]
+ 33c:	5400010c 	b.gt	35c <sqroot+0xc4>
+ 340:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 344:	fd420d00 	ldr	d0, [x8,#1048]
+ 348:	bd400fe1 	ldr	s1, [sp,#12]
+ 34c:	1e22c022 	fcvt	d2, s1
+ 350:	1e602040 	fcmp	d2, d0
+ 354:	1a9f57e9 	cset	w9, mi
+ 358:	b9000be9 	str	w9, [sp,#8]
+ 35c:	b9400be0 	ldr	w0, [sp,#8]
+ 360:	7100001f 	cmp	w0, #0x0
+ 364:	54fffc01 	b.ne	2e4 <sqroot+0x4c>
+ 368:	bd4017e0 	ldr	s0, [sp,#20]
+ 36c:	bd001fe0 	str	s0, [sp,#28]
+ 370:	bd401fe0 	ldr	s0, [sp,#28]
+ 374:	910083ff 	add	sp, sp, #0x20
+ 378:	d65f03c0 	ret
+
+000000000000037c <fabsolute>:
+ 37c:	d10043ff 	sub	sp, sp, #0x10
+ 380:	bd000fe0 	str	s0, [sp,#12]
+ 384:	bd400fe0 	ldr	s0, [sp,#12]
+ 388:	1e202008 	fcmp	s0, #0.0
+ 38c:	5400004c 	b.gt	394 <fabsolute+0x18>
+ 390:	14000004 	b	3a0 <fabsolute+0x24>
+ 394:	bd400fe0 	ldr	s0, [sp,#12]
+ 398:	bd000be0 	str	s0, [sp,#8]
+ 39c:	14000004 	b	3ac <fabsolute+0x30>
+ 3a0:	bd400fe0 	ldr	s0, [sp,#12]
+ 3a4:	1e214000 	fneg	s0, s0
+ 3a8:	bd000be0 	str	s0, [sp,#8]
+ 3ac:	bd400be0 	ldr	s0, [sp,#8]
+ 3b0:	910043ff 	add	sp, sp, #0x10
+ 3b4:	d65f03c0 	ret
+
+00000000000003b8 <main>:
+ 3b8:	a9bf7bfd 	stp	x29, x30, [sp,#-16]!
+ 3bc:	910003fd 	mov	x29, sp
+ 3c0:	d10043ff 	sub	sp, sp, #0x10
+ 3c4:	90000008 	adrp	x8, 0 <fastlog2-0x100>
+ 3c8:	bd440900 	ldr	s0, [x8,#1032]
+ 3cc:	52800009 	mov	w9, #0x0                   	// #0
+ 3d0:	b81fc3a9 	stur	w9, [x29,#-4]
+ 3d4:	97ffffea 	bl	37c <fabsolute>
+ 3d8:	bd000be0 	str	s0, [sp,#8]
+ 3dc:	bd400be0 	ldr	s0, [sp,#8]
+ 3e0:	1e380000 	fcvtzs	w0, s0
+ 3e4:	910003bf 	mov	sp, x29
+ 3e8:	a8c17bfd 	ldp	x29, x30, [sp],#16
+ 3ec:	d65f03c0 	ret
