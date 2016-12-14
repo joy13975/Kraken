@@ -282,7 +282,8 @@ void Proc::run()
                         {
                             branchRecords.updateRecord(exeInstr,
                                                        newPc);
-                            if (decoder.getInstr() == newPc)
+                            if ((options.pipelined && newPc == decoder.getInstr()) ||
+                                    (!options.pipelined && newPc == pc))
                             {
                                 bpCorrectCount++;
                                 dbg("   Branch prediction was correct: %d\n",
@@ -291,9 +292,13 @@ void Proc::run()
                             else
                             {
                                 bpWrongCount++;
-                                fetcher.reset();
-                                decoder.reset();
-                                logic.resetFlags();
+
+                                if (options.pipelined)
+                                {
+                                    fetcher.reset();
+                                    decoder.reset();
+                                    logic.resetFlags();
+                                }
 
                                 pc = newPc;
                                 dbg("   Branch prediction was wrong: %d; pc <- newPc: %p\n",
