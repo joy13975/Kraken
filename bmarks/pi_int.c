@@ -2,17 +2,20 @@
 #include <stdio.h>
 #endif
 
+#define N 700
 int main() {
-    int r[2800 + 1];
+    int r[N * 4 + 1];
     int i, k;
     int b, d;
     int c = 0;
 
-    for (i = 0; i < 2800; i++) {
+    for (i = 0; i < N * 4; i++) {
         r[i] = 2000;
     }
 
-    for (k = 2800; k > 0; k -= 14) {
+    int ret;
+
+    for (k = N * 4; k > 0; k -= 14) {
         d = 0;
 
         i = k;
@@ -28,11 +31,12 @@ int main() {
         }
 
 #ifdef _DEBUG
-        printf("%.4d", c + d / 10000);
+        printf("%.4d ", c + d / 10000);
 #endif
+        ret = c + d / 10000;
 
         c = d % 10000;
     }
 
-    return 0;
+    return ret;
 }

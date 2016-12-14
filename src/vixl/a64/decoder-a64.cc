@@ -33,18 +33,18 @@ namespace vixl {
 
 Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
     if (instr->Bits(28, 27) == 0) {
-        VisitUnallocated(instr);
+        return VisitUnallocated(instr);
     } else {
         switch (instr->Bits(27, 24)) {
         // 0:   PC relative addressing.
         case 0x0:
+            // wrn("DecodePCRelAddressing()\n");
             return DecodePCRelAddressing(instr);
-            break;
 
         // 1:   Add/sub immediate.
         case 0x1:
+            // wrn("DecodeAddSubImmediate()\n");
             return DecodeAddSubImmediate(instr);
-            break;
 
         // A:   Logical shifted register.
         //      Add/sub with carry.
@@ -58,20 +58,20 @@ Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
         //      Data processing 3 source.
         case 0xA:
         case 0xB:
+            // wrn("DecodeDataProcessing()\n");
             return DecodeDataProcessing(instr);
-            break;
 
         // 2:   Logical immediate.
         //      Move wide immediate.
         case 0x2:
+            // wrn("DecodeLogical()\n");
             return DecodeLogical(instr);
-            break;
 
         // 3:   Bitfield.
         //      Extract.
         case 0x3:
+            // wrn("DecodeBitfieldExtract()\n");
             return DecodeBitfieldExtract(instr);
-            break;
 
         // 4:   Unconditional branch immediate.
         //      Exception generation.
@@ -85,8 +85,8 @@ Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
         case 0x5:
         case 0x6:
         case 0x7:
+            // wrn("DecodeBranchSystemException()\n");
             return DecodeBranchSystemException(instr);
-            break;
 
         // 8,9: Load/store register pair post-index.
         //      Load register literal.
@@ -103,8 +103,8 @@ Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
         case 0x9:
         case 0xC:
         case 0xD:
+            // wrn("DecodeLoadStore()\n");
             return DecodeLoadStore(instr);
-            break;
 
         // E:   FP fixed point conversion.
         //      FP integer conversion.
@@ -119,8 +119,8 @@ Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
         //      Advanced SIMD.
         case 0xE:
         case 0xF:
+            // wrn("DecodeFP()\n");
             return DecodeFP(instr);
-            break;
         }
     }
     wrn("Unknown instruction: %8x\n", instr->InstructionBits());
@@ -570,12 +570,12 @@ Kraken::ActionCode Decoder::DecodeDataProcessing(const Instruction* instr) {
 Kraken::ActionCode Decoder::DecodeFP(const Instruction* instr) {
     VIXL_ASSERT((instr->Bits(27, 24) == 0xE) || (instr->Bits(27, 24) == 0xF));
     if (instr->Bit(28) == 0) {
-        DecodeNEONVectorDataProcessing(instr);
+        return DecodeNEONVectorDataProcessing(instr);
     } else {
         if (instr->Bits(31, 30) == 0x3) {
             return Kraken::AC_Unallocated;
         } else if (instr->Bits(31, 30) == 0x1) {
-            DecodeNEONScalarDataProcessing(instr);
+            return DecodeNEONScalarDataProcessing(instr);
         } else {
             if (instr->Bit(29) == 0) {
                 if (instr->Bit(24) == 0) {
@@ -877,7 +877,7 @@ Kraken::ActionCode Decoder::DecodeNEONScalarDataProcessing(const Instruction* in
 //       (*it)->Visit##A(instr);                                   \
 //     }                                                           \
 //   }
-  #define DEFINE_VISITOR_CALLERS(A)                               \
+#define DEFINE_VISITOR_CALLERS(A)                               \
   Kraken::ActionCode Decoder::Visit##A(const Instruction* instr) {            \
     VIXL_ASSERT(instr->Mask(A##FMask) == A##Fixed);             \
     std::list<DecoderVisitor*>::iterator it;                    \

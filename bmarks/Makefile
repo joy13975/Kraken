@@ -10,8 +10,8 @@ EXT_A64_BIN 	:=a64
 
 BIN_X86			:=$(SRC:%.c=%.$(EXT_X86_BIN))
 ASM_A64 		:=$(SRC:%.c=%.$(EXT_A64_ASM))
-BIN_A64 		:=$(SRC:%.c=%.$(EXT_A64_BIN))
 DASM_A64 		:=$(SRC:%.c=%.$(EXT_A64_DASM))
+BIN_A64 		:=$(SRC:%.c=%.$(EXT_A64_BIN))
 
 C_CLAGS			:=-O0 -std=gnu99 -fno-stack-protector \
 					-fno-exceptions -fno-asynchronous-unwind-tables
@@ -48,4 +48,5 @@ stat: all
 
 clean:
 	rm -rf *.$(EXT_X86_BIN) *.$(EXT_A64_BIN) *.$(EXT_OBJ)
-	rm -rf *.$(EXT_A64_ASM) *.$(EXT_A64_DASM)
+	rm -rf *.$(EXT_A64_ASM) *.$(EXT_A64_DASM) a.out
+	rm -rf *.dSYM

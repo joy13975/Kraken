@@ -7,29 +7,29 @@ start address 0x0000000000000100
 
 Program Header:
     LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
-         filesz 0x0000000000000288 memsz 0x0000000000000288 flags r-x
+         filesz 0x00000000000002a0 memsz 0x00000000000002a0 flags r-x
 private flags = 0:
 
 Sections:
 Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         00000188  0000000000000100  0000000000000100  00000100  2**2
+  0 .text         000001a0  0000000000000100  0000000000000100  00000100  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .comment      00000015  0000000000000000  0000000000000000  00000288  2**0
+  1 .comment      00000015  0000000000000000  0000000000000000  000002a0  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 0000000000000100 l    d  .text	0000000000000000 .text
 0000000000000000 l    d  .comment	0000000000000000 .comment
 0000000000000000 l    df *ABS*	0000000000000000 pi_int.c
-0000000000010288 g       .text	0000000000000000 _bss_end__
-0000000000010288 g       .text	0000000000000000 __bss_start__
-0000000000010288 g       .text	0000000000000000 __bss_end__
-0000000000010288 g       .text	0000000000000000 __bss_start
-0000000000000100 g     F .text	0000000000000188 main
-0000000000010288 g       .text	0000000000000000 __end__
-0000000000010288 g       .text	0000000000000000 _edata
-0000000000010288 g       .text	0000000000000000 _end
+00000000000102a0 g       .text	0000000000000000 _bss_end__
+00000000000102a0 g       .text	0000000000000000 __bss_start__
+00000000000102a0 g       .text	0000000000000000 __bss_end__
+00000000000102a0 g       .text	0000000000000000 __bss_start
+0000000000000100 g     F .text	00000000000001a0 main
+00000000000102a0 g       .text	0000000000000000 __end__
+00000000000102a0 g       .text	0000000000000000 _edata
+00000000000102a0 g       .text	0000000000000000 _end
 0000000000080000 g       .comment	0000000000000000 _stack
-0000000000010288 g       .text	0000000000000000 __data_start
+00000000000102a0 g       .text	0000000000000000 __data_start
 
 
 
@@ -66,7 +66,7 @@ Disassembly of section .text:
  16c:	b94013e8 	ldr	w8, [sp,#16]
  170:	7100011f 	cmp	w8, #0x0
  174:	5400004c 	b.gt	17c <main+0x7c>
- 178:	1400003f 	b	274 <main+0x174>
+ 178:	14000045 	b	28c <main+0x18c>
  17c:	52800008 	mov	w8, #0x0                   	// #0
  180:	b9000be8 	str	w8, [sp,#8]
  184:	b94013e8 	ldr	w8, [sp,#16]
@@ -120,17 +120,23 @@ Disassembly of section .text:
  244:	b9000be8 	str	w8, [sp,#8]
  248:	17ffffd1 	b	18c <main+0x8c>
  24c:	5284e208 	mov	w8, #0x2710                	// #10000
- 250:	b9400be9 	ldr	w9, [sp,#8]
- 254:	1ac80d20 	sdiv	w0, w9, w8
- 258:	1b08a400 	msub	w0, w0, w8, w9
- 25c:	b90007e0 	str	w0, [sp,#4]
- 260:	b94013e8 	ldr	w8, [sp,#16]
- 264:	321f0be9 	orr	w9, wzr, #0xe
- 268:	6b090108 	subs	w8, w8, w9
- 26c:	b90013e8 	str	w8, [sp,#16]
- 270:	17ffffbf 	b	16c <main+0x6c>
- 274:	52800000 	mov	w0, #0x0                   	// #0
- 278:	91400bff 	add	sp, sp, #0x2, lsl #12
- 27c:	912f83ff 	add	sp, sp, #0xbe0
- 280:	a8c16ffc 	ldp	x28, x27, [sp],#16
- 284:	d65f03c0 	ret
+ 250:	b94007e9 	ldr	w9, [sp,#4]
+ 254:	b9400bea 	ldr	w10, [sp,#8]
+ 258:	5284e20b 	mov	w11, #0x2710                	// #10000
+ 25c:	1acb0d4a 	sdiv	w10, w10, w11
+ 260:	0b0a0129 	add	w9, w9, w10
+ 264:	b90003e9 	str	w9, [sp]
+ 268:	b9400be9 	ldr	w9, [sp,#8]
+ 26c:	1ac80d2a 	sdiv	w10, w9, w8
+ 270:	1b08a548 	msub	w8, w10, w8, w9
+ 274:	b90007e8 	str	w8, [sp,#4]
+ 278:	b94013e8 	ldr	w8, [sp,#16]
+ 27c:	321f0be9 	orr	w9, wzr, #0xe
+ 280:	6b090108 	subs	w8, w8, w9
+ 284:	b90013e8 	str	w8, [sp,#16]
+ 288:	17ffffb9 	b	16c <main+0x6c>
+ 28c:	b94003e0 	ldr	w0, [sp]
+ 290:	91400bff 	add	sp, sp, #0x2, lsl #12
+ 294:	912f83ff 	add	sp, sp, #0xbe0
+ 298:	a8c16ffc 	ldp	x28, x27, [sp],#16
+ 29c:	d65f03c0 	ret

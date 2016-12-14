@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <signal.h>
+
 #include "types.h"
 #include "bit_util.h"
 #include "fetcher.h"
@@ -18,14 +20,12 @@ namespace Kraken
 class Proc : public ComponentBase
 {
 public:
-    Proc(const Options &_options)
-        : options(_options),
-          progInfo(ProgramInfo(std::ifstream(options.input, std::ios::binary))),
-          absTextStart(progInfo.offset<InstrPtr >(progInfo.textStart)),
-          absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
-          pc(progInfo.offset<InstrPtr >(progInfo.entry)),
-          branchRecords(_options.bpMode, _options.nBPBits, absTextEnd)
-    {}
+    const Options options;
+    const ProgramInfo progInfo;
+    const InstrPtr absTextStart;
+    const InstrPtr absTextEnd;
+
+    Proc(const Options &_options);
 
     virtual ~Proc() {}
 
@@ -33,12 +33,14 @@ public:
     void update();
     void startSimulation();
 
-private:
-    const Options options;
-    const ProgramInfo progInfo;
-    const InstrPtr absTextStart;
-    const InstrPtr absTextEnd;
+    void dumpData();
+    void dumpStack();
 
+    const vixl::Decoder & getDecoder() { return decoder; }
+    const Fetcher & getFetcher() { return fetcher; }
+    const vixl::Logic & getLogic() { return logic; }
+
+private:
     // components
     vixl::Decoder decoder;
     Fetcher fetcher;
@@ -56,8 +58,6 @@ private:
 
     void run();
     void breakpoint(const ptrdiff_t addr);
-    void dumpData();
-    void dumpStack();
 };
 
 } // namespace Kraken

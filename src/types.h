@@ -33,7 +33,7 @@ typedef struct
     std::string stackOutput         = "stack.bin";
     bool interactive                = false;
     bool pipelined                  = false;
-    short nBPBits                   = 5;
+    short nBPBits                   = 3;
     BranchPredictionMode bpMode     = NoneMode;
 
     short nSuperscalar              = 1;
@@ -192,8 +192,12 @@ private:
             uintptr_t imgPtr = (uintptr_t) addPointers<Byte*>(imgBase,
                                (void*) phdr.p_vaddr);
 
-            if (!binStream.read((char*) imgPtr, phdr.p_memsz))
-                die("Could not load Elf program section.\n");
+            if (!binStream.read((char*) imgPtr, phdr.p_filesz))
+            {
+                err("Could not load Elf program section\n");
+                die("Error: %s; phdr.p_memsz = %ld\n",
+                    get_error_string(), phdr.p_memsz);
+            }
             dbg("Loaded %ld bytes at %p; base: %p\n",
                 phdr.p_memsz, imgPtr, imgBase);
         }

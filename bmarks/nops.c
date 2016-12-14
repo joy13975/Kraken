@@ -1,74 +1,56 @@
 
 int main(void)
 {
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
+#define nop64() \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop"); \
+    __asm__("nop"); __asm__("nop"); __asm__("nop"); __asm__("nop");
 
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
 
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
+#define nops512() \
+    nop64(); nop64(); \
+    nop64(); nop64(); \
+    nop64(); nop64(); \
+    nop64(); nop64();
 
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
+#define nops4k() \
+    nops512(); nops512(); \
+    nops512(); nops512(); \
+    nops512(); nops512(); \
+    nops512(); nops512();
 
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
+#define nops32k() \
+    nops4k(); nops4k(); \
+    nops4k(); nops4k(); \
+    nops4k(); nops4k(); \
+    nops4k(); nops4k();
 
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
+#define nops256k() \
+    nops32k(); nops32k(); \
+    nops32k(); nops32k(); \
+    nops32k(); nops32k(); \
+    nops32k(); nops32k();
 
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
+#define nops2m() \
+    nops256k(); nops256k(); \
+    nops256k(); nops256k(); \
+    nops256k(); nops256k(); \
+    nops256k(); nops256k();
+
+    //above 4k takes too long
+    nops4k();
+
 }

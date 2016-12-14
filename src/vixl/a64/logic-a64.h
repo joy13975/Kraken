@@ -305,15 +305,18 @@ public:
             const Instruction *const oldPC = instr->NextInstruction();
             set_pc(oldPC);
 
+            prf("Executing tag: %s\n", Kraken::ActionCodeString[ac]);
+
             // execute instruction
             switch (ac)
             {
 #define GEN_AC_CASES(ITEM) \
-        case Kraken::AC_##ITEM: \
-        if (get_log_level() < LOG_MESSAGE) \
-            print_disasm_->Visit##ITEM(instr); \
-        Visit##ITEM(instr); \
-        break;
+            case Kraken::AC_##ITEM: \
+                if (get_log_level() < LOG_MESSAGE) \
+                    print_disasm_->Visit##ITEM(instr); \
+                Visit##ITEM(instr); \
+                break;
+
                 VISITOR_LIST(GEN_AC_CASES);
 #undef GEN_AC_CASES
             default:
@@ -341,8 +344,8 @@ public:
         }
     }
 
-    byte * stackBegin() { return stack_; }
-    size_t stackSize() { return stack_size_; }
+    byte * getStackBegin() const { return stack_; }
+    size_t getStackSize() const { return stack_size_; }
 
     void ResetState();
 
@@ -2187,7 +2190,7 @@ protected:
     byte* stack_;
     static const int stack_protection_size_ = 256;
     // 8 KB stack.
-    static const int stack_size_ = 8 * 1024 + 2 * stack_protection_size_;
+    static const int stack_size_ = 32 * 1024 + 2 * stack_protection_size_;
     byte* stack_limit_;
 
     // Decoder* decoder_;

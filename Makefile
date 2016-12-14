@@ -22,7 +22,7 @@ DEBUG=1
 GOMP=0
 
 ifeq ($(DEBUG), 1)
-	DEBUG_FLAG=-g
+	DEBUG_FLAG=-ggdb3
 else
 	DEBUG_FLAG=
 endif

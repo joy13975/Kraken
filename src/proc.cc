@@ -10,6 +10,8 @@
 namespace Kraken
 {
 
+static Proc * currentProc;
+
 #define FOREACH_PROCSTAGE(MACRO) \
     MACRO(FETCH,        0B00001) \
     MACRO(DECODE,       0B00010) \
@@ -37,6 +39,46 @@ ProcStage nextStage(const ProcStage &s)
     MACRO(_NCLKSTATES_)
 
 GEN_ENUM_AND_STRING(ClkState, ClkStateString, FOREACH_CLKSTATE);
+
+void signalHandler(int sig)
+{
+    err("Signal caught: %d (%s)\n", sig, strsignal(sig));
+
+    if (currentProc)
+    {
+        err(".text scope:  %p - %p\n",
+            currentProc->absTextStart, currentProc->absTextEnd);
+        err("Memory scope: %p - %p\n",
+            currentProc->progInfo.image,
+            currentProc->progInfo.offset<void*>((void*) currentProc->progInfo.imgSize));
+        err("Stack scope:  %p - %p\n",
+            currentProc->getLogic().getStackBegin(),
+            addPointers<void*>(currentProc->getLogic().getStackBegin(),
+                               (void*) currentProc->getLogic().getStackSize()));
+
+        currentProc->dumpData();
+        currentProc->dumpStack();
+    }
+    else
+    {
+        die("currentProc is null\n");
+    }
+
+    exit(1);
+}
+
+Proc::Proc(const Options &_options)
+    : options(_options),
+      progInfo(ProgramInfo(std::ifstream(options.input, std::ios::binary))),
+      absTextStart(progInfo.offset<InstrPtr >(progInfo.textStart)),
+      absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
+      pc(progInfo.offset<InstrPtr >(progInfo.entry)),
+      branchRecords(_options.bpMode, _options.nBPBits, absTextEnd)
+{
+    currentProc = this;
+    signal(SIGINT, signalHandler);
+    signal(SIGSEGV, signalHandler);
+}
 
 void Proc::reset()
 {
@@ -185,7 +227,7 @@ void Proc::run()
                             // check branch prediction
                             const InstrPtr bpSuggest =
                                 branchRecords.predict(pc);
-                            wrn("Suggest: %p, pc: %p\n",
+                            dbg("Suggest: %p, pc: %p\n",
                                 progInfo.offset<InstrPtr>(bpSuggest),
                                 progInfo.offset<InstrPtr>(pc));
 
@@ -334,7 +376,7 @@ void Proc::dumpData()
 
 void Proc::dumpStack()
 {
-    write_binary(options.stackOutput.c_str(), (char*) logic.stackBegin(), logic.stackSize());
+    write_binary(options.stackOutput.c_str(), (char*) logic.getStackBegin(), logic.getStackSize());
 }
 
 } // namespace Kraken

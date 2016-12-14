@@ -110,19 +110,25 @@ main:                                   // @main
 .LBB0_10:                               // %for.end12
                                         //   in Loop: Header=BB0_5 Depth=1
 	movz	w8, #0x2710
+	ldr	w9, [sp, #4]
+	ldr	w10, [sp, #8]
+	movz	w11, #0x2710
+	sdiv	w10, w10, w11
+	add	 w9, w9, w10
+	str	 w9, [sp]
 	ldr	w9, [sp, #8]
-	sdiv	w0, w9, w8
-	msub	w0, w0, w8, w9
-	str	w0, [sp, #4]
-// BB#11:                               // %for.inc14
+	sdiv	w10, w9, w8
+	msub	w8, w10, w8, w9
+	str	w8, [sp, #4]
+// BB#11:                               // %for.inc16
                                         //   in Loop: Header=BB0_5 Depth=1
 	ldr	w8, [sp, #16]
 	orr	w9, wzr, #0xe
 	subs	 w8, w8, w9
 	str	w8, [sp, #16]
 	b	.LBB0_5
-.LBB0_12:                               // %for.end16
-	movz	w0, #0
+.LBB0_12:                               // %for.end18
+	ldr	 w0, [sp]
 	add	sp, sp, #2, lsl #12     // =8192
 	add	sp, sp, #3040           // =3040
 	ldp	x28, x27, [sp], #16

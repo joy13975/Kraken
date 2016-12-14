@@ -37,10 +37,6 @@ InstrPtr BranchRecords::predict(const InstrPtr instr)
         wrn("Branch predict: reaching end of instructions\n");
         return instr;
     }
-    else
-    {
-        wrn("instr not out of bound: %p\n", instr);
-    }
 
     if (mode == NoneMode)
     {
@@ -57,7 +53,6 @@ InstrPtr BranchRecords::predict(const InstrPtr instr)
                        br.dynamicPredict();
 
         // no matching record; default to fixed (no) prediction
-        wrn("Defaulting to fixed\n");
         return fixedPredict(instr);
     }
 }
