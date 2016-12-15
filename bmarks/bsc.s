@@ -276,15 +276,396 @@ fabsolute:                              // @fabsolute
 .Ltmp10:
 	.size	fabsolute, .Ltmp10-fabsolute
 
+	.section	.rodata.cst8,"aM",@progbits,8
+	.align	3
+.LCPI6_0:
+	.xword	-4609115380310813455    // double -3.1415926500000002
+.LCPI6_1:
+	.xword	4614256656543962353     // double 3.1415926500000002
+.LCPI6_2:
+	.xword	4618760256182591848     // double 6.2831853100000004
+.LCPI6_3:
+	.xword	4600972580644005721     // double 0.40528473500000001
+.LCPI6_4:
+	.xword	4608412980290544294     // double 1.2732395400000001
+.LCPI6_5:
+	.xword	4597274499619802317     // double 0.22500000000000001
+	.text
+	.globl	fsine
+	.align	2
+	.type	fsine,@function
+fsine:                                  // @fsine
+// BB#0:                                // %entry
+	sub	sp, sp, #16             // =16
+	adrp	x8, .LCPI6_0
+	ldr	d1, [x8, :lo12:.LCPI6_0]
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
+	fcvt	d2, s0
+	fcmp	d2, d1
+	b.mi	.LBB6_1
+	b	.LBB6_2
+.LBB6_1:                                // %if.then
+	adrp	x8, .LCPI6_2
+	ldr	d0, [x8, :lo12:.LCPI6_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fadd	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+	b	.LBB6_5
+.LBB6_2:                                // %if.else
+	adrp	x8, .LCPI6_1
+	ldr	d0, [x8, :lo12:.LCPI6_1]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	b.gt	.LBB6_3
+	b	.LBB6_4
+.LBB6_3:                                // %if.then7
+	adrp	x8, .LCPI6_2
+	ldr	d0, [x8, :lo12:.LCPI6_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fsub	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+.LBB6_4:                                // %if.end
+	b	.LBB6_5
+.LBB6_5:                                // %if.end10
+	ldr	s0, [sp, #12]
+	fcmp	s0, #0.0
+	b.mi	.LBB6_6
+	b	.LBB6_10
+.LBB6_6:                                // %if.then13
+	adrp	x8, .LCPI6_3
+	ldr	d0, [x8, :lo12:.LCPI6_3]
+	adrp	x8, .LCPI6_4
+	ldr	d1, [x8, :lo12:.LCPI6_4]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fadd	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB6_7
+	b	.LBB6_8
+.LBB6_7:                                // %if.then23
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB6_9
+.LBB6_8:                                // %if.else32
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB6_9:                                // %if.end40
+	b	.LBB6_14
+.LBB6_10:                               // %if.else41
+	adrp	x8, .LCPI6_3
+	ldr	d0, [x8, :lo12:.LCPI6_3]
+	adrp	x8, .LCPI6_4
+	ldr	d1, [x8, :lo12:.LCPI6_4]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fsub	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB6_11
+	b	.LBB6_12
+.LBB6_11:                               // %if.then52
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB6_13
+.LBB6_12:                               // %if.else61
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB6_13:                               // %if.end69
+	b	.LBB6_14
+.LBB6_14:                               // %if.end70
+	ldr	s0, [sp, #8]
+	add	sp, sp, #16             // =16
+	ret
+.Ltmp12:
+	.size	fsine, .Ltmp12-fsine
+
+	.section	.rodata.cst8,"aM",@progbits,8
+	.align	3
+.LCPI7_0:
+	.xword	-4609115380310813455    // double -3.1415926500000002
+.LCPI7_1:
+	.xword	4614256656543962353     // double 3.1415926500000002
+.LCPI7_2:
+	.xword	4618760256182591848     // double 6.2831853100000004
+.LCPI7_3:
+	.xword	4609753056894073858     // double 1.5707963199999999
+.LCPI7_4:
+	.xword	4600972580644005721     // double 0.40528473500000001
+.LCPI7_5:
+	.xword	4608412980290544294     // double 1.2732395400000001
+.LCPI7_6:
+	.xword	4597274499619802317     // double 0.22500000000000001
+	.text
+	.globl	fcosine
+	.align	2
+	.type	fcosine,@function
+fcosine:                                // @fcosine
+// BB#0:                                // %entry
+	sub	sp, sp, #16             // =16
+	adrp	x8, .LCPI7_0
+	ldr	d1, [x8, :lo12:.LCPI7_0]
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
+	fcvt	d2, s0
+	fcmp	d2, d1
+	b.mi	.LBB7_1
+	b	.LBB7_2
+.LBB7_1:                                // %if.then
+	adrp	x8, .LCPI7_2
+	ldr	d0, [x8, :lo12:.LCPI7_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fadd	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+	b	.LBB7_5
+.LBB7_2:                                // %if.else
+	adrp	x8, .LCPI7_1
+	ldr	d0, [x8, :lo12:.LCPI7_1]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	b.gt	.LBB7_3
+	b	.LBB7_4
+.LBB7_3:                                // %if.then7
+	adrp	x8, .LCPI7_2
+	ldr	d0, [x8, :lo12:.LCPI7_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fsub	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+.LBB7_4:                                // %if.end
+	b	.LBB7_5
+.LBB7_5:                                // %if.end10
+	adrp	x8, .LCPI7_1
+	ldr	d0, [x8, :lo12:.LCPI7_1]
+	adrp	x8, .LCPI7_3
+	ldr	d1, [x8, :lo12:.LCPI7_3]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fadd	d1, d3, d1
+	fcvt	s2, d1
+	str	s2, [sp, #12]
+	ldr	s2, [sp, #12]
+	fcvt	d1, s2
+	fcmp	d1, d0
+	b.gt	.LBB7_6
+	b	.LBB7_7
+.LBB7_6:                                // %if.then17
+	adrp	x8, .LCPI7_2
+	ldr	d0, [x8, :lo12:.LCPI7_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fsub	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+.LBB7_7:                                // %if.end21
+	ldr	s0, [sp, #12]
+	fcmp	s0, #0.0
+	b.mi	.LBB7_8
+	b	.LBB7_12
+.LBB7_8:                                // %if.then24
+	adrp	x8, .LCPI7_4
+	ldr	d0, [x8, :lo12:.LCPI7_4]
+	adrp	x8, .LCPI7_5
+	ldr	d1, [x8, :lo12:.LCPI7_5]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fadd	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB7_9
+	b	.LBB7_10
+.LBB7_9:                                // %if.then34
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB7_11
+.LBB7_10:                               // %if.else43
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB7_11:                               // %if.end51
+	b	.LBB7_16
+.LBB7_12:                               // %if.else52
+	adrp	x8, .LCPI7_4
+	ldr	d0, [x8, :lo12:.LCPI7_4]
+	adrp	x8, .LCPI7_5
+	ldr	d1, [x8, :lo12:.LCPI7_5]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fsub	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB7_13
+	b	.LBB7_14
+.LBB7_13:                               // %if.then63
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB7_15
+.LBB7_14:                               // %if.else72
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB7_15:                               // %if.end80
+	b	.LBB7_16
+.LBB7_16:                               // %if.end81
+	ldr	s0, [sp, #8]
+	add	sp, sp, #16             // =16
+	ret
+.Ltmp14:
+	.size	fcosine, .Ltmp14-fcosine
+
 	.section	.rodata.cst4,"aM",@progbits,4
 	.align	2
-.LCPI6_0:
+.LCPI8_0:
 	.word	1086918619              // float 6.28318548
-.LCPI6_1:
+.LCPI8_1:
 	.word	1076754516              // float 2.71828175
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
-.LCPI6_2:
+.LCPI8_2:
 	.xword	4604029899060858061     // double 0.65000000000000002
 	.text
 	.globl	normalDistribution
@@ -295,8 +676,8 @@ normalDistribution:                     // @normalDistribution
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #80             // =80
-	adrp	x8, .LCPI6_0
-	ldr	s1, [x8, :lo12:.LCPI6_0]
+	adrp	x8, .LCPI8_0
+	ldr	s1, [x8, :lo12:.LCPI8_0]
 	stur	d0, [x29, #-8]
 	mov		v0.16b, v1.16b
 	bl	sqroot
@@ -323,11 +704,11 @@ normalDistribution:                     // @normalDistribution
 	str	d3, [sp, #40]
 	ldur	d3, [x29, #-32]
 	fcmp	d3, d2
-	b.ls	.LBB6_1
-	b	.LBB6_5
-.LBB6_1:                                // %if.then
-	adrp	x8, .LCPI6_1
-	ldr	s0, [x8, :lo12:.LCPI6_1]
+	b.ls	.LBB8_1
+	b	.LBB8_5
+.LBB8_1:                                // %if.then
+	adrp	x8, .LCPI8_1
+	ldr	s0, [x8, :lo12:.LCPI8_1]
 	orr	x8, xzr, #0x2
 	scvtf	d1, x8
 	ldur	d2, [x29, #-32]
@@ -344,9 +725,9 @@ normalDistribution:                     // @normalDistribution
 	ldur	d2, [x29, #-32]
 	ldur	d3, [x29, #-24]
 	fcmp	d2, d3
-	b.mi	.LBB6_2
-	b	.LBB6_3
-.LBB6_2:                                // %if.then14
+	b.mi	.LBB8_2
+	b	.LBB8_3
+.LBB8_2:                                // %if.then14
 	adrp	x8, normalDistribution.b
 	add	x8, x8, :lo12:normalDistribution.b
 	adrp	x9, normalDistribution.a
@@ -415,8 +796,8 @@ normalDistribution:                     // @normalDistribution
 	ldr	d1, [sp, #16]
 	fdiv	d0, d0, d1
 	str	d0, [sp, #40]
-	b	.LBB6_4
-.LBB6_3:                                // %if.else
+	b	.LBB8_4
+.LBB8_3:                                // %if.else
 	orr	x8, xzr, #0x1
 	scvtf	d0, x8
 	orr	x8, xzr, #0x2
@@ -425,8 +806,8 @@ normalDistribution:                     // @normalDistribution
 	scvtf	d2, x8
 	orr	x8, xzr, #0x4
 	scvtf	d3, x8
-	adrp	x8, .LCPI6_2
-	ldr	d4, [x8, :lo12:.LCPI6_2]
+	adrp	x8, .LCPI8_2
+	ldr	d4, [x8, :lo12:.LCPI8_2]
 	ldur	d5, [x29, #-32]
 	ldur	d6, [x29, #-32]
 	ldur	d7, [x29, #-32]
@@ -446,38 +827,38 @@ normalDistribution:                     // @normalDistribution
 	ldr	d1, [sp, #8]
 	fdiv	d0, d0, d1
 	str	d0, [sp, #40]
-.LBB6_4:                                // %if.end
-	b	.LBB6_5
-.LBB6_5:                                // %if.end53
+.LBB8_4:                                // %if.end
+	b	.LBB8_5
+.LBB8_5:                                // %if.end53
 	ldur	d0, [x29, #-8]
 	fcmp	d0, #0.0
-	b.ge	.LBB6_6
-	b	.LBB6_7
-.LBB6_6:                                // %cond.true
+	b.ge	.LBB8_6
+	b	.LBB8_7
+.LBB8_6:                                // %cond.true
 	orr	x8, xzr, #0x1
 	scvtf	d0, x8
 	ldr	d1, [sp, #40]
 	fsub	d0, d0, d1
 	str	 d0, [sp]               // 8-byte Folded Spill
-	b	.LBB6_8
-.LBB6_7:                                // %cond.false
+	b	.LBB8_8
+.LBB8_7:                                // %cond.false
 	ldr	d0, [sp, #40]
 	str	 d0, [sp]               // 8-byte Folded Spill
-.LBB6_8:                                // %cond.end
+.LBB8_8:                                // %cond.end
 	ldr	 d0, [sp]               // 8-byte Folded Reload
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp11:
-	.size	normalDistribution, .Ltmp11-normalDistribution
+.Ltmp15:
+	.size	normalDistribution, .Ltmp15-normalDistribution
 
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
-.LCPI7_0:
+.LCPI9_0:
 	.xword	4397347889687374747     // double 9.9999999999999999E-15
 	.section	.rodata.cst4,"aM",@progbits,4
 	.align	2
-.LCPI7_1:
+.LCPI9_1:
 	.word	1076754516              // float 2.71828175
 	.text
 	.globl	callOptionPrice
@@ -488,8 +869,8 @@ callOptionPrice:                        // @callOptionPrice
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #160            // =160
-	adrp	x8, .LCPI7_0
-	ldr	d6, [x8, :lo12:.LCPI7_0]
+	adrp	x8, .LCPI9_0
+	ldr	d6, [x8, :lo12:.LCPI9_0]
 	stur	d0, [x29, #-16]
 	stur	d1, [x29, #-24]
 	stur	d2, [x29, #-32]
@@ -498,23 +879,23 @@ callOptionPrice:                        // @callOptionPrice
 	stur	d5, [x29, #-56]
 	ldur	d0, [x29, #-16]
 	fcmp	d0, d6
-	b.mi	.LBB7_1
-	b	.LBB7_2
-.LBB7_1:                                // %if.then
+	b.mi	.LBB9_1
+	b	.LBB9_2
+.LBB9_1:                                // %if.then
 	movz	x8, #0
 	scvtf	d0, x8
 	stur	d0, [x29, #-8]
-	b	.LBB7_11
-.LBB7_2:                                // %if.end
-	adrp	x8, .LCPI7_0
-	ldr	d0, [x8, :lo12:.LCPI7_0]
+	b	.LBB9_11
+.LBB9_2:                                // %if.end
+	adrp	x8, .LCPI9_0
+	ldr	d0, [x8, :lo12:.LCPI9_0]
 	ldur	d1, [x29, #-48]
 	fcmp	d1, d0
-	b.mi	.LBB7_3
-	b	.LBB7_6
-.LBB7_3:                                // %if.then2
-	adrp	x8, .LCPI7_1
-	ldr	s0, [x8, :lo12:.LCPI7_1]
+	b.mi	.LBB9_3
+	b	.LBB9_6
+.LBB9_3:                                // %if.then2
+	adrp	x8, .LCPI9_1
+	ldr	s0, [x8, :lo12:.LCPI9_1]
 	ldur	d1, [x29, #-16]
 	ldur	d2, [x29, #-32]
 	ldur	d3, [x29, #-40]
@@ -533,16 +914,16 @@ callOptionPrice:                        // @callOptionPrice
 	fmul	d2, d3, d2
 	ldr	d3, [sp, #80]           // 8-byte Folded Reload
 	fcmp	d3, d2
-	b.mi	.LBB7_4
-	b	.LBB7_5
-.LBB7_4:                                // %if.then8
+	b.mi	.LBB9_4
+	b	.LBB9_5
+.LBB9_4:                                // %if.then8
 	movz	x8, #0
 	scvtf	d0, x8
 	stur	d0, [x29, #-8]
-	b	.LBB7_11
-.LBB7_5:                                // %if.else
-	adrp	x8, .LCPI7_1
-	ldr	s0, [x8, :lo12:.LCPI7_1]
+	b	.LBB9_11
+.LBB9_5:                                // %if.else
+	adrp	x8, .LCPI9_1
+	ldr	s0, [x8, :lo12:.LCPI9_1]
 	ldur	d1, [x29, #-16]
 	ldur	d2, [x29, #-32]
 	ldur	d3, [x29, #-40]
@@ -562,37 +943,37 @@ callOptionPrice:                        // @callOptionPrice
 	ldr	d3, [sp, #64]           // 8-byte Folded Reload
 	fsub	d2, d3, d2
 	stur	d2, [x29, #-8]
-	b	.LBB7_11
-.LBB7_6:                                // %if.end17
+	b	.LBB9_11
+.LBB9_6:                                // %if.end17
 	ldur	d0, [x29, #-56]
 	ldur	d1, [x29, #-24]
 	fsub	d0, d0, d1
 	fcvt	s0, d0
 	bl	fabsolute
-	adrp	x8, .LCPI7_0
-	ldr	d1, [x8, :lo12:.LCPI7_0]
+	adrp	x8, .LCPI9_0
+	ldr	d1, [x8, :lo12:.LCPI9_0]
 	fcvt	d2, s0
 	fcmp	d2, d1
-	b.mi	.LBB7_7
-	b	.LBB7_10
-.LBB7_7:                                // %if.then24
+	b.mi	.LBB9_7
+	b	.LBB9_10
+.LBB9_7:                                // %if.then24
 	ldur	d0, [x29, #-16]
 	ldur	d1, [x29, #-32]
 	fcmp	d0, d1
-	b.mi	.LBB7_8
-	b	.LBB7_9
-.LBB7_8:                                // %if.then27
+	b.mi	.LBB9_8
+	b	.LBB9_9
+.LBB9_8:                                // %if.then27
 	movz	x8, #0
 	scvtf	d0, x8
 	stur	d0, [x29, #-8]
-	b	.LBB7_11
-.LBB7_9:                                // %if.else28
+	b	.LBB9_11
+.LBB9_9:                                // %if.else28
 	ldur	d0, [x29, #-16]
 	ldur	d1, [x29, #-32]
 	fsub	d0, d0, d1
 	stur	d0, [x29, #-8]
-	b	.LBB7_11
-.LBB7_10:                               // %if.end30
+	b	.LBB9_11
+.LBB9_10:                               // %if.end30
 	ldur	d0, [x29, #-16]
 	ldur	d1, [x29, #-32]
 	fdiv	d0, d0, d1
@@ -667,8 +1048,8 @@ callOptionPrice:                        // @callOptionPrice
 	str	d0, [sp, #16]           // 8-byte Folded Spill
 	mov		v0.16b, v1.16b
 	bl	normalDistribution
-	adrp	x8, .LCPI7_1
-	ldr	s6, [x8, :lo12:.LCPI7_1]
+	adrp	x8, .LCPI9_1
+	ldr	s6, [x8, :lo12:.LCPI9_1]
 	ldur	d1, [x29, #-32]
 	fmul	d0, d0, d1
 	ldur	d1, [x29, #-40]
@@ -687,19 +1068,19 @@ callOptionPrice:                        // @callOptionPrice
 	ldr	d3, [sp, #16]           // 8-byte Folded Reload
 	fsub	d2, d3, d2
 	stur	d2, [x29, #-8]
-.LBB7_11:                               // %return
+.LBB9_11:                               // %return
 	ldur	d0, [x29, #-8]
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp12:
-	.size	callOptionPrice, .Ltmp12-callOptionPrice
+.Ltmp16:
+	.size	callOptionPrice, .Ltmp16-callOptionPrice
 
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
-.LCPI8_0:
+.LCPI10_0:
 	.xword	4587366580439587226     // double 0.050000000000000003
-.LCPI8_1:
+.LCPI10_1:
 	.xword	4596373779694328218     // double 0.20000000000000001
 	.text
 	.globl	main
@@ -713,22 +1094,22 @@ main:                                   // @main
 	movz	w8, #0
 	stur	w8, [x29, #-4]
 	str	w8, [sp, #20]
-.LBB8_1:                                // %for.cond
+.LBB10_1:                               // %for.cond
                                         // =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #20]
 	cmp	 w8, #20                // =20
-	b.lt	.LBB8_2
-	b	.LBB8_4
-.LBB8_2:                                // %for.body
-                                        //   in Loop: Header=BB8_1 Depth=1
+	b.lt	.LBB10_2
+	b	.LBB10_4
+.LBB10_2:                               // %for.body
+                                        //   in Loop: Header=BB10_1 Depth=1
 	movz	x8, #0
 	scvtf	d1, x8
 	orr	x8, xzr, #0x1
 	scvtf	d0, x8
-	adrp	x8, .LCPI8_0
-	ldr	d3, [x8, :lo12:.LCPI8_0]
-	adrp	x8, .LCPI8_1
-	ldr	d4, [x8, :lo12:.LCPI8_1]
+	adrp	x8, .LCPI10_0
+	ldr	d3, [x8, :lo12:.LCPI10_0]
+	adrp	x8, .LCPI10_1
+	ldr	d4, [x8, :lo12:.LCPI10_1]
 	movz	w9, #0xa
 	ldr	w10, [sp, #20]
 	mul	 w9, w9, w10
@@ -747,13 +1128,13 @@ main:                                   // @main
 	add	 x8, x8, x11
 	str	 d0, [x8]
 // BB#3:                                // %for.inc
-                                        //   in Loop: Header=BB8_1 Depth=1
+                                        //   in Loop: Header=BB10_1 Depth=1
 	ldr	w8, [sp, #20]
 	orr	w9, wzr, #0x1
 	add	 w8, w8, w9
 	str	w8, [sp, #20]
-	b	.LBB8_1
-.LBB8_4:                                // %for.end
+	b	.LBB10_1
+.LBB10_4:                               // %for.end
 	ldr	d0, [sp, #176]
 	str	d0, [sp, #8]
 	ldr	d0, [sp, #8]
@@ -761,8 +1142,8 @@ main:                                   // @main
 	mov	 sp, x29
 	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp13:
-	.size	main, .Ltmp13-main
+.Ltmp17:
+	.size	main, .Ltmp17-main
 
 	.type	normalDistribution.a,@object // @normalDistribution.a
 	.section	.rodata,"a",@progbits

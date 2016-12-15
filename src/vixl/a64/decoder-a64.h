@@ -35,55 +35,52 @@
 #include "visits.h"
 #include "component_base.h"
 #include "util.h"
+#include "fetcher.h"
 
-namespace vixl {
+namespace Kraken
+{
+class Fetcher;
+}
 
-// The Visitor interface. Disassembler and simulator (and other tools)
-// must provide implementations for all of these functions.
-class DecoderVisitor {
-public:
-    enum VisitorConstness { kConstVisitor, kNonConstVisitor };
-    explicit DecoderVisitor(VisitorConstness constness = kConstVisitor)
-        : constness_(constness) {}
-
-    virtual ~DecoderVisitor() {}
-
-#define DECLARE(A) virtual void Visit##A(const Instruction* instr) = 0;
-    VISITOR_LIST(DECLARE)
-#undef DECLARE
-
-    bool IsConstVisitor() const { return constness_ == kConstVisitor; }
-    Instruction* MutableInstruction(const Instruction* instr) {
-        VIXL_ASSERT(!IsConstVisitor());
-        return const_cast<Instruction*>(instr);
-    }
-
-private:
-    const VisitorConstness constness_;
-};
-
+namespace vixl
+{
 
 class Decoder : public Kraken::ComponentBase {
-public:
-    Decoder() {}
-    void reset() {
-        dbg("   Decoder reset\n");
+
+protected:
+    virtual void hardResetComponent()
+    {
+        fetcher = 0;
+    }
+
+    virtual void softResetComponent()
+    {
+        dbg("   Decoder soft reset\n");
         decodedAction = Kraken::AC_Unallocated;
         cachedAction = Kraken::AC_Unallocated;
         decodedInstr = 0;
         cachedInstr = 0;
     }
-    void update() {
+    virtual void updateComponent()
+    {
         cachedAction = decodedAction;
         dbg("   Decode cachedAction <- %d\n", decodedAction);
         cachedInstr = decodedInstr;
         dbg("   Decode cachedInstr <- %p\n", decodedInstr);
     }
-    Kraken::ActionCode getAction() { return cachedAction; }
-    const Instruction *  getInstr() { return cachedInstr; }
 
-    Kraken::ActionCode decodedAction, cachedAction;
-    const Instruction * decodedInstr, * cachedInstr;
+public:
+
+    void setFetcher(Kraken::Fetcher * _fetcher) {
+        fetcher = _fetcher;
+        connect((ComponentBase*) _fetcher,
+                this);
+    }
+
+    Kraken::ActionCode getAction() const { return cachedAction; }
+    const Instruction *  getInstr() const { return cachedInstr; }
+
+    virtual void computeComponent() final;
 
     // Top-level wrappers around the actual decoding function.
     // void Decode(const Instruction* instr) {
@@ -112,6 +109,9 @@ public:
 
     static bool isBranch(const Instruction* instr)
     {
+        if (!instr)
+            return false;
+
         const Kraken::ActionCode ac = DecodeInstruction(instr);
         switch (ac)
         {
@@ -125,6 +125,8 @@ public:
             return false;
         }
     }
+
+    Decoder() {}
 
     // Register a new visitor class with the decoder.
     // Decode() will call the corresponding visitor method from all registered
@@ -173,6 +175,11 @@ public:
     std::list<DecoderVisitor*>* visitors() { return &visitors_; }
 
 private:
+    const Kraken::Fetcher * fetcher = 0;
+
+    Kraken::ActionCode decodedAction, cachedAction;
+    const Instruction * decodedInstr, * cachedInstr;
+
     // Decodes an instruction and calls the visitor functions registered with the
     // Decoder class.
     static Kraken::ActionCode DecodeInstruction(const Instruction* instr);

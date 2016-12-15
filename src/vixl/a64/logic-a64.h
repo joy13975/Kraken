@@ -30,17 +30,26 @@
 #include "vixl/utils.h"
 #include "vixl/a64/instructions-a64.h"
 #include "vixl/a64/logic-constants-a64.h"
-#include "vixl/a64/instrument-a64.h"
+// #include "vixl/a64/instrument-a64.h"
 #include "vixl/a64/disasm-a64.h"
 #include "vixl/a64/assembler-a64.h"
 #include "vixl/a64/logic-memory-a64.h"
 #include "vixl/a64/logic-regs-a64.h"
+#include "vixl/a64/decoder-a64.h"
 
 #include "visits.h"
 #include "util.h"
 #include "component_base.h"
+#include "fetcher.h"
+
+namespace Kraken
+{
+class Fetcher;
+} // namespace Kraken
 
 namespace vixl {
+
+class Decoder;
 
 // Assemble the specified IEEE-754 components into the target type and apply
 // appropriate rounding.
@@ -240,56 +249,39 @@ T FPRound(int64_t sign,
 }
 
 class Logic : public Kraken::ComponentBase {
+
+protected:
+    virtual void hardResetComponent();
+    virtual void softResetComponent();
+    virtual void computeComponent();
+    virtual void updateComponent();
+
 public:
-    explicit Logic(FILE* stream = stdout);
+    explicit Logic(Kraken::BranchRecords * _branchRecords,
+                   const bool _pipelined,
+                   FILE* stream = stdout);
     ~Logic();
 
-    void reset() {
-        ResetState();
-    };
-    void update() {
-
-        cachedHasExecuted = hasExecuted;
-        dbg("   Execute cachedHasExecuted <- %d\n", cachedHasExecuted);
-        cachedNewPc = newPc;
-        dbg("   Execute cachedNewPc <- %p\n", cachedNewPc);
-        cachedAction = action;
-        dbg("   Execute cachedAction <- %s\n", Kraken::ActionCodeString[cachedAction]);
-        cachedExeInstr = exeInstr;
-        dbg("   Execute cachedExeInstr <- %p\n", cachedExeInstr);
-        cachedPcIsDirty = pcIsDirty;
-        dbg("   Execute cachedPcIsDirty <- %d\n", cachedPcIsDirty);
-
-        //TODO: update register cache?
-    };
-
-    const Instruction * newPc, * cachedNewPc;
-    const Instruction * getNewPc() { return cachedNewPc; }
-
-    Kraken::ActionCode action, cachedAction;
-    Kraken::ActionCode getAction() { return cachedAction; }
-
-    const Instruction * exeInstr, * cachedExeInstr;
-    const Instruction * getExeInstr() { return cachedExeInstr; }
-
-    bool hasExecuted = false, cachedHasExecuted = false;
-    bool getHasExecuted() { return cachedHasExecuted; }
-
-    bool pcIsDirty = false, cachedPcIsDirty = false;
-    bool getPcIsDirty() { return cachedPcIsDirty; }
-
-    void resetFlags() {
-        newPc = 0;
-        cachedNewPc = 0;
-        action = Kraken::AC_Unallocated;
-        cachedAction = Kraken::AC_Unallocated;
-        exeInstr = 0;
-        cachedExeInstr = 0;
-        hasExecuted = false;
-        cachedHasExecuted = false;
-        pcIsDirty = false;
-        cachedPcIsDirty = false;
+    void setFetcher(Kraken::Fetcher * _fetcher)
+    {
+        fetcher = _fetcher;
+        connect((ComponentBase*) _fetcher, this);
     }
+    void setDecoder(vixl::Decoder * _decoder)
+    {
+        decoder = _decoder;
+        connect((ComponentBase*) _decoder, this);
+    }
+
+    const Instruction * getNewPc() const { return cachedNewPc; }
+    Kraken::ActionCode getAction() const { return cachedAction; }
+    const Instruction * getExeInstr() const { return cachedExeInstr; }
+    bool getHasExecuted() const { return cachedHasExecuted; }
+    bool getPcIsDirty() const { return cachedPcIsDirty; }
+
+    unsigned long getInstrCount() const { return instrCount; }
+    unsigned long getBpCorrect() const { return bpCorrectCount; }
+    unsigned long getBpWrong() const { return bpWrongCount; }
 
     void Execute(const Kraken::ActionCode & ac,
                  const Instruction * instr) {
@@ -327,6 +319,10 @@ public:
             if (get_log_level() < LOG_MESSAGE)
                 LogAllWrittenRegisters();
 
+            // simulate subpipelining
+            readyCountdown = Kraken::ActionCodeCycles[ac];
+
+            instrCount++;
             hasExecuted = true;
             dbg("   Execute hasExecuted <- %d\n", hasExecuted);
             newPc = pc_;
@@ -2147,7 +2143,7 @@ protected:
     PrintDisassembler* print_disasm_;
 
     // Instruction statistics instrumentation.
-    Instrument* instrumentation_;
+    // Instrument* instrumentation_;
 
     // General purpose registers. Register 31 is the stack pointer.
     SimRegister registers_[kNumberOfRegisters];
@@ -2206,6 +2202,20 @@ protected:
     static const char* vreg_names[];
 
 private:
+    const bool pipelined;
+    Kraken::BranchRecords *const branchRecords;
+    Kraken::Fetcher * fetcher;
+    vixl::Decoder * decoder;
+
+    const Instruction * newPc, * cachedNewPc;
+    Kraken::ActionCode action, cachedAction;
+    const Instruction * exeInstr, * cachedExeInstr;
+    bool hasExecuted = false, cachedHasExecuted = false;
+    bool pcIsDirty = false, cachedPcIsDirty = false;
+
+    unsigned long instrCount = 0;
+    unsigned long bpCorrectCount = 0, bpWrongCount = 0;
+
     template <typename T>
     static T FPDefaultNaN();
 

@@ -6,6 +6,13 @@
 #include "util.h"
 
 #include "vixl/a64/instructions-a64.h"
+#include "vixl/a64/logic-a64.h"
+
+namespace vixl
+{
+class Logic;
+class Decoder;
+} // namespace vixl
 
 namespace Kraken
 {
@@ -13,24 +20,44 @@ namespace Kraken
 class Fetcher : public ComponentBase
 {
 public:
-    Fetcher() {}
+    Fetcher(InstrPtr & _pc,
+            const BranchRecords * _branchRecords,
+            const bool _pipelined,
+            const InstrPtr _absTextEnd);
     virtual ~Fetcher() {}
 
-    void reset() {
-        dbg("   Fetcher reset\n");
-        fetchedInstr = 0;
-        cachedInstr = 0;
+    void setLogic(vixl::Logic * _logic) {
+        logic = _logic;
+        connect(this, (ComponentBase*) _logic);
     }
-    void update() {
-        cachedInstr = fetchedInstr;
-        dbg("   Fetch cachedInstr <- %p\n", cachedInstr);
+    void setDecoder(vixl::Decoder * _decoder) {
+        decoder = _decoder;
+        connect(this, (ComponentBase*) _decoder);
     }
-    const vixl::Instruction * getInstr() { return cachedInstr; }
 
-    void Fetch(const vixl::Instruction * pc);
+    InstrPtr getInstr() const { return cachedInstr; }
+    void setPc(InstrPtr newPc) { pc = newPc; }
+    InstrPtr getPc() { return pc; }
+
+protected:
+    virtual void hardResetComponent();
+    virtual void softResetComponent();
+    virtual void computeComponent();
+    virtual void updateComponent();
+    virtual void syncComponent();
 
 private:
-    const vixl::Instruction * fetchedInstr, * cachedInstr;
+    InstrPtr & pc;
+    const BranchRecords *const branchRecords;
+    const bool pipelined;
+    const InstrPtr absTextEnd;
+
+    vixl::Decoder * decoder = 0;
+    vixl::Logic * logic = 0;
+
+    InstrPtr fetchedInstr, cachedInstr;
+
+    void fetch();
 };
 
 } // namespace Kraken

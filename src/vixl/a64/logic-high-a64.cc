@@ -31,6 +31,77 @@
 #include "util.h"
 
 namespace vixl {
+void Logic::hardResetComponent()
+{
+    ResetState();
+
+    instrCount = 0;
+    branchRecords->clearRecords();
+    bpCorrectCount = 0;
+    bpWrongCount = 0;
+
+    fetcher = 0;
+    decoder = 0;
+}
+void Logic::softResetComponent()
+{
+    newPc = 0;
+    cachedNewPc = 0;
+    action = Kraken::AC_Unallocated;
+    cachedAction = Kraken::AC_Unallocated;
+    exeInstr = 0;
+    cachedExeInstr = 0;
+    hasExecuted = false;
+    cachedHasExecuted = false;
+    pcIsDirty = false;
+    cachedPcIsDirty = false;
+}
+void Logic::computeComponent()
+{
+    if (!decoder || !fetcher)
+        die("Logic's decoder/fetcher pointer is not set\n");
+
+    Execute(decoder->getAction(), decoder->getInstr());
+}
+void Logic::updateComponent()
+{
+    cachedHasExecuted = hasExecuted;
+    dbg("   Execute cachedHasExecuted <- %d\n", cachedHasExecuted);
+    cachedNewPc = newPc;
+    dbg("   Execute cachedNewPc <- %p\n", cachedNewPc);
+    cachedAction = action;
+    dbg("   Execute cachedAction <- %s\n", Kraken::ActionCodeString[cachedAction]);
+    cachedExeInstr = exeInstr;
+    dbg("   Execute cachedExeInstr <- %p\n", cachedExeInstr);
+    cachedPcIsDirty = pcIsDirty;
+    dbg("   Execute cachedPcIsDirty <- %d\n", cachedPcIsDirty);
+
+    if (cachedHasExecuted && vixl::Decoder::isBranch(cachedExeInstr))
+    {
+        branchRecords->updateRecord(cachedExeInstr,
+                                    cachedNewPc);
+        if (cachedNewPc == (pipelined ? decoder->getInstr() : fetcher->getPc()))
+        {
+            bpCorrectCount++;
+            dbg("   Branch prediction was correct: %d\n",
+                bpCorrectCount);
+        }
+        else
+        {
+            bpWrongCount++;
+
+            if (pipelined)
+            {
+                fetcher->softReset();
+                decoder->softReset();
+            }
+
+            fetcher->setPc(cachedNewPc);
+            dbg("   Execute: BP wrong: %d; Fetcher pc <- cachedNewPc: %p\n",
+                bpWrongCount, cachedNewPc);
+        }
+    }
+}
 
 const Instruction* Logic::kEndOfSimAddress = NULL;
 
@@ -59,7 +130,11 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 }
 
 
-Logic::Logic(FILE* stream) {
+Logic::Logic(Kraken::BranchRecords * _branchRecords,
+             const bool _pipelined,
+             FILE* stream)
+    : pipelined(_pipelined), branchRecords(_branchRecords)
+{
     // Ensure that shift operations act as the simulator expects.
     VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
     VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
@@ -86,7 +161,7 @@ Logic::Logic(FILE* stream) {
     set_sp(tos);
 
     // Set the sample period to 10, as the VIXL examples and tests are short.
-    instrumentation_ = new Instrument("vixl_stats.csv", 10);
+    // instrumentation_ = new Instrument("vixl_stats.csv", 10);
 
     // Print a warning about exclusive-access instructions, but only the first
     // time they are encountered. This warning can be silenced using
@@ -123,7 +198,7 @@ Logic::~Logic() {
 
     delete print_disasm_;
 
-    delete instrumentation_;
+    // delete instrumentation_;
 }
 
 

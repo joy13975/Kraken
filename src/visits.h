@@ -123,6 +123,77 @@ static const char *ActionCodeString[] = {
 };
 #undef GENERATE_AC_STRING
 
+static const short ActionCodeCycles[] = {
+    1, // PCRelAddressing
+    1, // AddSubImmediate
+    1, // LogicalImmediate
+    1, // MoveWideImmediate
+    1, // Bitfield
+    1, // Extract
+    1, // UnconditionalBranch
+    1, // UnconditionalBranchToRegister
+    1, // CompareBranch
+    1, // TestBranch
+    1, // ConditionalBranch
+    1, // System
+    1, // Exception
+    5, // LoadStorePairPostIndex
+    5, // LoadStorePairOffset
+    5, // LoadStorePairPreIndex
+    4, // LoadStorePairNonTemporal
+    4, // LoadLiteral
+    4, // LoadStoreUnscaledOffset
+    4, // LoadStorePostIndex
+    4, // LoadStorePreIndex
+    4, // LoadStoreRegisterOffset
+    4, // LoadStoreUnsignedOffset
+    4, // LoadStoreExclusive
+    5, // LogicalShifted
+    2, // AddSubShifted
+    2, // AddSubExtended
+    1, // AddSubWithCarry
+    1, // ConditionalCompareRegister
+    1, // ConditionalCompareImmediate
+    1, // ConditionalSelect
+    1, // DataProcessing1Source
+    5, // DataProcessing2Source
+    9, // DataProcessing3Source //mixed 6~10
+    3, // FPCompare
+    6, // FPConditionalCompare
+    3, // FPConditionalSelect
+    3, // FPImmediate
+    10, // FPDataProcessing1Source 3 ~ 19
+    5, // FPDataProcessing2Source
+    9, // FPDataProcessing3Source
+    5, // FPIntegerConvert
+    10, // FPFixedPointConvert
+    100, // Crypto2RegSHA   // Unimplemented
+    100, // Crypto3RegSHA   // Unimplemented
+    100, // CryptoAES       // Unimplemented
+    1, // NEON2RegMisc
+    1, // NEON3Different
+    1, // NEON3Same
+    1, // NEONAcrossLanes
+    1, // NEONByIndexedElement
+    1, // NEONCopy
+    1, // NEONExtract
+    3, // NEONLoadStoreMultiStruct
+    3, // NEONLoadStoreMultiStructPostIndex
+    2, // NEONLoadStoreSingleStruct
+    2, // NEONLoadStoreSingleStructPostIndex
+    1, // NEONModifiedImmediate
+    1, // NEONScalar2RegMisc
+    10, // NEONScalar3Diff
+    10, // NEONScalar3Same
+    20, // NEONScalarByIndexedElement
+    1, // NEONScalarCopy
+    1, // NEONScalarPairwise
+    1, // NEONScalarShiftImmediate
+    1, // NEONShiftImmediate
+    1, // NEONTable
+    1// NEONPerm
+};
+
 } // namespace Kraken
 
 #endif /* include guard */

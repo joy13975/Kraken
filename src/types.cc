@@ -20,11 +20,16 @@ void BranchRecords::updateRecord(const InstrPtr instr,
         die("Tried to add record of no pc change\n");
 
     // no matching record
-    wrn("Adding new record for %p -> %p\n", instr, branchDest);
+    dbg("Adding new BP record for %p -> %p\n", instr, branchDest);
     records.emplace_back(maxLen, instr, branchDest);
 }
 
-InstrPtr BranchRecords::predict(const InstrPtr instr)
+void BranchRecords::clearRecords()
+{
+    records.clear();
+}
+
+InstrPtr BranchRecords::predict(const InstrPtr instr) const
 {
     if (!instr)
         return 0;
@@ -57,7 +62,7 @@ InstrPtr BranchRecords::predict(const InstrPtr instr)
     }
 }
 
-InstrPtr BranchRecords::fixedPredict(const InstrPtr _instr)
+InstrPtr BranchRecords::fixedPredict(const InstrPtr _instr) const
 {
     if ((short) mode >= StaticMode)
     {

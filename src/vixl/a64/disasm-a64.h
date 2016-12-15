@@ -30,7 +30,7 @@
 #include "vixl/globals.h"
 #include "vixl/utils.h"
 #include "vixl/a64/instructions-a64.h"
-#include "vixl/a64/decoder-a64.h"
+#include "vixl/a64/decoder-visitor-a64.h"
 #include "vixl/a64/assembler-a64.h"
 
 namespace vixl {

@@ -46,16 +46,7 @@ void signalHandler(int sig)
 
     if (currentProc)
     {
-        err(".text scope:  %p - %p\n",
-            currentProc->absTextStart, currentProc->absTextEnd);
-        err("Memory scope: %p - %p\n",
-            currentProc->progInfo.image,
-            currentProc->progInfo.offset<void*>((void*) currentProc->progInfo.imgSize));
-        err("Stack scope:  %p - %p\n",
-            currentProc->getLogic().getStackBegin(),
-            addPointers<void*>(currentProc->getLogic().getStackBegin(),
-                               (void*) currentProc->getLogic().getStackSize()));
-
+        currentProc->printMemInfo();
         currentProc->dumpData();
         currentProc->dumpStack();
     }
@@ -72,68 +63,81 @@ Proc::Proc(const Options &_options)
       progInfo(ProgramInfo(std::ifstream(options.input, std::ios::binary))),
       absTextStart(progInfo.offset<InstrPtr >(progInfo.textStart)),
       absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
-      pc(progInfo.offset<InstrPtr >(progInfo.entry)),
-      branchRecords(_options.bpMode, _options.nBPBits, absTextEnd)
+      branchRecords(_options.bpMode, _options.nBPBits, absTextEnd),
+      fetcher(pc, &branchRecords, _options.pipelined, absTextEnd),
+      logic(&branchRecords, _options.pipelined)
 {
     currentProc = this;
     signal(SIGINT, signalHandler);
     signal(SIGSEGV, signalHandler);
+
+    connect(this, (ComponentBase*) &fetcher);
+    connect(this, (ComponentBase*) &decoder);
+    connect(this, (ComponentBase*) &logic);
 }
 
-void Proc::reset()
+void Proc::computeComponent()
 {
-    fetcher.reset();
-    decoder.reset();
-    logic.reset();
-
-    if (get_log_level() < LOG_MESSAGE)
-        logic.set_trace_parameters(vixl::LOG_ALL);
-    //scribe_.Reset();
-}
-
-void Proc::update()
-{
-
-}
-
-void Proc::startSimulation()
-{
-    reset();
-
     if (options.interactive)
         msg("Interactive mode is enabled\n");
     if (options.pipelined)
         msg("Pipelining is enabled\n");
 
+    softReset();
+    init();
     run();
 
     dumpData();
     dumpStack();
 }
+void Proc::softResetComponent()
+{
+    fetcher.hardReset();
+    decoder.hardReset();
+    logic.hardReset();
+    //scribe.hardReset();
 
-// Private functions
+    if (get_log_level() < LOG_MESSAGE)
+        logic.set_trace_parameters(vixl::LOG_ALL);
+
+    pc = 0;
+
+    breakSubsequent = false;
+}
+
+void Proc::init()
+{
+    if (!hasReset)
+        die("Must call softReset() before init()\n");
+
+    hasReset = false;
+
+    // hook up components
+    fetcher.setDecoder(&decoder);
+    fetcher.setLogic(&logic);
+    decoder.setFetcher(&fetcher);
+    logic.setFetcher(&fetcher);
+    logic.setDecoder(&decoder);
+    //logic.addSlave ...
+
+    // initialise reg values
+    pc = progInfo.offset<InstrPtr >(progInfo.entry);
+}
 
 void Proc::run()
 {
     msg("PC at entry (main): %p (global: %p)\n",
         progInfo.offset<ptrdiff_t>(pc), pc);
-    msg("Absolute .text scope:  %p - %p\n",
-        absTextStart, absTextEnd);
-    msg("Absolute memory scope: %p - %p\n",
-        progInfo.image,
-        progInfo.offset<void*>((void*) progInfo.imgSize));
+    printMemInfo();
 
     bool shouldHalt = false;
 
     // statistics
-    long cycleCount = 0, instrCount = 0, bpCorrectCount = 0, bpWrongCount = 0;
+    long cycleCount = 0;
 
     // execution loop
     ProcStage stage = options.pipelined ? PIPELINED : FETCH;
     ClkState clkState = HIGH;
-
-    // debugging
-    bool breakSubsequent = false;
 
     #pragma omp parallel
     {
@@ -143,68 +147,32 @@ void Proc::run()
 
             #pragma omp single nowait
             {
-                //check for breakpoint
                 const ptrdiff_t pcOffset = progInfo.fromBase<ptrdiff_t>(pc);
                 if (clkState == HIGH)
-                {
-                    if (options.interactive || breakSubsequent)
-                        breakpoint(pcOffset);
-                    else
-                        // check whether to break
-                        for (uintptr_t bAddr : options.bpoints)
-                            if (breakSubsequent = (bAddr == pcOffset))
-                            { breakpoint(pcOffset); break; };
-                }
+                    checkBreakpoint(pcOffset);
 
                 prf("Clk: %s, Stage: %s\n",
-                    ClkStateString[clkState], ProcStageString(stage));
-
+                ClkStateString[clkState], ProcStageString(stage));
                 switch (clkState)
                 {
                 case HIGH:
                 {
                     dbg("======================================== Compute[%d/%d]\n",
-                        cycleCount, instrCount);
+                    cycleCount, logic.getInstrCount());
                     dbg("PC Offsest: %p\n", pcOffset);
                     prf("Clock HIGH: %s\n", ProcStageString(stage));
 
                     #pragma omp task
-                    if (stage & FETCH)
-                    {
-                        if (pc < absTextEnd)
-                            fetcher.Fetch(pc);
-                        else
-                            dbg("   Fetcher has halted\n");
-                    }
+                    if (stage & FETCH) fetcher.compute();
 
                     #pragma omp task
-                    if (stage & DECODE)
-                    {
-                        decoder.Decode(fetcher.getInstr());
-                    }
+                    if (stage & DECODE) decoder.compute();
 
                     #pragma omp task
-                    if (stage & EXECUTE)
-                    {
-                        logic.Execute(decoder.getAction(),
-                                      decoder.getInstr());
-
-                        // memcpy(dpRegs, logic.getRegisters(),
-                        //        sizeof(vixl::SimRegister) * vixl::kNumberOfRegisters);
-                        // memcpy(dpRegs, logic.getVRegisters(),
-                        //        sizeof(vixl::SimRegister) * vixl::kNumberOfVRegisters);
-                        // memcpy(&dpNZCV, logic.getNZCV(),
-                        //        sizeof(vixl::SimRegister));
-                        // memcpy(&dpFPCR, logic.getFPCR(),
-                        //        sizeof(vixl::SimRegister));
-                    }
+                    if (stage & EXECUTE) logic.compute();
 
                     #pragma omp task
-                    if (stage & WRITEBACK)
-                    {
-                        // commit modified reg vals
-                        // Scribe::commit(script, state);
-                    }
+                    // if (stage & WRITEBACK)
 
                     break;
                 }
@@ -215,102 +183,38 @@ void Proc::run()
                 case LOW:
                 {
                     dbg("======================================== Update[%d/%d] \n",
-                        cycleCount, instrCount);
+                        cycleCount, logic.getInstrCount());
 
                     #pragma omp task
-                    if (stage & FETCH)
-                    {
-                        if (pc < absTextEnd)
-                        {
-                            fetcher.update();
-
-                            // check branch prediction
-                            const InstrPtr bpSuggest =
-                                branchRecords.predict(pc);
-                            dbg("Suggest: %p, pc: %p\n",
-                                progInfo.offset<InstrPtr>(bpSuggest),
-                                progInfo.offset<InstrPtr>(pc));
-
-                            pc = bpSuggest;
-                        }
-
-                    }
+                    if (stage & FETCH) fetcher.update();
 
                     #pragma omp task
-                    if (stage & DECODE)
-                        decoder.update();
+                    if (stage & DECODE) decoder.update();
 
                     #pragma omp task
-                    if (stage & EXECUTE)
-                        logic.update();
+                    if (stage & EXECUTE) logic.update();
 
                     #pragma omp task
-                    if (stage & WRITEBACK)
-                    {
-                        // gather only MODIFIED register values
-                        // dbg("   WRITEBACK COPIED: ??\n");
-                    }
+                    // if (stage & WRITEBACK)
 
                     break;
                 }
                 case RISING:
                 {
                     dbg("======================================== Sync [%d/%d] \n",
-                        cycleCount, instrCount);
+                        cycleCount, logic.getInstrCount());
 
                     #pragma omp task
-                    if (stage & FETCH)
-                    {
-                    }
+                    if (stage & FETCH) fetcher.sync();
 
                     #pragma omp task
-                    if (stage & DECODE)
-                    {
-                        if (logic.getHasExecuted())
-                            instrCount++;
-                    }
+                    if (stage & DECODE) decoder.sync();
 
                     #pragma omp task
-                    if (stage & EXECUTE)
-                    {
-                        InstrPtr newPc = logic.getNewPc();
-                        const InstrPtr exeInstr = logic.getExeInstr();
-                        const bool wasBrInstr =
-                            exeInstr && vixl::Decoder::isBranch(exeInstr);
-
-                        if (wasBrInstr)
-                        {
-                            branchRecords.updateRecord(exeInstr,
-                                                       newPc);
-                            if ((options.pipelined && newPc == decoder.getInstr()) ||
-                                    (!options.pipelined && newPc == pc))
-                            {
-                                bpCorrectCount++;
-                                dbg("   Branch prediction was correct: %d\n",
-                                    bpCorrectCount);
-                            }
-                            else
-                            {
-                                bpWrongCount++;
-
-                                if (options.pipelined)
-                                {
-                                    fetcher.reset();
-                                    decoder.reset();
-                                    logic.resetFlags();
-                                }
-
-                                pc = newPc;
-                                dbg("   Branch prediction was wrong: %d; pc <- newPc: %p\n",
-                                    bpWrongCount, newPc);
-                            }
-                        }
-                    }
+                    if (stage & EXECUTE) logic.sync();
 
                     #pragma omp task
-                    if (stage & WRITEBACK)
-                    {
-                    }
+                    // if (stage & WRITEBACK)
 
                     break;
                 }
@@ -355,19 +259,25 @@ void Proc::run()
     msg("Return code as long:  %ld\n", logic.getRegisters()[0].Get<uint64_t>());
 
     msg("%ld instructions in %ld cycles; I/C = %.2f\n",
-        instrCount, cycleCount, (float) instrCount / cycleCount);
+        logic.getInstrCount(), cycleCount, (float) logic.getInstrCount() / cycleCount);
 
-    float bpAccuracy = (float) 100.0f * bpCorrectCount / (bpCorrectCount + bpWrongCount);
-    msg("Branch Prediction: %d correct %d wrong; ACC = %.2f%%\n",
-        bpCorrectCount, bpWrongCount, bpAccuracy);
+    const unsigned long bpTotal = logic.getBpCorrect() + logic.getBpWrong();
+    const float bpAccuracy = (float) 100.0f * logic.getBpCorrect() / bpTotal;
+    msg("Branch Prediction Accuracy: %.2f%% (%ld/%ld)\n",
+        bpAccuracy, logic.getBpCorrect(), bpTotal);
 }
 
-void Proc::breakpoint(const ptrdiff_t pcOffset)
+void Proc::checkBreakpoint(const ptrdiff_t pcOffset)
 {
-    msg("Breakpoint: %p\n", pcOffset);
+    if (!breakSubsequent)
+        for (const uintptr_t & bAddr : options.bpoints)
+            if (breakSubsequent = (bAddr == pcOffset))
+                break;
 
-    // print reg vals
-    wrn("TODO: brekapoint()\n");
+    if (!breakSubsequent && !options.interactive)
+        return;
+
+    msg("Breakpoint: %p\n", pcOffset);
 
     getchar();
 }
@@ -382,6 +292,19 @@ void Proc::dumpData()
 void Proc::dumpStack()
 {
     write_binary(options.stackOutput.c_str(), (char*) logic.getStackBegin(), logic.getStackSize());
+}
+
+void Proc::printMemInfo()
+{
+    msg(".text scope:  %p - %p\n",
+        absTextStart, absTextEnd);
+    msg("Memory scope: %p - %p\n",
+        progInfo.image,
+        progInfo.offset<void*>((void*) progInfo.imgSize));
+    msg("Stack scope:  %p - %p\n",
+        logic.getStackBegin(),
+        addPointers<void*>(logic.getStackBegin(),
+                           (void*) logic.getStackSize()));
 }
 
 } // namespace Kraken

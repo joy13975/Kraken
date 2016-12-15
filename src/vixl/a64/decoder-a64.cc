@@ -31,6 +31,14 @@
 
 namespace vixl {
 
+void Decoder::computeComponent()
+{
+    if (!fetcher)
+        die("Decoder's fetcher pointer is not set\n");
+
+    Decode(fetcher->getInstr());
+}
+
 Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {
     if (instr->Bits(28, 27) == 0) {
         return VisitUnallocated(instr);

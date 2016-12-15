@@ -3,6 +3,7 @@
 
 #define e_const     2.718281828459045235360287471352662497757247093
 #define pi_const    3.141592653589793238462643383279502884197169399
+#define FLT_MAX 340282346638528859811704183484516925440.0000000000000000
 
 float fastlog2 (float x)
 {
@@ -61,6 +62,74 @@ float sqroot(float square)
 float fabsolute(float a)
 {
     return a > 0.0f ? a : -a;
+}
+
+float fsine(float x)
+{
+    //always wrap input angle to -PI..PI
+    if (x < -3.14159265)
+        x += 6.28318531;
+    else if (x >  3.14159265)
+        x -= 6.28318531;
+
+    //compute sine
+    float sin;
+    if (x < 0)
+    {
+        sin = 1.27323954 * x + .405284735 * x * x;
+
+        if (sin < 0)
+            sin = .225 * (sin * -sin - sin) + sin;
+        else
+            sin = .225 * (sin * sin - sin) + sin;
+    }
+    else
+    {
+        sin = 1.27323954 * x - 0.405284735 * x * x;
+
+        if (sin < 0)
+            sin = .225 * (sin * -sin - sin) + sin;
+        else
+            sin = .225 * (sin * sin - sin) + sin;
+    }
+
+    return sin;
+}
+
+float fcosine(float x)
+{
+    //always wrap input angle to -PI..PI
+    if (x < -3.14159265)
+        x += 6.28318531;
+    else if (x >  3.14159265)
+        x -= 6.28318531;
+
+    //compute cosine: sin(x + PI/2) = cos(x)
+    float cos;
+    x += 1.57079632;
+    if (x >  3.14159265)
+        x -= 6.28318531;
+
+    if (x < 0)
+    {
+        cos = 1.27323954 * x + 0.405284735 * x * x;
+
+        if (cos < 0)
+            cos = .225 * (cos * -cos - cos) + cos;
+        else
+            cos = .225 * (cos * cos - cos) + cos;
+    }
+    else
+    {
+        cos = 1.27323954 * x - 0.405284735 * x * x;
+
+        if (cos < 0)
+            cos = .225 * (cos * -cos - cos) + cos;
+        else
+            cos = .225 * (cos * cos - cos) + cos;
+    }
+    return cos;
+
 }
 
 #endif /* include guard */

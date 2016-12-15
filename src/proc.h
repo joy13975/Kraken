@@ -29,35 +29,38 @@ public:
 
     virtual ~Proc() {}
 
-    void reset();
-    void update();
-    void startSimulation();
+    virtual void computeComponent() final;
 
     void dumpData();
     void dumpStack();
 
-    const vixl::Decoder & getDecoder() { return decoder; }
-    const Fetcher & getFetcher() { return fetcher; }
-    const vixl::Logic & getLogic() { return logic; }
+    void printMemInfo();
+
+protected:
+    virtual void softResetComponent();
 
 private:
-    // components
-    vixl::Decoder decoder;
-    Fetcher fetcher;
-    vixl::Logic logic;
-
     // registers
-    InstrPtr pc;
+    InstrPtr pc = 0;
     // vixl::SimRegister               regs_[vixl::kNumberOfRegisters];
     // vixl::SimVRegister              vregs_[vixl::kNumberOfVRegisters];
     // vixl::SimSystemRegister         nzcv;
     // vixl::SimSystemRegister         fpcr;
 
+    // components
+    Fetcher fetcher;
+    vixl::Decoder decoder;
+    vixl::Logic logic;
+
     // buffers
     BranchRecords branchRecords;
 
+    // flags
+    bool breakSubsequent = false;
+
+    void init();
     void run();
-    void breakpoint(const ptrdiff_t addr);
+    void checkBreakpoint(const ptrdiff_t pcOffset);
 };
 
 } // namespace Kraken

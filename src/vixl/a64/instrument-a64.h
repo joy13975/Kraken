@@ -31,7 +31,6 @@
 #include "vixl/utils.h"
 #include "vixl/a64/decoder-a64.h"
 #include "vixl/a64/constants-a64.h"
-#include "vixl/a64/instrument-a64.h"
 
 namespace vixl {
 
@@ -66,7 +65,6 @@ class Counter {
   bool enabled_;
   CounterType type_;
 };
-
 
 class Instrument : public DecoderVisitor {
  public:

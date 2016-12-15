@@ -66,7 +66,7 @@ DECL_ARG_CALLBACK(helpAndExit)
     print_arg_title("OPTIONS:");
     print_arg_bundles(argbv + 1, 6);
     print_arg_title("FEATURES:");
-    print_arg_bundles(argbv + 7, ARG_BUND_SIZE - 1);
+    print_arg_bundles(argbv + 7, ARG_BUND_SIZE - 7);
 
     exit(1);
 }
@@ -97,7 +97,7 @@ int main(int argc, const char *argv[])
     msg("Using input binary \"%s\"\n", options.input.c_str());
 
     // start simulation
-    Kraken::Proc(options).startSimulation();
+    Kraken::Proc(options).compute();
 
     return 0;
 }

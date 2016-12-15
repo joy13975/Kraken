@@ -55,8 +55,9 @@ public:
 
     void updateRecord(const InstrPtr instr,
                       const InstrPtr branchDest);
-    InstrPtr predict(const InstrPtr _instr);
-    InstrPtr fixedPredict(const InstrPtr _instr);
+    void clearRecords();
+    InstrPtr predict(const InstrPtr _instr) const;
+    InstrPtr fixedPredict(const InstrPtr _instr) const;
 
 
     const BranchPredictionMode mode;
