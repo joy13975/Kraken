@@ -46,7 +46,8 @@ public:
     }
     virtual void sync() final
     {
-        syncComponent();
+        if (isReady())
+            syncComponent();
     }
 
     bool isReady() const {

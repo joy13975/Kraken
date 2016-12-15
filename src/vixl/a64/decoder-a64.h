@@ -48,26 +48,9 @@ namespace vixl
 class Decoder : public Kraken::ComponentBase {
 
 protected:
-    virtual void hardResetComponent()
-    {
-        fetcher = 0;
-    }
-
-    virtual void softResetComponent()
-    {
-        dbg("   Decoder soft reset\n");
-        decodedAction = Kraken::AC_Unallocated;
-        cachedAction = Kraken::AC_Unallocated;
-        decodedInstr = 0;
-        cachedInstr = 0;
-    }
-    virtual void updateComponent()
-    {
-        cachedAction = decodedAction;
-        dbg("   Decode cachedAction <- %d\n", decodedAction);
-        cachedInstr = decodedInstr;
-        dbg("   Decode cachedInstr <- %p\n", decodedInstr);
-    }
+    virtual void hardResetComponent();
+    virtual void softResetComponent();
+    virtual void updateComponent();
 
 public:
 
@@ -78,7 +61,7 @@ public:
     }
 
     Kraken::ActionCode getAction() const { return cachedAction; }
-    const Instruction *  getInstr() const { return cachedInstr; }
+    const Instruction * getInstr() const { return cachedInstr; }
 
     virtual void computeComponent() final;
 
@@ -93,17 +76,17 @@ public:
     void Decode(const Instruction* instr) {
         if (instr)
         {
-            dbg("   Decode instr %p\n", instr);
+            dbg("   Decoder: instr %p\n", instr);
             // dbg("   Decode with Rd: %d\n", decodeInstr->Rd());
 
             decodedAction = DecodeInstruction(instr);
-            dbg("   Decode decodedAction <- %d\n", decodedAction);
+            dbg("   Decoder: decodedAction <- %d\n", decodedAction);
             decodedInstr = instr;
-            dbg("   Decode decodedInstr <- %p\n", decodedInstr);
+            dbg("   Decoder: decodedInstr <- %p\n", decodedInstr);
         }
         else
         {
-            dbg("   No Decode (instr == 0)\n");
+            dbg("   Decoder: ignore instr==0\n");
         }
     }
 
@@ -175,10 +158,13 @@ public:
     std::list<DecoderVisitor*>* visitors() { return &visitors_; }
 
 private:
-    const Kraken::Fetcher * fetcher = 0;
+    Kraken::Fetcher * fetcher = 0;
 
     Kraken::ActionCode decodedAction, cachedAction;
     const Instruction * decodedInstr, * cachedInstr;
+
+    // std::deque<InstrPtr> tmpBuffer;
+    // std::deque<InstrPtr> buffer;
 
     // Decodes an instruction and calls the visitor functions registered with the
     // Decoder class.

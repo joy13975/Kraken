@@ -9,10 +9,27 @@ Fetcher::Fetcher(InstrPtr & _pc,
                  const BranchRecords * _branchRecords,
                  const bool _pipelined,
                  const InstrPtr _absTextEnd)
-    : pc(_pc), branchRecords(_branchRecords),
+    : pc(_pc),
+      branchRecords(_branchRecords),
       pipelined(_pipelined),
       absTextEnd(_absTextEnd)
 {
+}
+InstrPtr Fetcher::consumeInstr() {
+    if (buffer.size() > 0)
+    {
+        InstrPtr ip = buffer.front();
+        buffer.pop_front();
+        tmpBuffer.pop_front();
+        dbg("   Fetcher: consume instr %p (%d left in buffer)\n",
+            ip, buffer.size());
+        return ip;
+    }
+    else
+    {
+        dbg("   Fetcher: Buffer depleted\n");
+        return 0;
+    }
 }
 
 void Fetcher::hardResetComponent()
@@ -24,22 +41,21 @@ void Fetcher::hardResetComponent()
 
 void Fetcher::softResetComponent()
 {
-    dbg("   Fetcher reset\n");
-    fetchedInstr = 0;
-    cachedInstr = 0;
+    dbg("   Fetcher: reset\n");
+    tmpBuffer.clear();
+    buffer.clear();
 }
 
 void Fetcher::computeComponent()
 {
     if (!logic || !decoder)
-        die("Fetcher's logic/decoder pointer is not set\n");
+        die("Fetcher:  logic/decoder pointer is not set\n");
     fetch();
 }
 
 void Fetcher::updateComponent()
 {
-    cachedInstr = fetchedInstr;
-    dbg("   Fetch cachedInstr <- %p\n", cachedInstr);
+    buffer = tmpBuffer;
 }
 
 void Fetcher::syncComponent()
@@ -48,26 +64,30 @@ void Fetcher::syncComponent()
 
 void Fetcher::fetch()
 {
-    if (pc < absTextEnd)
+    dbg("   Fetcher: at: %p (buffer %d:%d)\n",
+        pc, tmpBuffer.size(), buffer.size());
+    while (tmpBuffer.size() < FETCHER_BUFFER_SIZE)
     {
-        dbg("   Fetch with pc: %p\n", pc);
+        if (pc < absTextEnd)
+        {
+            tmpBuffer.push_back(pc);
 
-        fetchedInstr = pc;
-        dbg("   Fetch fetchedInstr <- %p\n", fetchedInstr);
+            // guess next pc
+            const InstrPtr bpSuggest =
+                branchRecords->predict(pc);
 
-        // guess next pc
-        const InstrPtr bpSuggest =
-            branchRecords->predict(pc);
-
-        dbg("   Fetch BP: %p -> %p\n",
-            pc, bpSuggest);
-
-        pc = bpSuggest;
+            prf("   Fetcher: BP: %p -> %p\n", pc, bpSuggest);
+            pc = bpSuggest;
+        }
+        else
+        {
+            dbg("   Fetcher: PC reached end of .text: %p/%p\n", pc, absTextEnd);
+            break;
+        }
     }
-    else
-    {
-        dbg("   Fetch no fetch because pc reached the end\n");
-    }
+
+    if (tmpBuffer.size() > 0)
+        dbg("   Fetcher: front instr = %p\n", tmpBuffer.front());
 }
 
 } // namespace Kraken

@@ -31,12 +31,32 @@
 
 namespace vixl {
 
+void Decoder::hardResetComponent()
+{
+    fetcher = 0;
+}
+
+void Decoder::softResetComponent()
+{
+    dbg("   Decoder soft reset\n");
+    decodedAction = Kraken::AC_Unallocated;
+    cachedAction = Kraken::AC_Unallocated;
+    decodedInstr = 0;
+    cachedInstr = 0;
+}
 void Decoder::computeComponent()
 {
     if (!fetcher)
         die("Decoder's fetcher pointer is not set\n");
 
-    Decode(fetcher->getInstr());
+    Decode(fetcher->consumeInstr());
+}
+void Decoder::updateComponent()
+{
+    cachedAction = decodedAction;
+    dbg("   Decode cachedAction <- %d\n", decodedAction);
+    cachedInstr = decodedInstr;
+    dbg("   Decode cachedInstr <- %p\n", decodedInstr);
 }
 
 Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {

@@ -14,6 +14,8 @@ class Logic;
 class Decoder;
 } // namespace vixl
 
+#define FETCHER_BUFFER_SIZE 32
+
 namespace Kraken
 {
 
@@ -35,9 +37,9 @@ public:
         connect(this, (ComponentBase*) _decoder);
     }
 
-    InstrPtr getInstr() const { return cachedInstr; }
+    InstrPtr consumeInstr();
     void setPc(InstrPtr newPc) { pc = newPc; }
-    InstrPtr getPc() { return pc; }
+    InstrPtr peekPc() { return buffer.front(); }
 
 protected:
     virtual void hardResetComponent();
@@ -56,6 +58,8 @@ private:
     vixl::Logic * logic = 0;
 
     InstrPtr fetchedInstr, cachedInstr;
+    std::deque<InstrPtr> tmpBuffer;
+    std::deque<InstrPtr> buffer;
 
     void fetch();
 };

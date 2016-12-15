@@ -59,45 +59,46 @@ void Logic::softResetComponent()
 void Logic::computeComponent()
 {
     if (!decoder || !fetcher)
-        die("Logic's decoder/fetcher pointer is not set\n");
+        die("Logic: decoder/fetcher pointer is not set\n");
 
     Execute(decoder->getAction(), decoder->getInstr());
 }
 void Logic::updateComponent()
 {
     cachedHasExecuted = hasExecuted;
-    dbg("   Execute cachedHasExecuted <- %d\n", cachedHasExecuted);
+    dbg("   Logic: cachedHasExecuted <- %d\n", cachedHasExecuted);
     cachedNewPc = newPc;
-    dbg("   Execute cachedNewPc <- %p\n", cachedNewPc);
+    dbg("   Logic: cachedNewPc <- %p\n", cachedNewPc);
     cachedAction = action;
-    dbg("   Execute cachedAction <- %s\n", Kraken::ActionCodeString[cachedAction]);
+    dbg("   Logic: cachedAction <- %s\n", Kraken::ActionCodeString[cachedAction]);
     cachedExeInstr = exeInstr;
-    dbg("   Execute cachedExeInstr <- %p\n", cachedExeInstr);
+    dbg("   Logic: cachedExeInstr <- %p\n", cachedExeInstr);
     cachedPcIsDirty = pcIsDirty;
-    dbg("   Execute cachedPcIsDirty <- %d\n", cachedPcIsDirty);
+    dbg("   Logic: cachedPcIsDirty <- %d\n", cachedPcIsDirty);
+}
+
+void Logic::syncComponent()
+{
 
     if (cachedHasExecuted && vixl::Decoder::isBranch(cachedExeInstr))
     {
         branchRecords->updateRecord(cachedExeInstr,
                                     cachedNewPc);
-        if (cachedNewPc == (pipelined ? decoder->getInstr() : fetcher->getPc()))
+        if (cachedNewPc == (pipelined ? decoder->getInstr() : fetcher->peekPc()))
         {
             bpCorrectCount++;
-            dbg("   Branch prediction was correct: %d\n",
+            dbg("   Logic: Branch prediction was correct: %d\n",
                 bpCorrectCount);
         }
         else
         {
             bpWrongCount++;
 
-            if (pipelined)
-            {
-                fetcher->softReset();
-                decoder->softReset();
-            }
+            fetcher->softReset();
+            decoder->softReset();
 
             fetcher->setPc(cachedNewPc);
-            dbg("   Execute: BP wrong: %d; Fetcher pc <- cachedNewPc: %p\n",
+            dbg("   Logic: BP wrong: %d; Fetcher pc <- cachedNewPc: %p\n",
                 bpWrongCount, cachedNewPc);
         }
     }
@@ -132,8 +133,10 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 
 Logic::Logic(Kraken::BranchRecords * _branchRecords,
              const bool _pipelined,
+             const bool _simExecLatency,
              FILE* stream)
-    : pipelined(_pipelined), branchRecords(_branchRecords)
+    : pipelined(_pipelined), simExecLatency(_simExecLatency),
+      branchRecords(_branchRecords)
 {
     // Ensure that shift operations act as the simulator expects.
     VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);

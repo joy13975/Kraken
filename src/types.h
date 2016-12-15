@@ -28,12 +28,17 @@ typedef const vixl::Instruction* InstrPtr;
 
 typedef struct
 {
+    // options
     std::string input               = "";
     std::string dataOutput          = "data.bin";
     std::string stackOutput         = "stack.bin";
+
+    // features
     bool interactive                = false;
     bool pipelined                  = false;
-    short nBPBits                   = 3;
+    bool simExecLatency             = false;
+
+    short nBPBits                   = 5;
     BranchPredictionMode bpMode     = NoneMode;
 
     short nSuperscalar              = 1;

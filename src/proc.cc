@@ -65,7 +65,7 @@ Proc::Proc(const Options &_options)
       absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
       branchRecords(_options.bpMode, _options.nBPBits, absTextEnd),
       fetcher(pc, &branchRecords, _options.pipelined, absTextEnd),
-      logic(&branchRecords, _options.pipelined)
+      logic(&branchRecords, _options.pipelined, _options.simExecLatency)
 {
     currentProc = this;
     signal(SIGINT, signalHandler);

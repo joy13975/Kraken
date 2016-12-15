@@ -255,10 +255,12 @@ protected:
     virtual void softResetComponent();
     virtual void computeComponent();
     virtual void updateComponent();
+    virtual void syncComponent();
 
 public:
     explicit Logic(Kraken::BranchRecords * _branchRecords,
                    const bool _pipelined,
+                   const bool _simExecLatency,
                    FILE* stream = stdout);
     ~Logic();
 
@@ -320,7 +322,8 @@ public:
                 LogAllWrittenRegisters();
 
             // simulate subpipelining
-            readyCountdown = Kraken::ActionCodeCycles[ac];
+            if (simExecLatency)
+                readyCountdown = Kraken::ActionCodeCycles[ac];
 
             instrCount++;
             hasExecuted = true;
@@ -2202,7 +2205,7 @@ protected:
     static const char* vreg_names[];
 
 private:
-    const bool pipelined;
+    const bool pipelined, simExecLatency;
     Kraken::BranchRecords *const branchRecords;
     Kraken::Fetcher * fetcher;
     vixl::Decoder * decoder;
