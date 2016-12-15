@@ -285,63 +285,7 @@ public:
     unsigned long getBpCorrect() const { return bpCorrectCount; }
     unsigned long getBpWrong() const { return bpWrongCount; }
 
-    void Execute(const Kraken::ActionCode & ac,
-                 const Instruction * instr) {
-
-        // clear flags
-        hasExecuted = false;
-        newPc = 0; //only set if executed
-        pcIsDirty = false;
-
-        if (instr)
-        {
-            // logic assumes pc has been incremented
-            const Instruction *const oldPC = instr->NextInstruction();
-            set_pc(oldPC);
-
-            prf("Executing tag: %s\n", Kraken::ActionCodeString[ac]);
-
-            // execute instruction
-            switch (ac)
-            {
-#define GEN_AC_CASES(ITEM) \
-            case Kraken::AC_##ITEM: \
-                if (get_log_level() < LOG_MESSAGE) \
-                    print_disasm_->Visit##ITEM(instr); \
-                Visit##ITEM(instr); \
-                break;
-
-                VISITOR_LIST(GEN_AC_CASES);
-#undef GEN_AC_CASES
-            default:
-                die("Unknown ActionCode: %d (%s)\n",
-                    ac, Kraken::ActionCodeString[ac]);
-            }
-
-            if (get_log_level() < LOG_MESSAGE)
-                LogAllWrittenRegisters();
-
-            // simulate subpipelining
-            if (simExecLatency)
-                readyCountdown = Kraken::ActionCodeCycles[ac];
-
-            instrCount++;
-            hasExecuted = true;
-            dbg("   Execute hasExecuted <- %d\n", hasExecuted);
-            newPc = pc_;
-            dbg("   Execute newPc <- %p\n", newPc);
-            action = ac;
-            dbg("   Execute action <- %s\n", Kraken::ActionCodeString[action]);
-            exeInstr = instr;
-            dbg("   Execute exeInstr <- %p\n", exeInstr);
-            pcIsDirty = (newPc != oldPC);
-            dbg("   Execute pcIsDirty <- %d\n", pcIsDirty);
-        }
-        else
-        {
-            dbg("   No Execute (instr == 0)\n");
-        }
-    }
+    void Execute(const Kraken::DecodedInstr decInstr);
 
     byte * getStackBegin() const { return stack_; }
     size_t getStackSize() const { return stack_size_; }

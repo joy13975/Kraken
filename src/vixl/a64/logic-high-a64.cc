@@ -61,7 +61,7 @@ void Logic::computeComponent()
     if (!decoder || !fetcher)
         die("Logic: decoder/fetcher pointer is not set\n");
 
-    Execute(decoder->getAction(), decoder->getInstr());
+    Execute(decoder->consumeDecInstr());
 }
 void Logic::updateComponent()
 {
@@ -84,7 +84,7 @@ void Logic::syncComponent()
     {
         branchRecords->updateRecord(cachedExeInstr,
                                     cachedNewPc);
-        if (cachedNewPc == (pipelined ? decoder->getInstr() : fetcher->peekPc()))
+        if (cachedNewPc == (pipelined ? decoder->peekInstr() : fetcher->peekPc()))
         {
             bpCorrectCount++;
             dbg("   Logic: Branch prediction was correct: %d\n",
@@ -104,32 +104,62 @@ void Logic::syncComponent()
     }
 }
 
-const Instruction* Logic::kEndOfSimAddress = NULL;
+void Logic::Execute(const Kraken::DecodedInstr decInstr)
+{
+    // clear flags
+    hasExecuted = false;
+    newPc = 0; //only set if executed
+    pcIsDirty = false;
 
-void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
-    int width = msb - lsb + 1;
-    VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+    if (decInstr.instr)
+    {
+        // logic assumes pc has been incremented
+        const Instruction *const oldPC = decInstr.instr->NextInstruction();
+        set_pc(oldPC);
 
-    bits <<= lsb;
-    uint32_t mask = ((1 << width) - 1) << lsb;
-    VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+        prf("Executing tag: %s\n", Kraken::ActionCodeString[decInstr.ac]);
 
-    value_ = (value_ & ~mask) | (bits & mask);
-}
+        // execute instruction
+        switch (decInstr.ac)
+        {
+#define GEN_AC_CASES(ITEM) \
+            case Kraken::AC_##ITEM: \
+                if (get_log_level() < LOG_MESSAGE) \
+                    print_disasm_->Visit##ITEM(decInstr.instr); \
+                Visit##ITEM(decInstr.instr); \
+                break;
 
+            VISITOR_LIST(GEN_AC_CASES);
+#undef GEN_AC_CASES
+        default:
+            die("Unknown ActionCode: %d (%s)\n",
+                decInstr.ac, Kraken::ActionCodeString[decInstr.ac]);
+        }
 
-SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
-    switch (id) {
-    case NZCV:
-        return SimSystemRegister(0x00000000, NZCVWriteIgnoreMask);
-    case FPCR:
-        return SimSystemRegister(0x00000000, FPCRWriteIgnoreMask);
-    default:
-        VIXL_UNREACHABLE();
-        return SimSystemRegister();
+        if (get_log_level() < LOG_MESSAGE)
+            LogAllWrittenRegisters();
+
+        // simulate subpipelining
+        if (simExecLatency)
+            readyCountdown = Kraken::ActionCodeCycles[decInstr.ac];
+
+        instrCount++;
+        hasExecuted = true;
+        dbg("   Logic: hasExecuted <- %d\n", hasExecuted);
+        newPc = pc_;
+        dbg("   Logic: newPc <- %p\n", newPc);
+        action = decInstr.ac;
+        dbg("   Logic: action <- %s\n", Kraken::ActionCodeString[action]);
+        exeInstr = decInstr.instr;
+        dbg("   Logic: exeInstr <- %p\n", exeInstr);
+        pcIsDirty = (newPc != oldPC);
+        dbg("   Logic: pcIsDirty <- %d\n", pcIsDirty);
+    }
+    else
+    {
+        dbg("   Logic: ignore decInstr.instr == 0\n");
     }
 }
-
 
 Logic::Logic(Kraken::BranchRecords * _branchRecords,
              const bool _pipelined,
@@ -172,7 +202,6 @@ Logic::Logic(Kraken::BranchRecords * _branchRecords,
     print_exclusive_access_warning_ = true;
 }
 
-
 void Logic::ResetState() {
     // Reset the system registers.
     nzcv_ = SimSystemRegister::DefaultValueFor(NZCV);
@@ -203,6 +232,33 @@ Logic::~Logic() {
 
     // delete instrumentation_;
 }
+
+const Instruction* Logic::kEndOfSimAddress = NULL;
+
+void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
+    int width = msb - lsb + 1;
+    VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+
+    bits <<= lsb;
+    uint32_t mask = ((1 << width) - 1) << lsb;
+    VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+
+    value_ = (value_ & ~mask) | (bits & mask);
+}
+
+
+SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
+    switch (id) {
+    case NZCV:
+        return SimSystemRegister(0x00000000, NZCVWriteIgnoreMask);
+    case FPCR:
+        return SimSystemRegister(0x00000000, FPCRWriteIgnoreMask);
+    default:
+        VIXL_UNREACHABLE();
+        return SimSystemRegister();
+    }
+}
+
 
 
 const char* Logic::xreg_names[] = {"x0",  "x1",  "x2",  "x3",  "x4",  "x5",

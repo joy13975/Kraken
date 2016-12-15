@@ -14,6 +14,7 @@
 #include "util.h"
 
 #include "vixl/a64/logic-regs-a64.h"
+#include "visits.h"
 
 namespace Kraken
 {
@@ -25,6 +26,14 @@ namespace Kraken
 GEN_ENUM_AND_STRING(BranchPredictionMode, BranchPredictionModeString, FOREACH_BRANCH_PREDICTION_MODE);
 
 typedef const vixl::Instruction* InstrPtr;
+
+struct DecodedInstr
+{
+    ActionCode ac;
+    InstrPtr instr;
+    DecodedInstr(ActionCode _ac, InstrPtr _instr)
+        : ac(_ac), instr(_instr) {}
+};
 
 typedef struct
 {

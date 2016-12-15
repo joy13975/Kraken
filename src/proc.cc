@@ -42,7 +42,7 @@ GEN_ENUM_AND_STRING(ClkState, ClkStateString, FOREACH_CLKSTATE);
 
 void signalHandler(int sig)
 {
-    err("Signal caught: %d (%s)\n", sig, strsignal(sig));
+    err("Signal caught - %s\n", strsignal(sig));
 
     if (currentProc)
     {
@@ -55,7 +55,7 @@ void signalHandler(int sig)
         die("currentProc is null\n");
     }
 
-    exit(1);
+    exit(sig == SIGINT ? 0 : 1);
 }
 
 Proc::Proc(const Options &_options)

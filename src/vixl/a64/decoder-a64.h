@@ -42,6 +42,8 @@ namespace Kraken
 class Fetcher;
 }
 
+#define DECODER_BUFFER_SIZE 32
+
 namespace vixl
 {
 
@@ -53,15 +55,15 @@ protected:
     virtual void updateComponent();
 
 public:
+    const Instruction * consumeInstr();
+    const Instruction * peekInstr() { return buffer.front().instr; }
 
     void setFetcher(Kraken::Fetcher * _fetcher) {
         fetcher = _fetcher;
-        connect((ComponentBase*) _fetcher,
-                this);
+        connect((ComponentBase*) _fetcher, this);
     }
 
-    Kraken::ActionCode getAction() const { return cachedAction; }
-    const Instruction * getInstr() const { return cachedInstr; }
+    Kraken::DecodedInstr consumeDecInstr();
 
     virtual void computeComponent() final;
 
@@ -73,22 +75,6 @@ public:
     //     }
     //     DecodeInstruction(instr);
     // }
-    void Decode(const Instruction* instr) {
-        if (instr)
-        {
-            dbg("   Decoder: instr %p\n", instr);
-            // dbg("   Decode with Rd: %d\n", decodeInstr->Rd());
-
-            decodedAction = DecodeInstruction(instr);
-            dbg("   Decoder: decodedAction <- %d\n", decodedAction);
-            decodedInstr = instr;
-            dbg("   Decoder: decodedInstr <- %p\n", decodedInstr);
-        }
-        else
-        {
-            dbg("   Decoder: ignore instr==0\n");
-        }
-    }
 
     static bool isBranch(const Instruction* instr)
     {
@@ -160,8 +146,8 @@ public:
 private:
     Kraken::Fetcher * fetcher = 0;
 
-    Kraken::ActionCode decodedAction, cachedAction;
-    const Instruction * decodedInstr, * cachedInstr;
+    std::deque<Kraken::DecodedInstr> tmpBuffer;
+    std::deque<Kraken::DecodedInstr> buffer;
 
     // std::deque<InstrPtr> tmpBuffer;
     // std::deque<InstrPtr> buffer;

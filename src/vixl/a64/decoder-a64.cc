@@ -31,6 +31,23 @@
 
 namespace vixl {
 
+Kraken::DecodedInstr Decoder::consumeDecInstr() {
+    if (buffer.size() > 0)
+    {
+        const Kraken::DecodedInstr di = buffer.front();
+        buffer.pop_front();
+        tmpBuffer.pop_front();
+        dbg("   Decoder: consume instr %p ac %d (%d left in buffer)\n",
+            di.instr, di.ac, buffer.size());
+        return di;
+    }
+    else
+    {
+        dbg("   Decoder: Buffer depleted\n");
+        return Kraken::DecodedInstr((Kraken::ActionCode) 0, 0);
+    }
+}
+
 void Decoder::hardResetComponent()
 {
     fetcher = 0;
@@ -39,24 +56,42 @@ void Decoder::hardResetComponent()
 void Decoder::softResetComponent()
 {
     dbg("   Decoder soft reset\n");
-    decodedAction = Kraken::AC_Unallocated;
-    cachedAction = Kraken::AC_Unallocated;
-    decodedInstr = 0;
-    cachedInstr = 0;
+    tmpBuffer.clear();
+    buffer.clear();
 }
+
 void Decoder::computeComponent()
 {
     if (!fetcher)
         die("Decoder's fetcher pointer is not set\n");
 
-    Decode(fetcher->consumeInstr());
+    // decode as many as possible to fill the buffer
+    while (tmpBuffer.size() < FETCHER_BUFFER_SIZE)
+    {
+        const Instruction* instr = fetcher->consumeInstr();
+        if (instr)
+        {
+            prf("   Decoder: instr %p\n", instr);
+
+            const Kraken::ActionCode ac = DecodeInstruction(instr);
+            prf("   Decoder: ac <- %d\n", ac);
+
+            tmpBuffer.emplace_back(ac, instr);
+        }
+        else
+        {
+            dbg("   Decoder: depleted Fetcher's buffer\n");
+            break;
+        }
+    }
+
+    if (tmpBuffer.size() > 0)
+        dbg("   Decoder: front instr = %p\n", tmpBuffer.front().instr);
 }
+
 void Decoder::updateComponent()
 {
-    cachedAction = decodedAction;
-    dbg("   Decode cachedAction <- %d\n", decodedAction);
-    cachedInstr = decodedInstr;
-    dbg("   Decode cachedInstr <- %p\n", decodedInstr);
+    buffer = tmpBuffer;
 }
 
 Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {

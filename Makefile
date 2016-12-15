@@ -18,7 +18,7 @@ CC_SRC 			:= $(wildcard $(SRC_DIR)/*.cc) \
 OBJS 			:= $(C_SRC:%.c=$(OBJ_DIR)/%.o) $(CC_SRC:%.cc=$(OBJ_DIR)/%.o)
 DEPS 			:= $(C_SRC:%.c=$(OBJ_DIR)/%.d) $(CC_SRC:%.cc=$(OBJ_DIR)/%.d)
 
-DEBUG=1
+DEBUG=0
 GOMP=0
 
 ifeq ($(DEBUG), 1)

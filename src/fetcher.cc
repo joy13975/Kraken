@@ -15,6 +15,7 @@ Fetcher::Fetcher(InstrPtr & _pc,
       absTextEnd(_absTextEnd)
 {
 }
+
 InstrPtr Fetcher::consumeInstr() {
     if (buffer.size() > 0)
     {
