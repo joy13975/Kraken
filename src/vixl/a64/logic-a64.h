@@ -47,6 +47,8 @@ namespace Kraken
 class Fetcher;
 } // namespace Kraken
 
+#define MAX_RSTATION_SIZE 4
+
 namespace vixl {
 
 class Decoder;
@@ -258,37 +260,34 @@ protected:
     virtual void syncComponent();
 
 public:
-    explicit Logic(Kraken::BranchRecords * _branchRecords,
+    explicit Logic(Kraken::ReorderBuffer & _reorderBuffer,
+                   Kraken::BranchRecords & _branchRecords,
                    const bool _pipelined,
                    const bool _simExecLatency,
                    FILE* stream = stdout);
     ~Logic();
 
+    bool hasRStationSpace() { return rsVacancy > 0; }
+    void receiveIssue(Kraken::ReorderBufferEntry * rbe);
     void setFetcher(Kraken::Fetcher * _fetcher)
     {
         fetcher = _fetcher;
         connect((ComponentBase*) _fetcher, this);
     }
-    void setDecoder(vixl::Decoder * _decoder)
+    void setDecoder(Decoder * _decoder)
     {
         decoder = _decoder;
         connect((ComponentBase*) _decoder, this);
     }
 
-    const Instruction * getNewPc() const { return cachedNewPc; }
-    Kraken::ActionCode getAction() const { return cachedAction; }
-    const Instruction * getExeInstr() const { return cachedExeInstr; }
-    bool getHasExecuted() const { return cachedHasExecuted; }
-    bool getPcIsDirty() const { return cachedPcIsDirty; }
-
     unsigned long getInstrCount() const { return instrCount; }
     unsigned long getBpCorrect() const { return bpCorrectCount; }
     unsigned long getBpWrong() const { return bpWrongCount; }
 
-    void Execute(const Kraken::DecodedInstr decInstr);
-
     byte * getStackBegin() const { return stack_; }
     size_t getStackSize() const { return stack_size_; }
+
+    void Execute();
 
     void ResetState();
 
@@ -2149,19 +2148,23 @@ protected:
     static const char* vreg_names[];
 
 private:
+    Kraken::ReorderBuffer & roBuffer;
     const bool pipelined, simExecLatency;
-    Kraken::BranchRecords *const branchRecords;
+    Kraken::BranchRecords & branchRecords;
+
     Kraken::Fetcher * fetcher;
-    vixl::Decoder * decoder;
+    Decoder * decoder;
 
     const Instruction * newPc, * cachedNewPc;
-    Kraken::ActionCode action, cachedAction;
     const Instruction * exeInstr, * cachedExeInstr;
-    bool hasExecuted = false, cachedHasExecuted = false;
-    bool pcIsDirty = false, cachedPcIsDirty = false;
+    bool hasExecuted, cachedHasExecuted;
+    const Instruction * predecessor, * cachedPredecessor;
 
     unsigned long instrCount = 0;
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
+
+    Kraken::ReservationStation tmpRStation, rStation;
+    unsigned short rsVacancy = 0;
 
     template <typename T>
     static T FPDefaultNaN();

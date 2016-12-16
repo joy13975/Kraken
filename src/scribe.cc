@@ -3,10 +3,34 @@
 namespace Kraken
 {
 
-// void Scribe::commit(Scripture script, State *const state)
-// {
-//     err("Unimplemented: commit()\n");
-// }
+void Scribe::hardResetComponent()
+{
+
+}
+
+void Scribe::softResetComponent()
+{
+
+}
+
+void Scribe::updateComponent()
+{
+
+    while (reorderBuffer.front().status == ReorderBufferEntry::Status::Done)
+    {
+        const ReorderBufferEntry rbe = reorderBuffer.front();
+
+        for (const Scripture & s : rbe.getScriptures())
+            applyScripture(s);
+
+        reorderBuffer.pop_front();
+    }
+}
+
+void Scribe::applyScripture(const Scripture & s)
+{
+
+}
 
 
 } // namespace Kraken

@@ -14,7 +14,7 @@ class Logic;
 class Decoder;
 } // namespace vixl
 
-#define FETCHER_BUFFER_SIZE 32
+#define MAX_ROB_SIZE 32
 
 namespace Kraken
 {
@@ -23,7 +23,7 @@ class Fetcher : public ComponentBase
 {
 public:
     Fetcher(InstrPtr & _pc,
-            const BranchRecords * _branchRecords,
+            const BranchRecords & _branchRecords,
             const bool _pipelined,
             const InstrPtr _absTextEnd);
     virtual ~Fetcher() {}
@@ -39,7 +39,12 @@ public:
 
     InstrPtr consumeInstr();
     void setPc(InstrPtr newPc) { pc = newPc; }
-    InstrPtr peekPc() { return buffer.front(); }
+    InstrPtr peekPc() {
+        if (buffer.size() > 0)
+            return buffer.front();
+        else
+            return pc;
+    }
 
 protected:
     virtual void hardResetComponent();
@@ -50,7 +55,7 @@ protected:
 
 private:
     InstrPtr & pc;
-    const BranchRecords *const branchRecords;
+    const BranchRecords & branchRecords;
     const bool pipelined;
     const InstrPtr absTextEnd;
 

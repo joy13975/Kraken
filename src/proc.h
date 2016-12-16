@@ -41,19 +41,17 @@ protected:
 
 private:
     // registers
-    InstrPtr pc = 0;
-    // vixl::SimRegister               regs_[vixl::kNumberOfRegisters];
-    // vixl::SimVRegister              vregs_[vixl::kNumberOfVRegisters];
-    // vixl::SimSystemRegister         nzcv;
-    // vixl::SimSystemRegister         fpcr;
+    State state;
 
     // components
     Fetcher fetcher;
     vixl::Decoder decoder;
     vixl::Logic logic;
+    Scribe scribe;
 
     // buffers
     BranchRecords branchRecords;
+    ReorderBuffer reorderBuffer;
 
     // flags
     bool breakSubsequent = false;

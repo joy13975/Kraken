@@ -19,21 +19,87 @@
 namespace Kraken
 {
 
-#define FOREACH_BRANCH_PREDICTION_MODE(MACRO) \
-    MACRO(NoneMode) \
-    MACRO(StaticMode) \
-    MACRO(DynamicMode)
-GEN_ENUM_AND_STRING(BranchPredictionMode, BranchPredictionModeString, FOREACH_BRANCH_PREDICTION_MODE);
-
 typedef const vixl::Instruction* InstrPtr;
+
+struct State
+{
+    InstrPtr pc = 0;
+    vixl::SimRegister               regs[vixl::kNumberOfRegisters];
+    vixl::SimVRegister              vregs[vixl::kNumberOfVRegisters];
+    vixl::SimSystemRegister         nzcv;
+    vixl::SimSystemRegister         fpcr;
+};
+
+class Scripture
+{
+public:
+    enum Type
+    {
+        ModifyPC,
+        ModifyReg,
+        ModifyVReg,
+        ModifyMem
+    };
+
+    Scripture(const Type & _type,
+              const uint64_t & _addr,
+              const size_t & szBytes)
+        : type(_type),
+          addr(_addr),
+          value(new uint8_t[szBytes])
+    {}
+
+    virtual ~Scripture() { delete value; }
+
+    const Type type;
+    const uint64_t addr;
+    const uint8_t *value;
+private:
+};
 
 struct DecodedInstr
 {
     ActionCode ac;
     InstrPtr instr;
-    DecodedInstr(ActionCode _ac, InstrPtr _instr)
+    DecodedInstr(const ActionCode & _ac,
+                 const InstrPtr & _instr)
         : ac(_ac), instr(_instr) {}
 };
+
+class ReorderBufferEntry
+{
+public:
+    enum Status
+    {
+        Idle,
+        Blocked,
+        InProgress,
+        Done
+    };
+
+    ReorderBufferEntry(const DecodedInstr _decInstr)
+        : decInstr(_decInstr) {}
+    virtual ~ReorderBufferEntry() {};
+
+    void addScripture(const Scripture s) { scriptures.push_back(s); }
+    const std::vector<Scripture> & getScriptures() const { return scriptures; }
+
+    const DecodedInstr decInstr;
+    Status status = Idle;
+    const ReorderBufferEntry * predecessor = 0;
+
+private:
+    std::vector<Scripture> scriptures;
+};
+
+typedef std::deque<ReorderBufferEntry> ReorderBuffer;
+typedef std::deque<ReorderBufferEntry *> ReservationStation;
+
+#define FOREACH_BRANCH_PREDICTION_MODE(MACRO) \
+    MACRO(NoneMode) \
+    MACRO(StaticMode) \
+    MACRO(DynamicMode)
+GEN_ENUM_AND_STRING(BranchPredictionMode, BranchPredictionModeString, FOREACH_BRANCH_PREDICTION_MODE);
 
 typedef struct
 {

@@ -64,8 +64,13 @@ Proc::Proc(const Options &_options)
       absTextStart(progInfo.offset<InstrPtr >(progInfo.textStart)),
       absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
       branchRecords(_options.bpMode, _options.nBPBits, absTextEnd),
-      fetcher(pc, &branchRecords, _options.pipelined, absTextEnd),
-      logic(&branchRecords, _options.pipelined, _options.simExecLatency)
+      fetcher(state.pc, branchRecords, _options.pipelined, absTextEnd),
+      decoder(reorderBuffer),
+      logic(reorderBuffer,
+            branchRecords,
+            _options.pipelined,
+            _options.simExecLatency),
+      scribe(reorderBuffer, state)
 {
     currentProc = this;
     signal(SIGINT, signalHandler);
@@ -97,10 +102,13 @@ void Proc::softResetComponent()
     logic.hardReset();
     //scribe.hardReset();
 
+    branchRecords.clearRecords();
+    reorderBuffer.clear();
+
     if (get_log_level() < LOG_MESSAGE)
         logic.set_trace_parameters(vixl::LOG_ALL);
 
-    pc = 0;
+    state.pc = 0;
 
     breakSubsequent = false;
 }
@@ -116,18 +124,19 @@ void Proc::init()
     fetcher.setDecoder(&decoder);
     fetcher.setLogic(&logic);
     decoder.setFetcher(&fetcher);
+    decoder.addExUnit(&logic);
     logic.setFetcher(&fetcher);
     logic.setDecoder(&decoder);
     //logic.addSlave ...
 
     // initialise reg values
-    pc = progInfo.offset<InstrPtr >(progInfo.entry);
+    state.pc = progInfo.offset<InstrPtr >(progInfo.entry);
 }
 
 void Proc::run()
 {
     msg("PC at entry (main): %p (global: %p)\n",
-        progInfo.offset<ptrdiff_t>(pc), pc);
+        progInfo.offset<ptrdiff_t>(state.pc), state.pc);
     printMemInfo();
 
     bool shouldHalt = false;
@@ -147,7 +156,7 @@ void Proc::run()
 
             #pragma omp single nowait
             {
-                const ptrdiff_t pcOffset = progInfo.fromBase<ptrdiff_t>(pc);
+                const ptrdiff_t pcOffset = progInfo.fromBase<ptrdiff_t>(state.pc);
                 if (clkState == HIGH)
                     checkBreakpoint(pcOffset);
 
@@ -232,17 +241,17 @@ void Proc::run()
                     dbg("======================================== Cycle End\n");
                 }
 
-                if (pc == 0)
+                if (state.pc == 0)
                 {
                     shouldHalt = true;
                     dbg("======================================== Proc Halts\n");
                 }
-                else if (pc < absTextStart || pc > absTextEnd)
+                else if (state.pc < absTextStart || state.pc > absTextEnd)
                 {
-                    err("Invalid PC: [%d, %d]\n",
-                        pc < absTextStart, pc > absTextStart);
+                    err("Invalid state.PC: [%d, %d]\n",
+                        state.pc < absTextStart, state.pc > absTextStart);
                     die("PC: %p is not inside [%p, %p]\n",
-                        pc, absTextStart, absTextEnd);
+                        state.pc, absTextStart, absTextEnd);
                 }
 
                 clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);

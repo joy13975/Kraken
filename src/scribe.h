@@ -3,19 +3,32 @@
 
 #include "types.h"
 #include "util.h"
-#include "proc.h"
+#include "component_base.h"
 
 namespace Kraken
 {
 
-class Scribe
+class Scribe : public ComponentBase
 {
 public:
-    Scribe();
-    virtual ~Scribe() {};
+    Scribe(ReorderBuffer & _reorderBuffer,
+           State & _state)
+        : reorderBuffer(_reorderBuffer),
+          state(_state)
+    {}
 
-    // void commit(Scripture script, State *const state);
+    virtual ~Scribe() {}
+
+protected:
+    virtual void hardResetComponent();
+    virtual void softResetComponent();
+    virtual void updateComponent();
+
 private:
+    ReorderBuffer & reorderBuffer;
+    State & state;
+
+    void applyScripture(const Scripture & s);
 };
 
 } // namespace Kraken

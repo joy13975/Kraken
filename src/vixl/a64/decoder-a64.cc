@@ -31,42 +31,28 @@
 
 namespace vixl {
 
-Kraken::DecodedInstr Decoder::consumeDecInstr() {
-    if (buffer.size() > 0)
-    {
-        const Kraken::DecodedInstr di = buffer.front();
-        buffer.pop_front();
-        tmpBuffer.pop_front();
-        dbg("   Decoder: consume instr %p ac %d (%d left in buffer)\n",
-            di.instr, di.ac, buffer.size());
-        return di;
-    }
-    else
-    {
-        dbg("   Decoder: Buffer depleted\n");
-        return Kraken::DecodedInstr((Kraken::ActionCode) 0, 0);
-    }
-}
-
 void Decoder::hardResetComponent()
 {
     fetcher = 0;
+    exUnits.clear();
 }
 
 void Decoder::softResetComponent()
 {
-    dbg("   Decoder soft reset\n");
+    dbg("   Decoder: soft reset\n");
     tmpBuffer.clear();
     buffer.clear();
 }
 
 void Decoder::computeComponent()
 {
-    if (!fetcher)
-        die("Decoder's fetcher pointer is not set\n");
+    if (!fetcher || exUnits.size() == 0)
+        die("Decoder's fetcher pointer is not set or no EU added\n");
+
+    const short vacancy = MAX_ROB_SIZE - buffer.size();
 
     // decode as many as possible to fill the buffer
-    while (tmpBuffer.size() < FETCHER_BUFFER_SIZE)
+    while (tmpBuffer.size() < vacancy)
     {
         const Instruction* instr = fetcher->consumeInstr();
         if (instr)
@@ -80,18 +66,51 @@ void Decoder::computeComponent()
         }
         else
         {
-            dbg("   Decoder: depleted Fetcher's buffer\n");
+            dbg("   Decoder: fetcher buffer is empty\n");
             break;
         }
     }
 
     if (tmpBuffer.size() > 0)
         dbg("   Decoder: front instr = %p\n", tmpBuffer.front().instr);
+
+    // issue in-order as many as possible to fill RSs
+    while (buffer.size() > 0)
+    {
+        bool issued = false;
+        for (vixl::Logic *& eu : exUnits)
+        {
+            if (eu->hasRStationSpace())
+            {
+                const Kraken::DecodedInstr di = buffer.front();
+
+                roBuffer.emplace_back(di);
+                if (roBuffer.size() > 1)
+                    (roBuffer[roBuffer.size() - 2]).predecessor =
+                        &(roBuffer.back());
+                eu->receiveIssue(&(roBuffer.back()));
+
+                buffer.pop_front();
+
+                dbg("   Decoder: issue instr %p ac %d (%d left in buffer)\n",
+                    di.instr, di.ac, buffer.size());
+
+                issued = true;
+            }
+        }
+
+        if (!issued)
+        {
+            dbg("   Reservation Stations are full\n");
+            break;
+        }
+    }
 }
 
 void Decoder::updateComponent()
 {
-    buffer = tmpBuffer;
+    buffer.insert(buffer.end(), tmpBuffer.begin(), tmpBuffer.end());
+    tmpBuffer.clear();
 }
 
 Kraken::ActionCode Decoder::DecodeInstruction(const Instruction* instr) {

@@ -6,7 +6,7 @@ namespace Kraken
 {
 
 Fetcher::Fetcher(InstrPtr & _pc,
-                 const BranchRecords * _branchRecords,
+                 const BranchRecords & _branchRecords,
                  const bool _pipelined,
                  const InstrPtr _absTextEnd)
     : pc(_pc),
@@ -28,7 +28,7 @@ InstrPtr Fetcher::consumeInstr() {
     }
     else
     {
-        dbg("   Fetcher: Buffer depleted\n");
+        dbg("   Fetcher: nothing in buffer for consumption\n");
         return 0;
     }
 }
@@ -42,7 +42,7 @@ void Fetcher::hardResetComponent()
 
 void Fetcher::softResetComponent()
 {
-    dbg("   Fetcher: reset\n");
+    dbg("   Fetcher: soft reset\n");
     tmpBuffer.clear();
     buffer.clear();
 }
@@ -67,7 +67,8 @@ void Fetcher::fetch()
 {
     dbg("   Fetcher: at: %p (buffer %d:%d)\n",
         pc, tmpBuffer.size(), buffer.size());
-    while (tmpBuffer.size() < FETCHER_BUFFER_SIZE)
+
+    while (tmpBuffer.size() < MAX_ROB_SIZE)
     {
         if (pc < absTextEnd)
         {
@@ -75,7 +76,7 @@ void Fetcher::fetch()
 
             // guess next pc
             const InstrPtr bpSuggest =
-                branchRecords->predict(pc);
+                branchRecords.predict(pc);
 
             prf("   Fetcher: BP: %p -> %p\n", pc, bpSuggest);
             pc = bpSuggest;

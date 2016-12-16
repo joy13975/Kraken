@@ -31,60 +31,87 @@
 #include "util.h"
 
 namespace vixl {
+
+void Logic::receiveIssue(Kraken::ReorderBufferEntry * rbe)
+{
+    if (tmpRStation.size() >= MAX_RSTATION_SIZE)
+        die("Tried to overflow reservation station\n");
+
+
+    tmpRStation.push_back(rbe);
+
+    rsVacancy--;
+}
+
 void Logic::hardResetComponent()
 {
     ResetState();
 
     instrCount = 0;
-    branchRecords->clearRecords();
+    branchRecords.clearRecords();
     bpCorrectCount = 0;
     bpWrongCount = 0;
 
     fetcher = 0;
     decoder = 0;
 }
+
 void Logic::softResetComponent()
 {
     newPc = 0;
     cachedNewPc = 0;
-    action = Kraken::AC_Unallocated;
-    cachedAction = Kraken::AC_Unallocated;
     exeInstr = 0;
     cachedExeInstr = 0;
     hasExecuted = false;
     cachedHasExecuted = false;
-    pcIsDirty = false;
-    cachedPcIsDirty = false;
+
+    predecessor = 0;
+    cachedPredecessor = 0;
+    tmpRStation.clear();
+    rStation.clear();
 }
+
 void Logic::computeComponent()
 {
     if (!decoder || !fetcher)
         die("Logic: decoder/fetcher pointer is not set\n");
 
-    Execute(decoder->consumeDecInstr());
+    Execute();
 }
+
 void Logic::updateComponent()
 {
     cachedHasExecuted = hasExecuted;
     dbg("   Logic: cachedHasExecuted <- %d\n", cachedHasExecuted);
     cachedNewPc = newPc;
     dbg("   Logic: cachedNewPc <- %p\n", cachedNewPc);
-    cachedAction = action;
-    dbg("   Logic: cachedAction <- %s\n", Kraken::ActionCodeString[cachedAction]);
     cachedExeInstr = exeInstr;
     dbg("   Logic: cachedExeInstr <- %p\n", cachedExeInstr);
-    cachedPcIsDirty = pcIsDirty;
-    dbg("   Logic: cachedPcIsDirty <- %d\n", cachedPcIsDirty);
+    cachedPredecessor = predecessor;
+    dbg("   Logic: cachedPredecessor <- %p\n", cachedPredecessor);
+    rStation.insert(rStation.end(), tmpRStation.begin(), tmpRStation.end());
+    rsVacancy = MAX_RSTATION_SIZE - rStation.size();
+    tmpRStation.clear();
+    dbg("   Logic: rStation size <- %d, rsVacancy <- %d\n",
+        rStation.size(), rsVacancy);
 }
 
 void Logic::syncComponent()
 {
 
-    if (cachedHasExecuted && vixl::Decoder::isBranch(cachedExeInstr))
+    if (cachedHasExecuted && Decoder::isBranch(cachedExeInstr))
     {
-        branchRecords->updateRecord(cachedExeInstr,
-                                    cachedNewPc);
-        if (cachedNewPc == (pipelined ? decoder->peekInstr() : fetcher->peekPc()))
+        if(newPc == 0)
+        {
+            // EOP
+            fetcher->setPc(0);
+            return;
+        }
+
+        branchRecords.updateRecord(cachedExeInstr,
+                                   cachedNewPc);
+
+        if (cachedNewPc == cachedPredecessor)
         {
             bpCorrectCount++;
             dbg("   Logic: Branch prediction was correct: %d\n",
@@ -96,6 +123,8 @@ void Logic::syncComponent()
 
             fetcher->softReset();
             decoder->softReset();
+            tmpRStation.clear();
+            rStation.clear();
 
             fetcher->setPc(cachedNewPc);
             dbg("   Logic: BP wrong: %d; Fetcher pc <- cachedNewPc: %p\n",
@@ -104,15 +133,22 @@ void Logic::syncComponent()
     }
 }
 
-void Logic::Execute(const Kraken::DecodedInstr decInstr)
+void Logic::Execute()
 {
     // clear flags
     hasExecuted = false;
     newPc = 0; //only set if executed
-    pcIsDirty = false;
 
-    if (decInstr.instr)
+    if (rStation.size() > 0)
     {
+        Kraken::ReorderBufferEntry * rbe = rStation.front();
+
+        for (Kraken::ReorderBufferEntry * r : rStation)
+            wrn("r.decInstr.instr=%p\n", r->decInstr.instr);
+        const Kraken::DecodedInstr & decInstr = rbe->decInstr;
+        rbe->status = Kraken::ReorderBufferEntry::Status::Done;
+        rStation.pop_front();
+
         // logic assumes pc has been incremented
         const Instruction *const oldPC = decInstr.instr->NextInstruction();
         set_pc(oldPC);
@@ -148,24 +184,29 @@ void Logic::Execute(const Kraken::DecodedInstr decInstr)
         dbg("   Logic: hasExecuted <- %d\n", hasExecuted);
         newPc = pc_;
         dbg("   Logic: newPc <- %p\n", newPc);
-        action = decInstr.ac;
-        dbg("   Logic: action <- %s\n", Kraken::ActionCodeString[action]);
         exeInstr = decInstr.instr;
         dbg("   Logic: exeInstr <- %p\n", exeInstr);
-        pcIsDirty = (newPc != oldPC);
-        dbg("   Logic: pcIsDirty <- %d\n", pcIsDirty);
+
+        predecessor = rbe->predecessor ?
+                      rbe->predecessor->decInstr.instr : 0;
     }
     else
     {
-        dbg("   Logic: ignore decInstr.instr == 0\n");
+        dbg("   Logic: rStation empty\n");
+        newPc = 0;
+        exeInstr = 0;
+        predecessor = 0;
     }
 }
 
-Logic::Logic(Kraken::BranchRecords * _branchRecords,
+Logic::Logic(Kraken::ReorderBuffer & _reorderBuffer,
+             Kraken::BranchRecords & _branchRecords,
              const bool _pipelined,
              const bool _simExecLatency,
              FILE* stream)
-    : pipelined(_pipelined), simExecLatency(_simExecLatency),
+    : roBuffer(_reorderBuffer),
+      pipelined(_pipelined),
+      simExecLatency(_simExecLatency),
       branchRecords(_branchRecords)
 {
     // Ensure that shift operations act as the simulator expects.

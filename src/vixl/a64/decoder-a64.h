@@ -31,6 +31,7 @@
 
 #include "vixl/globals.h"
 #include "vixl/a64/instructions-a64.h"
+#include "vixl/a64/logic-a64.h"
 
 #include "visits.h"
 #include "component_base.h"
@@ -42,10 +43,12 @@ namespace Kraken
 class Fetcher;
 }
 
-#define DECODER_BUFFER_SIZE 32
+#define MAX_ROB_SIZE 32
 
 namespace vixl
 {
+
+class Logic;
 
 class Decoder : public Kraken::ComponentBase {
 
@@ -55,7 +58,6 @@ protected:
     virtual void updateComponent();
 
 public:
-    const Instruction * consumeInstr();
     const Instruction * peekInstr() { return buffer.front().instr; }
 
     void setFetcher(Kraken::Fetcher * _fetcher) {
@@ -63,7 +65,11 @@ public:
         connect((ComponentBase*) _fetcher, this);
     }
 
-    Kraken::DecodedInstr consumeDecInstr();
+    void addExUnit(vixl::Logic * exUnit)
+    {
+        exUnits.push_back(exUnit);
+        connect(this, (ComponentBase*) exUnit);
+    }
 
     virtual void computeComponent() final;
 
@@ -95,7 +101,9 @@ public:
         }
     }
 
-    Decoder() {}
+    Decoder(Kraken::ReorderBuffer & _roBuffer)
+        : roBuffer(_roBuffer)
+    {}
 
     // Register a new visitor class with the decoder.
     // Decode() will call the corresponding visitor method from all registered
@@ -145,9 +153,11 @@ public:
 
 private:
     Kraken::Fetcher * fetcher = 0;
+    std::vector<vixl::Logic *> exUnits;
 
     std::deque<Kraken::DecodedInstr> tmpBuffer;
     std::deque<Kraken::DecodedInstr> buffer;
+    Kraken::ReorderBuffer & roBuffer;
 
     // std::deque<InstrPtr> tmpBuffer;
     // std::deque<InstrPtr> buffer;
