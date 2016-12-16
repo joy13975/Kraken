@@ -31,17 +31,50 @@
 
 #include "vixl/a64/logic-constants-a64.h"
 #include "vixl/a64/logic-memory-a64.h"
+#include "scripture.h"
 
 namespace vixl
 {
 
+class ScribeReg
+{
+public:
+    ScribeReg() : written_since_last_log_(false),
+        written_since_last_commit(false) {}
+
+    // TODO: Make this return a map of updated bytes, so that we can highlight
+    // updated lanes for load-and-insert. (That never happens for scalar code, but
+    // NEON has some instructions that can update individual lanes.)
+    bool WrittenSinceLastLog() const { return written_since_last_log_; }
+
+    void NotifyRegisterLogged() { written_since_last_log_ = false; }
+
+    bool WrittenSinceLastCommit() const { return written_since_last_commit; }
+
+    void NotifyRegisterCommitted() { written_since_last_commit = false; }
+
+    void setScriptureList(std::vector<Kraken::Scripture> * sl) { scriptureList = sl; }
+
+protected:
+    void NotifyRegisterWrite() {
+        written_since_last_log_ = true;
+        written_since_last_commit = true;
+    };
+
+private:
+    // Helpers to aid with register tracing.
+    bool written_since_last_log_;
+
+    bool written_since_last_commit;
+
+    std::vector<Kraken::Scripture> * scriptureList;
+};
+
 // Represent a register (r0-r31, v0-v31).
 template <int kSizeInBytes>
-class SimRegisterBase {
+class SimRegisterBase : public ScribeReg {
 public:
-    SimRegisterBase()
-        : written_since_last_log_(false),
-          written_since_last_commit(false) {};
+    SimRegisterBase() : ScribeReg() {}
 
     // Write the specified value. The value is zero-extended if necessary.
     template <typename T>
@@ -78,28 +111,8 @@ public:
         return result;
     }
 
-    // TODO: Make this return a map of updated bytes, so that we can highlight
-    // updated lanes for load-and-insert. (That never happens for scalar code, but
-    // NEON has some instructions that can update individual lanes.)
-    bool WrittenSinceLastLog() const { return written_since_last_log_; }
-
-    void NotifyRegisterLogged() { written_since_last_log_ = false; }
-
-    bool WrittenSinceLastCommit() const { return written_since_last_commit; }
-
-    void NotifyRegisterCommitted() { written_since_last_commit = false; }
-
 protected:
     uint8_t value_[kSizeInBytes];
-
-    // Helpers to aid with register tracing.
-    bool written_since_last_log_;
-    bool written_since_last_commit;
-
-    void NotifyRegisterWrite() {
-        written_since_last_log_ = true;
-        written_since_last_commit = true;
-    };
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
 typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
@@ -108,7 +121,7 @@ typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
 // The proper way to initialize a simulated system register (such as NZCV) is as
 // follows:
 //  SimSystemRegister nzcv = SimSystemRegister::DefaultValueFor(NZCV);
-class SimSystemRegister {
+class SimSystemRegister : public ScribeReg {
 public:
     // The default constructor represents a register which has no writable bits.
     // It is not possible to set its value to anything other than 0.
@@ -118,6 +131,7 @@ public:
 
     void SetRawValue(uint32_t new_value) {
         value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
+        NotifyRegisterWrite();
     }
 
     uint32_t Bits(int msb, int lsb) const {
@@ -144,6 +158,8 @@ public:
 #undef DEFINE_ZERO_BITS
 #undef DEFINE_GETTER
 
+    void setScriptureList(std::vector<Kraken::Scripture> * sl) { scriptureList = sl; }
+
 protected:
     // Most system registers only implement a few of the bits in the word. Other
     // bits are "read-as-zero, write-ignored". The write_ignore_mask argument
@@ -153,6 +169,8 @@ protected:
 
     uint32_t value_;
     uint32_t write_ignore_mask_;
+
+    std::vector<Kraken::Scripture> * scriptureList;
 };
 
 

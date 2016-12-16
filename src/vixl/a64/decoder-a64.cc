@@ -46,6 +46,7 @@ void Decoder::softResetComponent()
 
 void Decoder::computeComponent()
 {
+    using namespace Kraken;
     if (!fetcher || exUnits.size() == 0)
         die("Decoder's fetcher pointer is not set or no EU added\n");
 
@@ -59,7 +60,7 @@ void Decoder::computeComponent()
         {
             prf("   Decoder: instr %p\n", instr);
 
-            const Kraken::ActionCode ac = DecodeInstruction(instr);
+            const ActionCode ac = DecodeInstruction(instr);
             prf("   Decoder: ac <- %d\n", ac);
 
             tmpBuffer.emplace_back(ac, instr);
@@ -77,18 +78,19 @@ void Decoder::computeComponent()
     // issue in-order as many as possible to fill RSs
     while (buffer.size() > 0)
     {
+
         bool issued = false;
         for (vixl::Logic *& eu : exUnits)
         {
             if (eu->hasRStationSpace())
             {
-                const Kraken::DecodedInstr di = buffer.front();
+                const DecodedInstr di = buffer.front();
 
-                roBuffer.emplace_back(di);
-                if (roBuffer.size() > 1)
-                    (roBuffer[roBuffer.size() - 2]).predecessor =
-                        &(roBuffer.back());
-                eu->receiveIssue(&(roBuffer.back()));
+                while (robCursor->successor)
+                    robCursor = robCursor->successor;
+
+                robCursor = (robCursor->successor = new RobEntry(di));
+                eu->receiveIssue(robCursor);
 
                 buffer.pop_front();
 

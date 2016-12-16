@@ -41,6 +41,7 @@
 #include "util.h"
 #include "component_base.h"
 #include "fetcher.h"
+#include "scripture.h"
 
 namespace Kraken
 {
@@ -260,7 +261,7 @@ protected:
     virtual void syncComponent();
 
 public:
-    explicit Logic(Kraken::ReorderBuffer & _reorderBuffer,
+    explicit Logic(Kraken::RobEntry * _robHead,
                    Kraken::BranchRecords & _branchRecords,
                    const bool _pipelined,
                    const bool _simExecLatency,
@@ -268,7 +269,7 @@ public:
     ~Logic();
 
     bool hasRStationSpace() { return rsVacancy > 0; }
-    void receiveIssue(Kraken::ReorderBufferEntry * rbe);
+    void receiveIssue(Kraken::RobEntry * rbe);
     void setFetcher(Kraken::Fetcher * _fetcher)
     {
         fetcher = _fetcher;
@@ -2148,7 +2149,6 @@ protected:
     static const char* vreg_names[];
 
 private:
-    Kraken::ReorderBuffer & roBuffer;
     const bool pipelined, simExecLatency;
     Kraken::BranchRecords & branchRecords;
 
@@ -2156,15 +2156,18 @@ private:
     Decoder * decoder;
 
     const Instruction * newPc, * cachedNewPc;
-    const Instruction * exeInstr, * cachedExeInstr;
     bool hasExecuted, cachedHasExecuted;
-    const Instruction * predecessor, * cachedPredecessor;
+    Kraken::RobEntry * robCursor, * cachedRobCursor;
 
     unsigned long instrCount = 0;
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
 
     Kraken::ReservationStation tmpRStation, rStation;
     unsigned short rsVacancy = 0;
+
+    std::vector<Kraken::Scripture> scriptureList;
+
+    void passScriptures(Kraken::RobEntry * rbe);
 
     template <typename T>
     static T FPDefaultNaN();

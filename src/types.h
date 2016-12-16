@@ -30,33 +30,6 @@ struct State
     vixl::SimSystemRegister         fpcr;
 };
 
-class Scripture
-{
-public:
-    enum Type
-    {
-        ModifyPC,
-        ModifyReg,
-        ModifyVReg,
-        ModifyMem
-    };
-
-    Scripture(const Type & _type,
-              const uint64_t & _addr,
-              const size_t & szBytes)
-        : type(_type),
-          addr(_addr),
-          value(new uint8_t[szBytes])
-    {}
-
-    virtual ~Scripture() { delete value; }
-
-    const Type type;
-    const uint64_t addr;
-    const uint8_t *value;
-private:
-};
-
 struct DecodedInstr
 {
     ActionCode ac;
@@ -66,34 +39,61 @@ struct DecodedInstr
         : ac(_ac), instr(_instr) {}
 };
 
-class ReorderBufferEntry
+class RobEntry
 {
 public:
     enum Status
     {
         Idle,
-        Blocked,
+        Waiting,
         InProgress,
-        Done
+        Done,
+        Invalid
     };
 
-    ReorderBufferEntry(const DecodedInstr _decInstr)
+    RobEntry()
+        : decInstr((ActionCode) 0, 0),
+          status(Invalid),
+          successor(0) {}
+    RobEntry(const DecodedInstr _decInstr)
         : decInstr(_decInstr) {}
-    virtual ~ReorderBufferEntry() {};
+    RobEntry(const RobEntry & other)
+        : decInstr(other.decInstr),
+          status(other.status),
+          successor(other.successor),
+          scriptureList(other.scriptureList) {}
+    RobEntry& operator=(const RobEntry& other)
+    {
+        if (this == &other)
+            return *this;
 
-    void addScripture(const Scripture s) { scriptures.push_back(s); }
-    const std::vector<Scripture> & getScriptures() const { return scriptures; }
+        decInstr = other.decInstr;
+        status = other.status;
+        successor = other.successor;
+        scriptureList = other.scriptureList;
 
-    const DecodedInstr decInstr;
+        return *this;
+    }
+    virtual ~RobEntry() {};
+
+    void setScriptureList(const std::vector<Scripture> & s)
+    {
+        scriptureList = s;
+    }
+    const std::vector<Scripture> & getScriptureList() const
+    {
+        return scriptureList;
+    }
+
+    DecodedInstr decInstr;
     Status status = Idle;
-    const ReorderBufferEntry * predecessor = 0;
+    RobEntry * successor = 0;
 
 private:
-    std::vector<Scripture> scriptures;
+    std::vector<Scripture> scriptureList;
 };
 
-typedef std::deque<ReorderBufferEntry> ReorderBuffer;
-typedef std::deque<ReorderBufferEntry *> ReservationStation;
+typedef std::deque<RobEntry *> ReservationStation;
 
 #define FOREACH_BRANCH_PREDICTION_MODE(MACRO) \
     MACRO(NoneMode) \

@@ -65,12 +65,12 @@ Proc::Proc(const Options &_options)
       absTextEnd(progInfo.offset<InstrPtr >(progInfo.textEnd)),
       branchRecords(_options.bpMode, _options.nBPBits, absTextEnd),
       fetcher(state.pc, branchRecords, _options.pipelined, absTextEnd),
-      decoder(reorderBuffer),
-      logic(reorderBuffer,
+      decoder(robHead),
+      logic(robHead,
             branchRecords,
             _options.pipelined,
             _options.simExecLatency),
-      scribe(reorderBuffer, state)
+      scribe(robHead, state)
 {
     currentProc = this;
     signal(SIGINT, signalHandler);
@@ -100,10 +100,9 @@ void Proc::softResetComponent()
     fetcher.hardReset();
     decoder.hardReset();
     logic.hardReset();
-    //scribe.hardReset();
+    scribe.hardReset();
 
     branchRecords.clearRecords();
-    reorderBuffer.clear();
 
     if (get_log_level() < LOG_MESSAGE)
         logic.set_trace_parameters(vixl::LOG_ALL);
@@ -181,7 +180,7 @@ void Proc::run()
                     if (stage & EXECUTE) logic.compute();
 
                     #pragma omp task
-                    // if (stage & WRITEBACK)
+                    if (stage & WRITEBACK) scribe.compute();
 
                     break;
                 }
@@ -204,7 +203,7 @@ void Proc::run()
                     if (stage & EXECUTE) logic.update();
 
                     #pragma omp task
-                    // if (stage & WRITEBACK)
+                    if (stage & WRITEBACK) scribe.update();
 
                     break;
                 }
@@ -223,7 +222,7 @@ void Proc::run()
                     if (stage & EXECUTE) logic.sync();
 
                     #pragma omp task
-                    // if (stage & WRITEBACK)
+                    if (stage & WRITEBACK) scribe.sync();
 
                     break;
                 }

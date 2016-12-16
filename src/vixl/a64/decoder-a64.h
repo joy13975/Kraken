@@ -101,8 +101,8 @@ public:
         }
     }
 
-    Decoder(Kraken::ReorderBuffer & _roBuffer)
-        : roBuffer(_roBuffer)
+    Decoder(Kraken::RobEntry * _robHead)
+        : robCursor(_robHead)
     {}
 
     // Register a new visitor class with the decoder.
@@ -157,7 +157,7 @@ private:
 
     std::deque<Kraken::DecodedInstr> tmpBuffer;
     std::deque<Kraken::DecodedInstr> buffer;
-    Kraken::ReorderBuffer & roBuffer;
+    Kraken::RobEntry * robCursor;
 
     // std::deque<InstrPtr> tmpBuffer;
     // std::deque<InstrPtr> buffer;

@@ -40,6 +40,10 @@ protected:
     virtual void softResetComponent();
 
 private:
+    // buffers
+    BranchRecords branchRecords;
+    RobEntry * robHead = new RobEntry();
+
     // registers
     State state;
 
@@ -48,10 +52,6 @@ private:
     vixl::Decoder decoder;
     vixl::Logic logic;
     Scribe scribe;
-
-    // buffers
-    BranchRecords branchRecords;
-    ReorderBuffer reorderBuffer;
 
     // flags
     bool breakSubsequent = false;

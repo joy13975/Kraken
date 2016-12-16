@@ -11,9 +11,9 @@ namespace Kraken
 class Scribe : public ComponentBase
 {
 public:
-    Scribe(ReorderBuffer & _reorderBuffer,
+    Scribe(RobEntry *& _robHead,
            State & _state)
-        : reorderBuffer(_reorderBuffer),
+        : robHead(_robHead),
           state(_state)
     {}
 
@@ -22,11 +22,13 @@ public:
 protected:
     virtual void hardResetComponent();
     virtual void softResetComponent();
+    virtual void computeComponent();
     virtual void updateComponent();
 
 private:
-    ReorderBuffer & reorderBuffer;
+    RobEntry * robHead, * cachedRobHead;
     State & state;
+    int nToPop, cachedNToPop;
 
     void applyScripture(const Scripture & s);
 };

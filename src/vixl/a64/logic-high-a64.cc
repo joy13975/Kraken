@@ -32,11 +32,10 @@
 
 namespace vixl {
 
-void Logic::receiveIssue(Kraken::ReorderBufferEntry * rbe)
+void Logic::receiveIssue(Kraken::RobEntry * rbe)
 {
     if (tmpRStation.size() >= MAX_RSTATION_SIZE)
         die("Tried to overflow reservation station\n");
-
 
     tmpRStation.push_back(rbe);
 
@@ -54,19 +53,27 @@ void Logic::hardResetComponent()
 
     fetcher = 0;
     decoder = 0;
+
+    for (unsigned i = 0; i < kNumberOfRegisters; i++)
+        registers_[i].setScriptureList(&scriptureList);
+
+
+    for (unsigned i = 0; i < kNumberOfVRegisters; i++)
+        vregisters_[i].setScriptureList(&scriptureList);
+
+    nzcv().setScriptureList(&scriptureList);
+    fpcr().setScriptureList(&scriptureList);
 }
 
 void Logic::softResetComponent()
 {
     newPc = 0;
     cachedNewPc = 0;
-    exeInstr = 0;
-    cachedExeInstr = 0;
     hasExecuted = false;
     cachedHasExecuted = false;
 
-    predecessor = 0;
-    cachedPredecessor = 0;
+    robCursor = 0;
+    cachedRobCursor = 0;
     tmpRStation.clear();
     rStation.clear();
 }
@@ -81,37 +88,59 @@ void Logic::computeComponent()
 
 void Logic::updateComponent()
 {
+    using namespace Kraken;
+
     cachedHasExecuted = hasExecuted;
     dbg("   Logic: cachedHasExecuted <- %d\n", cachedHasExecuted);
     cachedNewPc = newPc;
     dbg("   Logic: cachedNewPc <- %p\n", cachedNewPc);
-    cachedExeInstr = exeInstr;
-    dbg("   Logic: cachedExeInstr <- %p\n", cachedExeInstr);
-    cachedPredecessor = predecessor;
-    dbg("   Logic: cachedPredecessor <- %p\n", cachedPredecessor);
+    cachedRobCursor = robCursor;
+    dbg("   Logic: cachedRobCursor <- %p\n", cachedRobCursor);
     rStation.insert(rStation.end(), tmpRStation.begin(), tmpRStation.end());
     rsVacancy = MAX_RSTATION_SIZE - rStation.size();
     tmpRStation.clear();
     dbg("   Logic: rStation size <- %d, rsVacancy <- %d\n",
         rStation.size(), rsVacancy);
+
+    if (readyCountdown == 0)
+    {
+        RobEntry * robCursor = rStation.front();
+
+        // set status
+        robCursor->status = RobEntry::Status::Done;
+
+        // remove ptr from RS but still lives in roBuffer
+        rStation.pop_front();
+
+        // create and pass scriptures to robCursor
+        // passScriptures(robCursor);
+
+        instrCount++;
+        dbg("   Logic: instr %p completed\n", cachedRobCursor->decInstr.instr);
+        dbg("   Logic: robCursor = %p\n", robCursor);
+    }
 }
 
 void Logic::syncComponent()
 {
+    using namespace Kraken;
 
-    if (cachedHasExecuted && Decoder::isBranch(cachedExeInstr))
+    if (cachedHasExecuted &&
+            cachedRobCursor &&
+            Decoder::isBranch(cachedRobCursor->decInstr.instr))
     {
-        if(newPc == 0)
+        if (newPc == 0)
         {
             // EOP
             fetcher->setPc(0);
             return;
         }
 
-        branchRecords.updateRecord(cachedExeInstr,
+        branchRecords.updateRecord(cachedRobCursor->decInstr.instr,
                                    cachedNewPc);
 
-        if (cachedNewPc == cachedPredecessor)
+        if (cachedRobCursor->successor &&
+                cachedNewPc == cachedRobCursor->successor->decInstr.instr)
         {
             bpCorrectCount++;
             dbg("   Logic: Branch prediction was correct: %d\n",
@@ -126,6 +155,12 @@ void Logic::syncComponent()
             tmpRStation.clear();
             rStation.clear();
 
+            while (robCursor->successor)
+            {
+                robCursor->status = RobEntry::Status::Invalid;
+                robCursor = robCursor -> successor;
+            }
+
             fetcher->setPc(cachedNewPc);
             dbg("   Logic: BP wrong: %d; Fetcher pc <- cachedNewPc: %p\n",
                 bpWrongCount, cachedNewPc);
@@ -135,31 +170,29 @@ void Logic::syncComponent()
 
 void Logic::Execute()
 {
+    using namespace Kraken;
+
     // clear flags
     hasExecuted = false;
     newPc = 0; //only set if executed
 
     if (rStation.size() > 0)
     {
-        Kraken::ReorderBufferEntry * rbe = rStation.front();
+        robCursor = rStation.front();
 
-        for (Kraken::ReorderBufferEntry * r : rStation)
-            wrn("r.decInstr.instr=%p\n", r->decInstr.instr);
-        const Kraken::DecodedInstr & decInstr = rbe->decInstr;
-        rbe->status = Kraken::ReorderBufferEntry::Status::Done;
-        rStation.pop_front();
+        const DecodedInstr & decInstr = robCursor->decInstr;
 
         // logic assumes pc has been incremented
         const Instruction *const oldPC = decInstr.instr->NextInstruction();
         set_pc(oldPC);
 
-        prf("Executing tag: %s\n", Kraken::ActionCodeString[decInstr.ac]);
+        prf("Executing tag: %s\n", ActionCodeString[decInstr.ac]);
 
         // execute instruction
         switch (decInstr.ac)
         {
 #define GEN_AC_CASES(ITEM) \
-            case Kraken::AC_##ITEM: \
+            case AC_##ITEM: \
                 if (get_log_level() < LOG_MESSAGE) \
                     print_disasm_->Visit##ITEM(decInstr.instr); \
                 Visit##ITEM(decInstr.instr); \
@@ -169,42 +202,64 @@ void Logic::Execute()
 #undef GEN_AC_CASES
         default:
             die("Unknown ActionCode: %d (%s)\n",
-                decInstr.ac, Kraken::ActionCodeString[decInstr.ac]);
+                decInstr.ac, ActionCodeString[decInstr.ac]);
         }
 
         if (get_log_level() < LOG_MESSAGE)
             LogAllWrittenRegisters();
 
-        // simulate subpipelining
-        if (simExecLatency)
-            readyCountdown = Kraken::ActionCodeCycles[decInstr.ac];
+        // simulate execution latency
+        readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
 
-        instrCount++;
         hasExecuted = true;
         dbg("   Logic: hasExecuted <- %d\n", hasExecuted);
         newPc = pc_;
         dbg("   Logic: newPc <- %p\n", newPc);
-        exeInstr = decInstr.instr;
-        dbg("   Logic: exeInstr <- %p\n", exeInstr);
-
-        predecessor = rbe->predecessor ?
-                      rbe->predecessor->decInstr.instr : 0;
+        dbg("   Logic: robCursor <- %p\n", robCursor);
     }
     else
     {
         dbg("   Logic: rStation empty\n");
         newPc = 0;
-        exeInstr = 0;
-        predecessor = 0;
+        robCursor = 0;
     }
 }
 
-Logic::Logic(Kraken::ReorderBuffer & _reorderBuffer,
+void Logic::passScriptures(Kraken::RobEntry * rbe)
+{
+    using namespace Kraken;
+
+    // for (unsigned i = 0; i < kNumberOfRegisters; i++)
+    //     if (registers_[i].WrittenSinceLastCommit())
+    //         rbe->addScripture(
+    //             Scripture(
+    //                 Scripture::DestType::REG,
+    //                 i,
+    //                 kXRegSizeInBytes
+    //             )
+    //         );
+
+
+    // for (unsigned i = 0; i < kNumberOfVRegisters; i++)
+    //     if (vregisters_[i].WrittenSinceLastCommit())
+    //         rbe->addScripture(
+    //             Scripture(
+    //                 Scripture::DestType::VREG,
+    //                 i,
+    //                 kXRegSizeInBytes
+    //             )
+    //         );
+
+    // PrintSystemRegister(NZCV);
+    // PrintSystemRegister(FPCR);
+}
+
+Logic::Logic(Kraken::RobEntry * _robHead,
              Kraken::BranchRecords & _branchRecords,
              const bool _pipelined,
              const bool _simExecLatency,
              FILE* stream)
-    : roBuffer(_reorderBuffer),
+    : robCursor(_robHead),
       pipelined(_pipelined),
       simExecLatency(_simExecLatency),
       branchRecords(_branchRecords)
@@ -285,6 +340,7 @@ void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
     VIXL_ASSERT((mask & write_ignore_mask_) == 0);
 
     value_ = (value_ & ~mask) | (bits & mask);
+    NotifyRegisterWrite();
 }
 
 
