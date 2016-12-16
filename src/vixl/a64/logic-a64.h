@@ -265,6 +265,7 @@ public:
                    Kraken::BranchRecords & _branchRecords,
                    const bool _pipelined,
                    const bool _simExecLatency,
+                   const short _nSuperscalar,
                    FILE* stream = stdout);
     ~Logic();
 
@@ -2161,6 +2162,8 @@ private:
 
     unsigned long instrCount = 0;
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
+
+    const int nSuperscalar;
 
     Kraken::ReservationStation tmpRStation, rStation;
     unsigned short rsVacancy = 0;

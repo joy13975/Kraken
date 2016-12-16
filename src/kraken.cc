@@ -30,6 +30,7 @@ DECL_ARG_CALLBACK(enableBrandhPrediction) {
     }
 }
 DECL_ARG_CALLBACK(enableExecLatency) { options.simExecLatency = true; }
+DECL_ARG_CALLBACK(setSuperscalar) { options.nSuperscalar = parse_long(arg_in); }
 
 const argument_bundle argbv[] = {
     // necessary argument
@@ -55,6 +56,7 @@ const argument_bundle argbv[] = {
         enableBrandhPrediction
     },
     {"-el", "--execlatency", "Enable execution latency simulation", false, enableExecLatency},
+    {"-ss", "--superscalar <N_EU>", "Set number of superscalar units", true, setSuperscalar}
 };
 #define ARG_BUND_SIZE (sizeof(argbv) / sizeof(argbv[0]))
 

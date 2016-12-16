@@ -69,7 +69,8 @@ Proc::Proc(const Options &_options)
       logic(robHead,
             branchRecords,
             _options.pipelined,
-            _options.simExecLatency),
+            _options.simExecLatency,
+            _options.nSuperscalar),
       scribe(robHead, state)
 {
     currentProc = this;

@@ -284,7 +284,7 @@ void Logic::Execute()
     if (rStation.size() > 0)
     {
         int ssCount = 0;
-        while (rStation.size() > 0 && ssCount < 8)
+        while (rStation.size() > 0 && ssCount < nSuperscalar)
         {
             RobEntry * rc = rStation.front();
             const DecodedInstr & decInstr = rc->decInstr;
@@ -324,7 +324,7 @@ void Logic::Execute()
                     decInstr.ac, ActionCodeString[decInstr.ac]);
             }
 
-wrn("Here4\n");
+            wrn("Here4\n");
             robCursor->status = RobEntry::Status::Done;
 
             if (get_log_level() < LOG_MESSAGE)
@@ -393,11 +393,13 @@ Logic::Logic(Kraken::RobEntry * _robHead,
              Kraken::BranchRecords & _branchRecords,
              const bool _pipelined,
              const bool _simExecLatency,
+             const short _nSuperscalar,
              FILE* stream)
     : robCursor(_robHead),
       pipelined(_pipelined),
       simExecLatency(_simExecLatency),
-      branchRecords(_branchRecords)
+      branchRecords(_branchRecords),
+      nSuperscalar(_nSuperscalar)
 {
     // Ensure that shift operations act as the simulator expects.
     VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
