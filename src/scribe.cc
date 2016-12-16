@@ -36,14 +36,16 @@ void Scribe::computeComponent()
     nToPop = 0;
     RobEntry * tmp = robHead;
     while (tmp &&
-            (tmp->status == RobEntry::Status::Done ||
+            (tmp->status == RobEntry::Status::CanKill ||
              tmp->status == RobEntry::Status::Invalid))
     {
+        wrn("Could pop %p for status %d\n",
+            tmp->decInstr.instr, tmp->status);
         nToPop++;
         tmp = tmp->successor;
     }
 
-    if(!tmp)
+    if (!tmp)
         nToPop--;
 
     dbg("   Scribe: could pop %d entries (%p)\n",

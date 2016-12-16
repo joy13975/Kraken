@@ -32,6 +32,7 @@
 #include "vixl/a64/logic-constants-a64.h"
 #include "vixl/a64/logic-memory-a64.h"
 #include "scripture.h"
+#include "util.h"
 
 namespace vixl
 {
@@ -53,28 +54,23 @@ public:
 
     void NotifyRegisterCommitted() { written_since_last_commit = false; }
 
-    void setScriptureList(std::vector<Kraken::Scripture> * sl) { scriptureList = sl; }
+    int id;
+    std::vector<Kraken::Scripture> * scriptureList = 0;
 
 protected:
-    void NotifyRegisterWrite() {
-        written_since_last_log_ = true;
-        written_since_last_commit = true;
-    };
-
-private:
     // Helpers to aid with register tracing.
     bool written_since_last_log_;
-
     bool written_since_last_commit;
 
-    std::vector<Kraken::Scripture> * scriptureList;
+    virtual void NotifyRegisterWrite() = 0;
 };
 
 // Represent a register (r0-r31, v0-v31).
 template <int kSizeInBytes>
 class SimRegisterBase : public ScribeReg {
 public:
-    SimRegisterBase() : ScribeReg() {}
+    SimRegisterBase() : ScribeReg() {
+    }
 
     // Write the specified value. The value is zero-extended if necessary.
     template <typename T>
@@ -113,6 +109,28 @@ public:
 
 protected:
     uint8_t value_[kSizeInBytes];
+
+    void NotifyRegisterWrite()
+    {
+        written_since_last_log_ = true;
+        written_since_last_commit = true;
+
+        if (scriptureList)
+        {
+            if (kSizeInBytes != 8 && kSizeInBytes != 16)
+                die("What size? %d\n", kSizeInBytes);
+
+            Kraken::Scripture s = Kraken::Scripture(
+                                      kSizeInBytes == 8 ?
+                                      Kraken::DestType::Reg :
+                                      Kraken::DestType::VReg,
+                                      id,
+                                      kSizeInBytes
+                                  );
+            s.fill(value_);
+            scriptureList->push_back(s);
+        }
+    };
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
 typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
@@ -125,7 +143,8 @@ class SimSystemRegister : public ScribeReg {
 public:
     // The default constructor represents a register which has no writable bits.
     // It is not possible to set its value to anything other than 0.
-    SimSystemRegister() : value_(0), write_ignore_mask_(0xffffffff) {}
+    SimSystemRegister()
+        : value_(0), write_ignore_mask_(0xffffffff) { }
 
     uint32_t RawValue() const { return value_; }
 
@@ -158,8 +177,7 @@ public:
 #undef DEFINE_ZERO_BITS
 #undef DEFINE_GETTER
 
-    void setScriptureList(std::vector<Kraken::Scripture> * sl) { scriptureList = sl; }
-
+    std::vector<Kraken::Scripture> * scriptureList;
 protected:
     // Most system registers only implement a few of the bits in the word. Other
     // bits are "read-as-zero, write-ignored". The write_ignore_mask argument
@@ -170,7 +188,23 @@ protected:
     uint32_t value_;
     uint32_t write_ignore_mask_;
 
-    std::vector<Kraken::Scripture> * scriptureList;
+    void NotifyRegisterWrite()
+    {
+        written_since_last_log_ = true;
+        written_since_last_commit = true;
+        if (id != -1 && id != -2)
+            die("What sys reg? %d\n", id);
+
+        Kraken::Scripture s = Kraken::Scripture(
+                                  id == -1 ?
+                                  Kraken::DestType::NZCV :
+                                  Kraken::DestType::FPCR,
+                                  id,
+                                  sizeof(uint32_t)
+                              );
+        s.fill((uint8_t*) &value_);
+        scriptureList->push_back(s);
+    };
 };
 
 

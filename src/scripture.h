@@ -1,21 +1,24 @@
 #ifndef _SCRIPTURE_H_
 #define _SCRIPTURE_H_
 
+#include "util.h"
+
 namespace Kraken
 {
+
+#define FOREACH_DESTTYPE(V) \
+    V(NZCV) \
+    V(FPCR) \
+    V(PC) \
+    V(Reg) \
+    V(VReg) \
+    V(Mem)
+
+GEN_ENUM_AND_STRING(DestType, DestTypeString, FOREACH_DESTTYPE);
 
 class Scripture
 {
 public:
-    enum DestType
-    {
-        NZCV,
-        FPCR,
-        PC,
-        REG,
-        VREG,
-        MEM
-    };
 
     Scripture() {};
 

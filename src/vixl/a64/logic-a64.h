@@ -48,7 +48,7 @@ namespace Kraken
 class Fetcher;
 } // namespace Kraken
 
-#define MAX_RSTATION_SIZE 4
+#define MAX_RSTATION_SIZE 12
 
 namespace vixl {
 
@@ -2168,6 +2168,18 @@ private:
     std::vector<Kraken::Scripture> scriptureList;
 
     void passScriptures(Kraken::RobEntry * rbe);
+    // std::vector<int> getReadRegs(const Kraken::DecodedInstr & decInstr);
+    // std::vector<int> getWriteRegs(const Kraken::DecodedInstr & decInstr);
+
+// #define DECL_READ_REG_FUNC(ITEM) \
+//     std::vector<int> RR##ITEM(const Instruction * instr);
+//     VISITOR_LIST(DECL_READ_REG_FUNC);
+// #undef DECL_READ_REG_FUNC
+
+// #define DECL_WRITE_REG_FUNC(ITEM) \
+//     std::vector<int> WR##ITEM(const Instruction * instr);
+//     VISITOR_LIST(DECL_WRITE_REG_FUNC);
+// #undef DECL_WRITE_REG_FUNC
 
     template <typename T>
     static T FPDefaultNaN();

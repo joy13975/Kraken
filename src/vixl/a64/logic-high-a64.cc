@@ -55,14 +55,22 @@ void Logic::hardResetComponent()
     decoder = 0;
 
     for (unsigned i = 0; i < kNumberOfRegisters; i++)
-        registers_[i].setScriptureList(&scriptureList);
+    {
+        registers_[i].id = i;
+        registers_[i].scriptureList = &scriptureList;
+    }
 
 
     for (unsigned i = 0; i < kNumberOfVRegisters; i++)
-        vregisters_[i].setScriptureList(&scriptureList);
+    {
+        vregisters_[i].id = i;
+        vregisters_[i].scriptureList = &scriptureList;
+    }
 
-    nzcv().setScriptureList(&scriptureList);
-    fpcr().setScriptureList(&scriptureList);
+    nzcv().id = -1;
+    nzcv().scriptureList = &scriptureList;
+    nzcv().id = -2;
+    fpcr().scriptureList = &scriptureList;
 }
 
 void Logic::softResetComponent()
@@ -76,6 +84,7 @@ void Logic::softResetComponent()
     cachedRobCursor = 0;
     tmpRStation.clear();
     rStation.clear();
+    scriptureList.clear();
 }
 
 void Logic::computeComponent()
@@ -107,15 +116,22 @@ void Logic::updateComponent()
         RobEntry * robCursor = rStation.front();
 
         // set status
-        robCursor->status = RobEntry::Status::Done;
+        while (robCursor->status == RobEntry::Status::Done)
+        {
+            robCursor->status = RobEntry::Status::CanKill;
+            if (!robCursor->successor)
+                break;
+            else
+                robCursor = robCursor->successor;
+        }
 
         // remove ptr from RS but still lives in roBuffer
-        rStation.pop_front();
+        // rStation.pop_front();
 
         // create and pass scriptures to robCursor
         // passScriptures(robCursor);
 
-        instrCount++;
+        // instrCount++;
         dbg("   Logic: instr %p completed\n", cachedRobCursor->decInstr.instr);
         dbg("   Logic: robCursor = %p\n", robCursor);
     }
@@ -172,25 +188,128 @@ void Logic::Execute()
 {
     using namespace Kraken;
 
-    // clear flags
+    scriptureList.clear();
     hasExecuted = false;
     newPc = 0; //only set if executed
 
+//     if (rStation.size() > 0)
+//     {
+//         bool branchFound = false;
+
+//         std::vector<RobEntry*> todo;
+//         std::vector<int> writes;
+
+//         for (RobEntry * re : rStation)
+//         {
+//             const DecodedInstr & decInstr = re->decInstr;
+//             const InstrPtr & instr = decInstr.instr;
+
+//             if (Decoder::isBranch(instr))
+//                 if (branchFound)
+//                     continue;
+//                 else
+//                     branchFound = true;
+
+//             // check nobody is writing to what this instr reads from
+//             std::vector<int> readFrom = getReadRegs(decInstr);
+
+//             bool hazard = false;
+//             for (const int rf : readFrom)
+//                 for (const int wt : writes)
+//                     if (hazard = (rf == wt))
+//                         break;
+
+//             if (hazard)
+//                 continue;
+
+//             std::vector<int> writeTo = getWriteRegs(decInstr);
+//             writes.insert(writes.end(), writeTo.begin(), writeTo.end());
+//             todo.push_back(re);
+//         }
+
+//         for (RobEntry * re : todo)
+//         {
+//             // logic assumes pc has been incremented
+//             const DecodedInstr & decInstr = re->decInstr;
+//             const Instruction *const oldPC = decInstr.instr->NextInstruction();
+//             set_pc(oldPC);
+
+//             prf("   Logic: tag: %s\n", ActionCodeString[decInstr.ac]);
+//             if (get_log_level() < LOG_MESSAGE)
+//                 LogAllWrittenRegisters();
+
+//             // execute instruction
+//             switch (decInstr.ac)
+//             {
+// #define GEN_AC_CASES(ITEM) \
+//             case AC_##ITEM: \
+//                 if (get_log_level() < LOG_MESSAGE) \
+//                     print_disasm_->Visit##ITEM(decInstr.instr); \
+//                 Visit##ITEM(decInstr.instr); \
+//                 break;
+
+//                 VISITOR_LIST(GEN_AC_CASES);
+// #undef GEN_AC_CASES
+//             default:
+//                 die("Unknown ActionCode: %d (%s)\n",
+//                     decInstr.ac, ActionCodeString[decInstr.ac]);
+//             }
+
+//             // simulate execution latency
+//             // readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
+//             wrn("EL is off\n");
+
+//             hasExecuted = true;
+//             dbg("   Logic: hasExecuted <- %d\n", hasExecuted);
+
+//             if (oldPC != pc_)
+//             {
+//                 newPc = pc_;
+//                 dbg("   Logic: newPc <- %p\n", newPc);
+//             }
+//             else
+//             {
+//                 dbg("   Logic: pc no change\n");
+//             }
+//             dbg("   Logic: re <- %p\n", re);
+//         }
+//     }
+//     else
+//     {
+//         dbg("   Logic: rStation empty\n");
+//         newPc = 0;
+//         robCursor = 0;
+//     }
+
     if (rStation.size() > 0)
     {
-        robCursor = rStation.front();
-
-        const DecodedInstr & decInstr = robCursor->decInstr;
-
-        // logic assumes pc has been incremented
-        const Instruction *const oldPC = decInstr.instr->NextInstruction();
-        set_pc(oldPC);
-
-        prf("Executing tag: %s\n", ActionCodeString[decInstr.ac]);
-
-        // execute instruction
-        switch (decInstr.ac)
+        int ssCount = 0;
+        while (rStation.size() > 0 && ssCount < 8)
         {
+            RobEntry * rc = rStation.front();
+            const DecodedInstr & decInstr = rc->decInstr;
+
+            bool isBranch = Decoder::isBranch(decInstr.instr);
+            if (ssCount > 0 && isBranch)
+                break;
+
+            robCursor = rc;
+
+
+            // remove ptr from RS but still lives in roBuffer
+            rStation.pop_front();
+
+            // logic assumes pc has been incremented
+            const Instruction *const oldPC = decInstr.instr->NextInstruction();
+            set_pc(oldPC);
+
+            prf("   Logic[%d]: execute tag: %s\n",
+                ssCount, ActionCodeString[decInstr.ac]);
+
+
+            // execute instruction
+            switch (decInstr.ac)
+            {
 #define GEN_AC_CASES(ITEM) \
             case AC_##ITEM: \
                 if (get_log_level() < LOG_MESSAGE) \
@@ -198,24 +317,33 @@ void Logic::Execute()
                 Visit##ITEM(decInstr.instr); \
                 break;
 
-            VISITOR_LIST(GEN_AC_CASES);
+                VISITOR_LIST(GEN_AC_CASES);
 #undef GEN_AC_CASES
-        default:
-            die("Unknown ActionCode: %d (%s)\n",
-                decInstr.ac, ActionCodeString[decInstr.ac]);
+            default:
+                die("Unknown ActionCode: %d (%s)\n",
+                    decInstr.ac, ActionCodeString[decInstr.ac]);
+            }
+
+wrn("Here4\n");
+            robCursor->status = RobEntry::Status::Done;
+
+            if (get_log_level() < LOG_MESSAGE)
+                LogAllWrittenRegisters();
+
+            // simulate execution latency
+            readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
+
+            hasExecuted = true;
+            dbg("   Logic[%d]: hasExecuted <- %d\n", ssCount, hasExecuted);
+            newPc = pc_;
+            dbg("   Logic[%d]: newPc <- %p\n", ssCount, newPc);
+            dbg("   Logic[%d]: robCursor <- %p\n", ssCount, robCursor);
+            instrCount++;
+            ssCount++;
+
+            if (isBranch)
+                break;
         }
-
-        if (get_log_level() < LOG_MESSAGE)
-            LogAllWrittenRegisters();
-
-        // simulate execution latency
-        readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
-
-        hasExecuted = true;
-        dbg("   Logic: hasExecuted <- %d\n", hasExecuted);
-        newPc = pc_;
-        dbg("   Logic: newPc <- %p\n", newPc);
-        dbg("   Logic: robCursor <- %p\n", robCursor);
     }
     else
     {
@@ -229,30 +357,37 @@ void Logic::passScriptures(Kraken::RobEntry * rbe)
 {
     using namespace Kraken;
 
-    // for (unsigned i = 0; i < kNumberOfRegisters; i++)
-    //     if (registers_[i].WrittenSinceLastCommit())
-    //         rbe->addScripture(
-    //             Scripture(
-    //                 Scripture::DestType::REG,
-    //                 i,
-    //                 kXRegSizeInBytes
-    //             )
-    //         );
-
-
-    // for (unsigned i = 0; i < kNumberOfVRegisters; i++)
-    //     if (vregisters_[i].WrittenSinceLastCommit())
-    //         rbe->addScripture(
-    //             Scripture(
-    //                 Scripture::DestType::VREG,
-    //                 i,
-    //                 kXRegSizeInBytes
-    //             )
-    //         );
-
-    // PrintSystemRegister(NZCV);
-    // PrintSystemRegister(FPCR);
+    for (const Scripture & s : scriptureList)
+    {
+        wrn("Hi: %s, addr %d, %d bytes, val at %p\n",
+            DestTypeString[s.type],
+            s.addr, s.szBytes, s.value);
+    }
 }
+
+// std::vector<int> Logic::getReadRegs(const Kraken::DecodedInstr & decInstr)
+// {
+//     switch (decInstr.ac)
+//     {
+// #define GEN_READ_REG_FUNC(ITEM) \
+//             case Kraken::ActionCode::AC_##ITEM: \
+//                 return RR##ITEM(decInstr.instr);
+//         VISITOR_LIST(GEN_READ_REG_FUNC);
+// #undef GEN_READ_REG_FUNC
+//     }
+// }
+
+// std::vector<int> Logic::getWriteRegs(const Kraken::DecodedInstr & decInstr)
+// {
+//     switch (decInstr.ac)
+//     {
+// #define GEN_WRITE_REG_FUNC(ITEM) \
+//             case Kraken::ActionCode::AC_##ITEM: \
+//                 return WR##ITEM(decInstr.instr);
+//         VISITOR_LIST(GEN_WRITE_REG_FUNC);
+// #undef GEN_WRITE_REG_FUNC
+//     }
+// }
 
 Logic::Logic(Kraken::RobEntry * _robHead,
              Kraken::BranchRecords & _branchRecords,
@@ -355,7 +490,6 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
         return SimSystemRegister();
     }
 }
-
 
 
 const char* Logic::xreg_names[] = {"x0",  "x1",  "x2",  "x3",  "x4",  "x5",
@@ -492,7 +626,6 @@ void Logic::VisitUnimplemented(const Instruction* instr) {
     VIXL_UNIMPLEMENTED();
 }
 
-
 void Logic::VisitUnallocated(const Instruction* instr) {
     printf("Unallocated instruction at %p: 0x%08" PRIx32 "\n",
            reinterpret_cast<const void*>(instr),
@@ -500,14 +633,12 @@ void Logic::VisitUnallocated(const Instruction* instr) {
     VIXL_UNIMPLEMENTED();
 }
 
-
 void Logic::VisitPCRelAddressing(const Instruction* instr) {
     VIXL_ASSERT((instr->Mask(PCRelAddressingMask) == ADR) ||
                 (instr->Mask(PCRelAddressingMask) == ADRP));
 
     set_reg(instr->Rd(), instr->ImmPCOffsetTarget());
 }
-
 
 void Logic::VisitUnconditionalBranch(const Instruction* instr) {
     switch (instr->Mask(UnconditionalBranchMask)) {
@@ -522,14 +653,12 @@ void Logic::VisitUnconditionalBranch(const Instruction* instr) {
     }
 }
 
-
 void Logic::VisitConditionalBranch(const Instruction* instr) {
     VIXL_ASSERT(instr->Mask(ConditionalBranchMask) == B_cond);
     if (ConditionPassed(instr->ConditionBranch())) {
         set_pc(instr->ImmPCOffsetTarget());
     }
 }
-
 
 void Logic::VisitUnconditionalBranchToRegister(const Instruction* instr) {
     const Instruction* target = Instruction::Cast(xreg(instr->Rn()));
@@ -546,7 +675,6 @@ void Logic::VisitUnconditionalBranchToRegister(const Instruction* instr) {
         VIXL_UNREACHABLE();
     }
 }
-
 
 void Logic::VisitTestBranch(const Instruction* instr) {
     unsigned bit_pos =
