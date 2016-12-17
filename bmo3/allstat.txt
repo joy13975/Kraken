@@ -1,0 +1,44 @@
+Stat: 
+  33 
+  45 //
+  64 //APP
+  64 //NO_APP
+  41 add
+   7 adrp
+  26 b
+   1 b.eq
+   5 b.gt
+   1 b.le
+   1 b.ls
+   5 b.lt
+   3 b.ne
+  11 bl
+  14 cmp
+   1 cset
+   1 fadd
+   3 fcmp
+   2 fcvt
+   3 fdiv
+   1 fsub
+   8 ldp
+  91 ldr
+  16 ldur
+  12 lsl
+  25 mov
+   4 movn
+  19 movz
+   4 msub
+   5 mul
+  64 nop
+  36 orr
+  13 ret
+   4 scvtf
+   5 sdiv
+   8 stp
+  63 str
+   7 stur
+  13 sub
+   3 subs
+  12 sxtw
+Unique Insns: 
+      41

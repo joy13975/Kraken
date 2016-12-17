@@ -12,15 +12,23 @@
 
 #include "bit_util.h"
 #include "util.h"
-#include "scripture.h"
 
-#include "vixl/a64/instructions-a64.h"
+#include "vixl/a64/logic-regs-a64.h"
 #include "visits.h"
 
 namespace Kraken
 {
 
 typedef const vixl::Instruction* InstrPtr;
+
+struct State
+{
+    InstrPtr pc = 0;
+    vixl::SimRegister               regs[vixl::kNumberOfRegisters];
+    vixl::SimVRegister              vregs[vixl::kNumberOfVRegisters];
+    vixl::SimSystemRegister         nzcv;
+    vixl::SimSystemRegister         fpcr;
+};
 
 struct DecodedInstr
 {
@@ -36,10 +44,9 @@ class RobEntry
 public:
     enum Status
     {
-        Issued,
+        Idle,
         Waiting,
-        Dispatchable,
-        InFlight,
+        InProgress,
         Done,
         CanKill,
         Invalid
@@ -48,18 +55,14 @@ public:
     RobEntry()
         : decInstr((ActionCode) 0, 0),
           status(Invalid),
-          successor(0) {} // place holder (for first instr)
-
+          successor(0) {}
     RobEntry(const DecodedInstr _decInstr)
-        : decInstr(_decInstr) {} // idle (issued) istr
-
+        : decInstr(_decInstr) {}
     RobEntry(const RobEntry & other)
         : decInstr(other.decInstr),
           status(other.status),
           successor(other.successor),
-          inList(other.inList),
-          outList(other.outList),
-          consulted(other.consulted) {}
+          scriptureList(other.scriptureList) {}
     RobEntry& operator=(const RobEntry& other)
     {
         if (this == &other)
@@ -68,22 +71,27 @@ public:
         decInstr = other.decInstr;
         status = other.status;
         successor = other.successor;
-        inList = other.inList;
-        outList = other.outList;
-        consulted = other.consulted;
+        scriptureList = other.scriptureList;
 
         return *this;
     }
     virtual ~RobEntry() {};
 
+    void setScriptureList(const std::vector<Scripture> & s)
+    {
+        scriptureList = s;
+    }
+    const std::vector<Scripture> & getScriptureList() const
+    {
+        return scriptureList;
+    }
+
     DecodedInstr decInstr;
-    Status status = Issued;
+    Status status = Idle;
     RobEntry * successor = 0;
-    std::vector<Scripture*> inList;
-    std::vector<Scripture*> outList;
-    bool consulted = false;
 
 private:
+    std::vector<Scripture> scriptureList;
 };
 
 typedef std::deque<RobEntry *> ReservationStation;
@@ -109,7 +117,6 @@ typedef struct
     short nBPBits                   = 5;
     BranchPredictionMode bpMode     = NoneMode;
 
-    int maxRStationSize             = 16;
     short nSuperscalar              = 1;
     std::vector<uintptr_t> bpoints;
 } Options;

@@ -1,5 +1,5 @@
 To compile:
-    make
+    make clean; make
 
 To list run options:
     ./kraken --help

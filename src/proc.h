@@ -10,7 +10,6 @@
 #include "fetcher.h"
 #include "scribe.h"
 #include "component_base.h"
-#include "state.h"
 
 #include "vixl/a64/decoder-a64.h"
 #include "vixl/a64/logic-a64.h"

@@ -32,22 +32,9 @@
 
 namespace vixl {
 
-void Logic::clearRegSpt()
-{
-    for (unsigned i = 0; i < kNumberOfRegisters; i++)
-        registers_[i].clearLastSpt();
-
-    for (unsigned i = 0; i < kNumberOfVRegisters; i++)
-        vregisters_[i].clearLastSpt();
-
-    nzcv().clearLastSpt();
-    fpcr().clearLastSpt();
-    memory.clearLastSpt();
-}
-
 void Logic::receiveIssue(Kraken::RobEntry * rbe)
 {
-    if (tmpRStation.size() >= maxRStationSize)
+    if (tmpRStation.size() >= MAX_RSTATION_SIZE)
         die("Tried to overflow reservation station\n");
 
     tmpRStation.push_back(rbe);
@@ -71,36 +58,19 @@ void Logic::hardResetComponent()
     {
         registers_[i].id = i;
         registers_[i].scriptureList = &scriptureList;
-        registers_[i].consultMode = &consultMode;
-        registers_[i].memory = &memory;
-        registers_[i].consultorPtr = &consultor;
     }
+
 
     for (unsigned i = 0; i < kNumberOfVRegisters; i++)
     {
         vregisters_[i].id = i;
         vregisters_[i].scriptureList = &scriptureList;
-        vregisters_[i].consultMode = &consultMode;
-        vregisters_[i].memory = &memory;
-        vregisters_[i].consultorPtr = &consultor;
     }
 
     nzcv().id = -1;
     nzcv().scriptureList = &scriptureList;
-    nzcv().consultMode = &consultMode;
-    nzcv().memory = &memory;
-    nzcv().consultorPtr = &consultor;
-
-    fpcr().id = -2;
+    nzcv().id = -2;
     fpcr().scriptureList = &scriptureList;
-    fpcr().consultMode = &consultMode;
-    fpcr().memory = &memory;
-    fpcr().consultorPtr = &consultor;
-
-    memory.consultMode = &consultMode;
-    memory.consultorPtr = &consultor;
-
-    clearRegSpt();
 }
 
 void Logic::softResetComponent()
@@ -136,55 +106,34 @@ void Logic::updateComponent()
     cachedRobCursor = robCursor;
     dbg("   Logic: cachedRobCursor <- %p\n", cachedRobCursor);
     rStation.insert(rStation.end(), tmpRStation.begin(), tmpRStation.end());
-    rsVacancy = maxRStationSize - rStation.size();
+    rsVacancy = MAX_RSTATION_SIZE - rStation.size();
     tmpRStation.clear();
     dbg("   Logic: rStation size <- %d, rsVacancy <- %d\n",
         rStation.size(), rsVacancy);
 
-    if (readyCountdown <= 0)
+    if (readyCountdown == 0)
     {
-        if (cachedHasExecuted)
+        RobEntry * robCursor = rStation.front();
+
+        // set status
+        while (robCursor->status == RobEntry::Status::Done)
         {
-            std::deque<RobEntry*>::iterator rStationItr = rStation.begin();
-            int retired = 0;
-            while (rStationItr != rStation.end())
-            {
-                if ((*rStationItr)->status == RobEntry::InFlight)
-                {
-                    retired++;
-                    rStationItr = rStation.erase(rStationItr);
-                }
-                else
-                {
-                    ++rStationItr;
-                }
-            }
-
-            dbg("   Logic: retired %d instrs\n", retired);
-
-            RobEntry * robCursor = rStation.front();
-
-            // set status
-            while (robCursor->status == RobEntry::Status::Done)
-            {
-                robCursor->status = RobEntry::Status::CanKill;
-                if (!robCursor->successor)
-                    break;
-                else
-                    robCursor = robCursor->successor;
-            }
-
-            // create and pass scriptures to robCursor
-            // passScriptures(robCursor);
-
-            // instrCount++;
-            dbg("   Logic: instr %p completed\n", cachedRobCursor->decInstr.instr);
-            dbg("   Logic: robCursor = %p\n", robCursor);
+            robCursor->status = RobEntry::Status::CanKill;
+            if (!robCursor->successor)
+                break;
+            else
+                robCursor = robCursor->successor;
         }
-    }
-    else
-    {
-        dbg("   Logic: %d cycles until ready\n", readyCountdown);
+
+        // remove ptr from RS but still lives in roBuffer
+        // rStation.pop_front();
+
+        // create and pass scriptures to robCursor
+        // passScriptures(robCursor);
+
+        // instrCount++;
+        dbg("   Logic: instr %p completed\n", cachedRobCursor->decInstr.instr);
+        dbg("   Logic: robCursor = %p\n", robCursor);
     }
 }
 
@@ -221,7 +170,6 @@ void Logic::syncComponent()
             decoder->softReset();
             tmpRStation.clear();
             rStation.clear();
-            clearRegSpt();
 
             while (robCursor->successor)
             {
@@ -244,88 +192,122 @@ void Logic::Execute()
     hasExecuted = false;
     newPc = 0; //only set if executed
 
+//     if (rStation.size() > 0)
+//     {
+//         bool branchFound = false;
+
+//         std::vector<RobEntry*> todo;
+//         std::vector<int> writes;
+
+//         for (RobEntry * re : rStation)
+//         {
+//             const DecodedInstr & decInstr = re->decInstr;
+//             const InstrPtr & instr = decInstr.instr;
+
+//             if (Decoder::isBranch(instr))
+//                 if (branchFound)
+//                     continue;
+//                 else
+//                     branchFound = true;
+
+//             // check nobody is writing to what this instr reads from
+//             std::vector<int> readFrom = getReadRegs(decInstr);
+
+//             bool hazard = false;
+//             for (const int rf : readFrom)
+//                 for (const int wt : writes)
+//                     if (hazard = (rf == wt))
+//                         break;
+
+//             if (hazard)
+//                 continue;
+
+//             std::vector<int> writeTo = getWriteRegs(decInstr);
+//             writes.insert(writes.end(), writeTo.begin(), writeTo.end());
+//             todo.push_back(re);
+//         }
+
+//         for (RobEntry * re : todo)
+//         {
+//             // logic assumes pc has been incremented
+//             const DecodedInstr & decInstr = re->decInstr;
+//             const Instruction *const oldPC = decInstr.instr->NextInstruction();
+//             set_pc(oldPC);
+
+//             prf("   Logic: tag: %s\n", ActionCodeString[decInstr.ac]);
+//             if (get_log_level() < LOG_MESSAGE)
+//                 LogAllWrittenRegisters();
+
+//             // execute instruction
+//             switch (decInstr.ac)
+//             {
+// #define GEN_AC_CASES(ITEM) \
+//             case AC_##ITEM: \
+//                 if (get_log_level() < LOG_MESSAGE) \
+//                     print_disasm_->Visit##ITEM(decInstr.instr); \
+//                 Visit##ITEM(decInstr.instr); \
+//                 break;
+
+//                 VISITOR_LIST(GEN_AC_CASES);
+// #undef GEN_AC_CASES
+//             default:
+//                 die("Unknown ActionCode: %d (%s)\n",
+//                     decInstr.ac, ActionCodeString[decInstr.ac]);
+//             }
+
+//             // simulate execution latency
+//             // readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
+//             wrn("EL is off\n");
+
+//             hasExecuted = true;
+//             dbg("   Logic: hasExecuted <- %d\n", hasExecuted);
+
+//             if (oldPC != pc_)
+//             {
+//                 newPc = pc_;
+//                 dbg("   Logic: newPc <- %p\n", newPc);
+//             }
+//             else
+//             {
+//                 dbg("   Logic: pc no change\n");
+//             }
+//             dbg("   Logic: re <- %p\n", re);
+//         }
+//     }
+//     else
+//     {
+//         dbg("   Logic: rStation empty\n");
+//         newPc = 0;
+//         robCursor = 0;
+//     }
+
     if (rStation.size() > 0)
     {
-        // pretend to execute instruction
-        consultMode = true;
-        set_trace_parameters(LOG_NONE);
-
-        int passed = 0;
-        for (RobEntry * rc : rStation)
+        int ssCount = 0;
+        while (rStation.size() > 0 && ssCount < nSuperscalar)
         {
+            RobEntry * rc = rStation.front();
             const DecodedInstr & decInstr = rc->decInstr;
 
-            consultor = rc;
-            dbg("   Logic: consult tag: %s\n",
-                ActionCodeString[decInstr.ac]);
-
-            if (!rc->consulted)
-            {
-                // consult registers for scriptures
-                switch (decInstr.ac)
-                {
-#define GEN_AC_CASES(ITEM) \
-            case AC_##ITEM: \
-                Visit##ITEM(decInstr.instr); \
+            bool isBranch = Decoder::isBranch(decInstr.instr);
+            if (ssCount > 0 && isBranch)
                 break;
-
-                    VISITOR_LIST(GEN_AC_CASES);
-#undef GEN_AC_CASES
-                default:
-                    die("Unknown ActionCode: %d (%s)\n",
-                        decInstr.ac, ActionCodeString[decInstr.ac]);
-                }
-                rc->consulted = true;
-            }
-
-            // are all of its inList ready now?
-            bool mustWait = false;
-            for (Scripture *& s : rc->inList)
-                if (mustWait |= !s->ready)
-                {
-                    wrn("Instr %p is waiting for R%d (%p)\n",
-                        decInstr.instr, s->addr, s);
-                    // break;
-                }
-
-            if (mustWait)
-            {
-                rc->status = RobEntry::Status::Waiting;
-            }
-            else
-            {
-                passed++;
-                rc->status = RobEntry::Status::Dispatchable;
-                prf("Instr %p is go\n", decInstr.instr);
-            }
-        }
-
-        consultMode = false;
-
-        if (get_log_level() < LOG_MESSAGE)
-            set_trace_parameters(LOG_ALL);
-
-        int dispatched = 0;
-        for (RobEntry * rc : rStation)
-        {
-            if (dispatched >= nSuperscalar)
-                break;
-            if (rc->status != RobEntry::Dispatchable)
-                continue;
-
-            const DecodedInstr & decInstr = rc->decInstr;
 
             robCursor = rc;
+
+
+            // remove ptr from RS but still lives in roBuffer
+            rStation.pop_front();
 
             // logic assumes pc has been incremented
             const Instruction *const oldPC = decInstr.instr->NextInstruction();
             set_pc(oldPC);
 
             prf("   Logic[%d]: execute tag: %s\n",
-                dispatched, ActionCodeString[decInstr.ac]);
+                ssCount, ActionCodeString[decInstr.ac]);
 
-            consultor = rc;
 
+            // execute instruction
             switch (decInstr.ac)
             {
 #define GEN_AC_CASES(ITEM) \
@@ -342,28 +324,26 @@ void Logic::Execute()
                     decInstr.ac, ActionCodeString[decInstr.ac]);
             }
 
+            wrn("Here4\n");
+            robCursor->status = RobEntry::Status::Done;
+
             if (get_log_level() < LOG_MESSAGE)
                 LogAllWrittenRegisters();
 
             // simulate execution latency
             readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
 
-            robCursor->status = RobEntry::Status::Done;
-
             hasExecuted = true;
-            dbg("   Logic[%d]: hasExecuted <- %d\n", dispatched, hasExecuted);
+            dbg("   Logic[%d]: hasExecuted <- %d\n", ssCount, hasExecuted);
             newPc = pc_;
-            dbg("   Logic[%d]: newPc <- %p\n", dispatched, newPc);
-            dbg("   Logic[%d]: robCursor <- %p\n", dispatched, robCursor);
+            dbg("   Logic[%d]: newPc <- %p\n", ssCount, newPc);
+            dbg("   Logic[%d]: robCursor <- %p\n", ssCount, robCursor);
             instrCount++;
-            dispatched++;
+            ssCount++;
 
-            rc->status = RobEntry::InFlight;
+            if (isBranch)
+                break;
         }
-
-        dbg("   Logic: dispatched %d instrs\n", dispatched);
-        dbg("   Logic: readyCountdown <- %d\n", readyCountdown);
-        dbg("   Logic: rStation size: %d\n", rStation.size());
     }
     else
     {
@@ -380,7 +360,7 @@ void Logic::passScriptures(Kraken::RobEntry * rbe)
     for (const Scripture & s : scriptureList)
     {
         wrn("Hi: %s, addr %d, %d bytes, val at %p\n",
-            SinkTypeString[s.type],
+            DestTypeString[s.type],
             s.addr, s.szBytes, s.value);
     }
 }
@@ -413,13 +393,11 @@ Logic::Logic(Kraken::RobEntry * _robHead,
              Kraken::BranchRecords & _branchRecords,
              const bool _pipelined,
              const bool _simExecLatency,
-             const int _maxRStationSize,
              const short _nSuperscalar,
              FILE* stream)
     : robCursor(_robHead),
       pipelined(_pipelined),
       simExecLatency(_simExecLatency),
-      maxRStationSize(_maxRStationSize),
       branchRecords(_branchRecords),
       nSuperscalar(_nSuperscalar)
 {
@@ -489,6 +467,18 @@ Logic::~Logic() {
 }
 
 const Instruction* Logic::kEndOfSimAddress = NULL;
+
+void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
+    int width = msb - lsb + 1;
+    VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+
+    bits <<= lsb;
+    uint32_t mask = ((1 << width) - 1) << lsb;
+    VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+
+    value_ = (value_ & ~mask) | (bits & mask);
+    NotifyRegisterWrite();
+}
 
 
 SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
@@ -667,7 +657,6 @@ void Logic::VisitUnconditionalBranch(const Instruction* instr) {
 
 void Logic::VisitConditionalBranch(const Instruction* instr) {
     VIXL_ASSERT(instr->Mask(ConditionalBranchMask) == B_cond);
-    wrn("condition pass? %d\n", ConditionPassed(instr->ConditionBranch()));
     if (ConditionPassed(instr->ConditionBranch())) {
         set_pc(instr->ImmPCOffsetTarget());
     }
@@ -924,32 +913,32 @@ void Logic::VisitLoadStoreExclusive(const Instruction* instr) {
         case LDXRB_w:
         case LDAXRB_w:
         case LDARB_w:
-            set_wreg(rt, memory.Read<uint8_t>(address), NoRegLog);
+            set_wreg(rt, Memory::Read<uint8_t>(address), NoRegLog);
             break;
         case LDXRH_w:
         case LDAXRH_w:
         case LDARH_w:
-            set_wreg(rt, memory.Read<uint16_t>(address), NoRegLog);
+            set_wreg(rt, Memory::Read<uint16_t>(address), NoRegLog);
             break;
         case LDXR_w:
         case LDAXR_w:
         case LDAR_w:
-            set_wreg(rt, memory.Read<uint32_t>(address), NoRegLog);
+            set_wreg(rt, Memory::Read<uint32_t>(address), NoRegLog);
             break;
         case LDXR_x:
         case LDAXR_x:
         case LDAR_x:
-            set_xreg(rt, memory.Read<uint64_t>(address), NoRegLog);
+            set_xreg(rt, Memory::Read<uint64_t>(address), NoRegLog);
             break;
         case LDXP_w:
         case LDAXP_w:
-            set_wreg(rt, memory.Read<uint32_t>(address), NoRegLog);
-            set_wreg(rt2, memory.Read<uint32_t>(address + element_size), NoRegLog);
+            set_wreg(rt, Memory::Read<uint32_t>(address), NoRegLog);
+            set_wreg(rt2, Memory::Read<uint32_t>(address + element_size), NoRegLog);
             break;
         case LDXP_x:
         case LDAXP_x:
-            set_xreg(rt, memory.Read<uint64_t>(address), NoRegLog);
-            set_xreg(rt2, memory.Read<uint64_t>(address + element_size), NoRegLog);
+            set_xreg(rt, Memory::Read<uint64_t>(address), NoRegLog);
+            set_xreg(rt2, Memory::Read<uint64_t>(address + element_size), NoRegLog);
             break;
         default:
             VIXL_UNREACHABLE();
@@ -990,32 +979,32 @@ void Logic::VisitLoadStoreExclusive(const Instruction* instr) {
             case STXRB_w:
             case STLXRB_w:
             case STLRB_w:
-                memory.Write<uint8_t>(address, wreg(rt));
+                Memory::Write<uint8_t>(address, wreg(rt));
                 break;
             case STXRH_w:
             case STLXRH_w:
             case STLRH_w:
-                memory.Write<uint16_t>(address, wreg(rt));
+                Memory::Write<uint16_t>(address, wreg(rt));
                 break;
             case STXR_w:
             case STLXR_w:
             case STLR_w:
-                memory.Write<uint32_t>(address, wreg(rt));
+                Memory::Write<uint32_t>(address, wreg(rt));
                 break;
             case STXR_x:
             case STLXR_x:
             case STLR_x:
-                memory.Write<uint64_t>(address, xreg(rt));
+                Memory::Write<uint64_t>(address, xreg(rt));
                 break;
             case STXP_w:
             case STLXP_w:
-                memory.Write<uint32_t>(address, wreg(rt));
-                memory.Write<uint32_t>(address + element_size, wreg(rt2));
+                Memory::Write<uint32_t>(address, wreg(rt));
+                Memory::Write<uint32_t>(address + element_size, wreg(rt2));
                 break;
             case STXP_x:
             case STLXP_x:
-                memory.Write<uint64_t>(address, xreg(rt));
-                memory.Write<uint64_t>(address + element_size, xreg(rt2));
+                Memory::Write<uint64_t>(address, xreg(rt));
+                Memory::Write<uint64_t>(address + element_size, xreg(rt2));
                 break;
             default:
                 VIXL_UNREACHABLE();
@@ -1043,27 +1032,27 @@ void Logic::VisitLoadLiteral(const Instruction* instr) {
     // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_VREGS), then
     // print a more detailed log.
     case LDR_w_lit:
-        set_wreg(rt, memory.Read<uint32_t>(address), NoRegLog);
+        set_wreg(rt, Memory::Read<uint32_t>(address), NoRegLog);
         LogRead(address, rt, kPrintWReg);
         break;
     case LDR_x_lit:
-        set_xreg(rt, memory.Read<uint64_t>(address), NoRegLog);
+        set_xreg(rt, Memory::Read<uint64_t>(address), NoRegLog);
         LogRead(address, rt, kPrintXReg);
         break;
     case LDR_s_lit:
-        set_sreg(rt, memory.Read<float>(address), NoRegLog);
+        set_sreg(rt, Memory::Read<float>(address), NoRegLog);
         LogVRead(address, rt, kPrintSReg);
         break;
     case LDR_d_lit:
-        set_dreg(rt, memory.Read<double>(address), NoRegLog);
+        set_dreg(rt, Memory::Read<double>(address), NoRegLog);
         LogVRead(address, rt, kPrintDReg);
         break;
     case LDR_q_lit:
-        set_qreg(rt, memory.Read<qreg_t>(address), NoRegLog);
+        set_qreg(rt, Memory::Read<qreg_t>(address), NoRegLog);
         LogVRead(address, rt, kPrintReg1Q);
         break;
     case LDRSW_x_lit:
-        set_xreg(rt, memory.Read<int32_t>(address), NoRegLog);
+        set_xreg(rt, Memory::Read<int32_t>(address), NoRegLog);
         LogRead(address, rt, kPrintWReg);
         break;
 
@@ -2076,7 +2065,7 @@ void Logic::SysOp_W(int op, int64_t val) {
     case CIVAC: {
         // Perform a dummy memory access to ensure that we have read access
         // to the specified address.
-        volatile uint8_t y = memory.Read<uint8_t>(val);
+        volatile uint8_t y = Memory::Read<uint8_t>(val);
         USE(y);
         // TODO: Implement "case ZVA:".
         break;
@@ -4749,74 +4738,74 @@ void Logic::LoadStoreHelper(const Instruction* instr,
     LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreMask));
     switch (op) {
     case LDRB_w:
-        set_wreg(srcdst, memory.Read<uint8_t>(address), NoRegLog);
+        set_wreg(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
         break;
     case LDRH_w:
-        set_wreg(srcdst, memory.Read<uint16_t>(address), NoRegLog);
+        set_wreg(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
         break;
     case LDR_w:
-        set_wreg(srcdst, memory.Read<uint32_t>(address), NoRegLog);
+        set_wreg(srcdst, Memory::Read<uint32_t>(address), NoRegLog);
         break;
     case LDR_x:
-        set_xreg(srcdst, memory.Read<uint64_t>(address), NoRegLog);
+        set_xreg(srcdst, Memory::Read<uint64_t>(address), NoRegLog);
         break;
     case LDRSB_w:
-        set_wreg(srcdst, memory.Read<int8_t>(address), NoRegLog);
+        set_wreg(srcdst, Memory::Read<int8_t>(address), NoRegLog);
         break;
     case LDRSH_w:
-        set_wreg(srcdst, memory.Read<int16_t>(address), NoRegLog);
+        set_wreg(srcdst, Memory::Read<int16_t>(address), NoRegLog);
         break;
     case LDRSB_x:
-        set_xreg(srcdst, memory.Read<int8_t>(address), NoRegLog);
+        set_xreg(srcdst, Memory::Read<int8_t>(address), NoRegLog);
         break;
     case LDRSH_x:
-        set_xreg(srcdst, memory.Read<int16_t>(address), NoRegLog);
+        set_xreg(srcdst, Memory::Read<int16_t>(address), NoRegLog);
         break;
     case LDRSW_x:
-        set_xreg(srcdst, memory.Read<int32_t>(address), NoRegLog);
+        set_xreg(srcdst, Memory::Read<int32_t>(address), NoRegLog);
         break;
     case LDR_b:
-        set_breg(srcdst, memory.Read<uint8_t>(address), NoRegLog);
+        set_breg(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
         break;
     case LDR_h:
-        set_hreg(srcdst, memory.Read<uint16_t>(address), NoRegLog);
+        set_hreg(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
         break;
     case LDR_s:
-        set_sreg(srcdst, memory.Read<float>(address), NoRegLog);
+        set_sreg(srcdst, Memory::Read<float>(address), NoRegLog);
         break;
     case LDR_d:
-        set_dreg(srcdst, memory.Read<double>(address), NoRegLog);
+        set_dreg(srcdst, Memory::Read<double>(address), NoRegLog);
         break;
     case LDR_q:
-        set_qreg(srcdst, memory.Read<qreg_t>(address), NoRegLog);
+        set_qreg(srcdst, Memory::Read<qreg_t>(address), NoRegLog);
         break;
 
     case STRB_w:
-        memory.Write<uint8_t>(address, wreg(srcdst));
+        Memory::Write<uint8_t>(address, wreg(srcdst));
         break;
     case STRH_w:
-        memory.Write<uint16_t>(address, wreg(srcdst));
+        Memory::Write<uint16_t>(address, wreg(srcdst));
         break;
     case STR_w:
-        memory.Write<uint32_t>(address, wreg(srcdst));
+        Memory::Write<uint32_t>(address, wreg(srcdst));
         break;
     case STR_x:
-        memory.Write<uint64_t>(address, xreg(srcdst));
+        Memory::Write<uint64_t>(address, xreg(srcdst));
         break;
     case STR_b:
-        memory.Write<uint8_t>(address, breg(srcdst));
+        Memory::Write<uint8_t>(address, breg(srcdst));
         break;
     case STR_h:
-        memory.Write<uint16_t>(address, hreg(srcdst));
+        Memory::Write<uint16_t>(address, hreg(srcdst));
         break;
     case STR_s:
-        memory.Write<float>(address, sreg(srcdst));
+        Memory::Write<float>(address, sreg(srcdst));
         break;
     case STR_d:
-        memory.Write<double>(address, dreg(srcdst));
+        Memory::Write<double>(address, dreg(srcdst));
         break;
     case STR_q:
-        memory.Write<qreg_t>(address, qreg(srcdst));
+        Memory::Write<qreg_t>(address, qreg(srcdst));
         break;
 
     // Ignore prfm hint instructions.
@@ -4871,58 +4860,58 @@ void Logic::LoadStorePairHelper(const Instruction* instr,
     // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
     // will print a more detailed log.
     case LDP_w: {
-        set_wreg(rt, memory.Read<uint32_t>(address), NoRegLog);
-        set_wreg(rt2, memory.Read<uint32_t>(address2), NoRegLog);
+        set_wreg(rt, Memory::Read<uint32_t>(address), NoRegLog);
+        set_wreg(rt2, Memory::Read<uint32_t>(address2), NoRegLog);
         break;
     }
     case LDP_s: {
-        set_sreg(rt, memory.Read<float>(address), NoRegLog);
-        set_sreg(rt2, memory.Read<float>(address2), NoRegLog);
+        set_sreg(rt, Memory::Read<float>(address), NoRegLog);
+        set_sreg(rt2, Memory::Read<float>(address2), NoRegLog);
         break;
     }
     case LDP_x: {
-        set_xreg(rt, memory.Read<uint64_t>(address), NoRegLog);
-        set_xreg(rt2, memory.Read<uint64_t>(address2), NoRegLog);
+        set_xreg(rt, Memory::Read<uint64_t>(address), NoRegLog);
+        set_xreg(rt2, Memory::Read<uint64_t>(address2), NoRegLog);
         break;
     }
     case LDP_d: {
-        set_dreg(rt, memory.Read<double>(address), NoRegLog);
-        set_dreg(rt2, memory.Read<double>(address2), NoRegLog);
+        set_dreg(rt, Memory::Read<double>(address), NoRegLog);
+        set_dreg(rt2, Memory::Read<double>(address2), NoRegLog);
         break;
     }
     case LDP_q: {
-        set_qreg(rt, memory.Read<qreg_t>(address), NoRegLog);
-        set_qreg(rt2, memory.Read<qreg_t>(address2), NoRegLog);
+        set_qreg(rt, Memory::Read<qreg_t>(address), NoRegLog);
+        set_qreg(rt2, Memory::Read<qreg_t>(address2), NoRegLog);
         break;
     }
     case LDPSW_x: {
-        set_xreg(rt, memory.Read<int32_t>(address), NoRegLog);
-        set_xreg(rt2, memory.Read<int32_t>(address2), NoRegLog);
+        set_xreg(rt, Memory::Read<int32_t>(address), NoRegLog);
+        set_xreg(rt2, Memory::Read<int32_t>(address2), NoRegLog);
         break;
     }
     case STP_w: {
-        memory.Write<uint32_t>(address, wreg(rt));
-        memory.Write<uint32_t>(address2, wreg(rt2));
+        Memory::Write<uint32_t>(address, wreg(rt));
+        Memory::Write<uint32_t>(address2, wreg(rt2));
         break;
     }
     case STP_s: {
-        memory.Write<float>(address, sreg(rt));
-        memory.Write<float>(address2, sreg(rt2));
+        Memory::Write<float>(address, sreg(rt));
+        Memory::Write<float>(address2, sreg(rt2));
         break;
     }
     case STP_x: {
-        memory.Write<uint64_t>(address, xreg(rt));
-        memory.Write<uint64_t>(address2, xreg(rt2));
+        Memory::Write<uint64_t>(address, xreg(rt));
+        Memory::Write<uint64_t>(address2, xreg(rt2));
         break;
     }
     case STP_d: {
-        memory.Write<double>(address, dreg(rt));
-        memory.Write<double>(address2, dreg(rt2));
+        Memory::Write<double>(address, dreg(rt));
+        Memory::Write<double>(address2, dreg(rt2));
         break;
     }
     case STP_q: {
-        memory.Write<qreg_t>(address, qreg(rt));
-        memory.Write<qreg_t>(address2, qreg(rt2));
+        Memory::Write<qreg_t>(address, qreg(rt));
+        Memory::Write<qreg_t>(address2, qreg(rt2));
         break;
     }
     default:
@@ -5041,22 +5030,22 @@ void Logic::NEONLoadStoreMultiStructHelper(const Instruction* instr,
         break;
     case NEON_ST1_4v:
     case NEON_ST1_4v_post:
-        st1(vf, vreg(reg[3]), addr[3], &memory);
+        st1(vf, vreg(reg[3]), addr[3]);
         count++;
         VIXL_FALLTHROUGH();
     case NEON_ST1_3v:
     case NEON_ST1_3v_post:
-        st1(vf, vreg(reg[2]), addr[2], &memory);
+        st1(vf, vreg(reg[2]), addr[2]);
         count++;
         VIXL_FALLTHROUGH();
     case NEON_ST1_2v:
     case NEON_ST1_2v_post:
-        st1(vf, vreg(reg[1]), addr[1], &memory);
+        st1(vf, vreg(reg[1]), addr[1]);
         count++;
         VIXL_FALLTHROUGH();
     case NEON_ST1_1v:
     case NEON_ST1_1v_post:
-        st1(vf, vreg(reg[0]), addr[0], &memory);
+        st1(vf, vreg(reg[0]), addr[0]);
         log_read = false;
         break;
     case NEON_LD2_post:
@@ -5066,7 +5055,7 @@ void Logic::NEONLoadStoreMultiStructHelper(const Instruction* instr,
         break;
     case NEON_ST2:
     case NEON_ST2_post:
-        st2(vf, vreg(reg[0]), vreg(reg[1]), addr[0], &memory);
+        st2(vf, vreg(reg[0]), vreg(reg[1]), addr[0]);
         count = 2;
         break;
     case NEON_LD3_post:
@@ -5076,12 +5065,12 @@ void Logic::NEONLoadStoreMultiStructHelper(const Instruction* instr,
         break;
     case NEON_ST3:
     case NEON_ST3_post:
-        st3(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), addr[0], &memory);
+        st3(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), addr[0]);
         count = 3;
         break;
     case NEON_ST4:
     case NEON_ST4_post:
-        st4(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), vreg(reg[3]), addr[0], &memory);
+        st4(vf, vreg(reg[0]), vreg(reg[1]), vreg(reg[2]), vreg(reg[3]), addr[0]);
         count = 4;
         break;
     case NEON_LD4_post:
@@ -5269,7 +5258,7 @@ void Logic::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ld1(vf, vreg(rt), lane, addr);
             LogVRead(addr, rt, print_format, lane);
         } else {
-            st1(vf, vreg(rt), lane, addr, &memory);
+            st1(vf, vreg(rt), lane, addr);
             LogVWrite(addr, rt, print_format, lane);
         }
         break;
@@ -5280,7 +5269,7 @@ void Logic::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             LogVRead(addr, rt, print_format, lane);
             LogVRead(addr + esize, rt2, print_format, lane);
         } else {
-            st2(vf, vreg(rt), vreg(rt2), lane, addr, &memory);
+            st2(vf, vreg(rt), vreg(rt2), lane, addr);
             LogVWrite(addr, rt, print_format, lane);
             LogVWrite(addr + esize, rt2, print_format, lane);
         }
@@ -5293,7 +5282,7 @@ void Logic::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             LogVRead(addr + esize, rt2, print_format, lane);
             LogVRead(addr + (2 * esize), rt3, print_format, lane);
         } else {
-            st3(vf, vreg(rt), vreg(rt2), vreg(rt3), lane, addr, &memory);
+            st3(vf, vreg(rt), vreg(rt2), vreg(rt3), lane, addr);
             LogVWrite(addr, rt, print_format, lane);
             LogVWrite(addr + esize, rt2, print_format, lane);
             LogVWrite(addr + (2 * esize), rt3, print_format, lane);
@@ -5308,7 +5297,7 @@ void Logic::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             LogVRead(addr + (2 * esize), rt3, print_format, lane);
             LogVRead(addr + (3 * esize), rt4, print_format, lane);
         } else {
-            st4(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), lane, addr, &memory);
+            st4(vf, vreg(rt), vreg(rt2), vreg(rt3), vreg(rt4), lane, addr);
             LogVWrite(addr, rt, print_format, lane);
             LogVWrite(addr + esize, rt2, print_format, lane);
             LogVWrite(addr + (2 * esize), rt3, print_format, lane);

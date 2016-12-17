@@ -70,7 +70,6 @@ Proc::Proc(const Options &_options)
             branchRecords,
             _options.pipelined,
             _options.simExecLatency,
-            _options.maxRStationSize,
             _options.nSuperscalar),
       scribe(robHead, state)
 {

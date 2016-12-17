@@ -31,7 +31,6 @@ DECL_ARG_CALLBACK(enableBrandhPrediction) {
 }
 DECL_ARG_CALLBACK(enableExecLatency) { options.simExecLatency = true; }
 DECL_ARG_CALLBACK(setSuperscalar) { options.nSuperscalar = parse_long(arg_in); }
-DECL_ARG_CALLBACK(setRStationSize) { options.maxRStationSize = parse_long(arg_in); }
 
 const argument_bundle argbv[] = {
     // necessary argument
@@ -57,8 +56,7 @@ const argument_bundle argbv[] = {
         enableBrandhPrediction
     },
     {"-el", "--execlatency", "Enable execution latency simulation", false, enableExecLatency},
-    {"-ss", "--superscalar <N_EU>", "Set number of superscalar units", true, setSuperscalar},
-    {"-rs", "--reservestation <size>", "Set number of entries in RS", true, setRStationSize}
+    {"-ss", "--superscalar <N_EU>", "Set number of superscalar units", true, setSuperscalar}
 };
 #define ARG_BUND_SIZE (sizeof(argbv) / sizeof(argbv[0]))
 
@@ -67,12 +65,13 @@ DECL_ARG_CALLBACK(helpAndExit)
     raw("Kraken Processor Simulator\n");
     raw("Usage: ./kraken [INPUT] [OPTIONS]\n");
 
+    int count = 0;
     print_arg_title("INPUT:");
-    print_arg_bundles(argbv, 1);
+    print_arg_bundles(argbv, count += 1);
     print_arg_title("OPTIONS:");
-    print_arg_bundles(argbv + 1, 6);
+    print_arg_bundles(argbv + count, count += 6);
     print_arg_title("FEATURES:");
-    print_arg_bundles(argbv + 8, ARG_BUND_SIZE - 8);
+    print_arg_bundles(argbv + count, count += (ARG_BUND_SIZE - count));
 
     exit(1);
 }
