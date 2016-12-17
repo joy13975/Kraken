@@ -4,6 +4,7 @@
 #include "types.h"
 #include "util.h"
 #include "component_base.h"
+#include "state.h"
 
 namespace Kraken
 {
@@ -30,7 +31,7 @@ private:
     State & state;
     int nToPop, cachedNToPop;
 
-    void applyScripture(const Scripture & s);
+    void applyScripture(const Scripture * s);
 };
 
 } // namespace Kraken

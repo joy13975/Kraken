@@ -48,8 +48,6 @@ namespace Kraken
 class Fetcher;
 } // namespace Kraken
 
-#define MAX_RSTATION_SIZE 12
-
 namespace vixl {
 
 class Decoder;
@@ -265,6 +263,7 @@ public:
                    Kraken::BranchRecords & _branchRecords,
                    const bool _pipelined,
                    const bool _simExecLatency,
+                   const int _maxRStationSize,
                    const short _nSuperscalar,
                    FILE* stream = stdout);
     ~Logic();
@@ -291,6 +290,8 @@ public:
 
     void Execute();
 
+    void clearRegSpt();
+
     void ResetState();
 
     // Execution ends when the PC hits this address.
@@ -299,8 +300,9 @@ public:
     // Simulation helpers.
     const Instruction* pc() const { return pc_; }
     void set_pc(const Instruction* new_pc) {
-        pc_ = Memory::AddressUntag(new_pc);
+        pc_ = memory.AddressUntag(new_pc);
         pc_modified_ = true;
+        wrn("set_pc(): %p\n", pc_);
     }
 
     const Instruction* get_pc() {
@@ -314,10 +316,10 @@ public:
     }
 
     // register getters
-    const SimRegister *const getRegisters() { return registers_; };
-    const SimVRegister *const getVRegisters() { return vregisters_; };
-    const SimSystemRegister *const getNZCV() { return &nzcv_; };
-    const SimSystemRegister *const getFPCR() { return &fpcr_; };
+    SimRegister * getRegisters() { return registers_; };
+    SimVRegister * getVRegisters() { return vregisters_; };
+    SimSystemRegister * getNZCV() { return &nzcv_; };
+    SimSystemRegister * getFPCR() { return &fpcr_; };
 
 // Declare all Visitor functions.
 #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
@@ -334,7 +336,7 @@ public:
 
     // Basic accessor: Read the register as the specified type.
     template <typename T>
-    T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) {
         VIXL_ASSERT(code < kNumberOfRegisters);
         if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
             T result;
@@ -345,11 +347,11 @@ public:
     }
 
     // Common specialized accessors for the reg() template.
-    int32_t wreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    int32_t wreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) {
         return reg<int32_t>(code, r31mode);
     }
 
-    int64_t xreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    int64_t xreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) {
         return reg<int64_t>(code, r31mode);
     }
 
@@ -358,7 +360,7 @@ public:
     template <typename T>
     T reg(unsigned size,
           unsigned code,
-          Reg31Mode r31mode = Reg31IsZeroRegister) const {
+          Reg31Mode r31mode = Reg31IsZeroRegister) {
         uint64_t raw;
         switch (size) {
         case kWRegSize:
@@ -382,7 +384,7 @@ public:
     // Use int64_t by default if T is not specified.
     int64_t reg(unsigned size,
                 unsigned code,
-                Reg31Mode r31mode = Reg31IsZeroRegister) const {
+                Reg31Mode r31mode = Reg31IsZeroRegister) {
         return reg<int64_t>(size, code, r31mode);
     }
 
@@ -474,7 +476,7 @@ public:
 
     // Basic accessor: read the register as the specified type.
     template <typename T>
-    T vreg(unsigned code) const {
+    T vreg(unsigned code) {
         VIXL_STATIC_ASSERT(
             (sizeof(T) == kBRegSizeInBytes) || (sizeof(T) == kHRegSizeInBytes) ||
             (sizeof(T) == kSRegSizeInBytes) || (sizeof(T) == kDRegSizeInBytes) ||
@@ -485,24 +487,24 @@ public:
     }
 
     // Common specialized accessors for the vreg() template.
-    int8_t breg(unsigned code) const { return vreg<int8_t>(code); }
+    int8_t breg(unsigned code) { return vreg<int8_t>(code); }
 
-    int16_t hreg(unsigned code) const { return vreg<int16_t>(code); }
+    int16_t hreg(unsigned code) { return vreg<int16_t>(code); }
 
-    float sreg(unsigned code) const { return vreg<float>(code); }
+    float sreg(unsigned code) { return vreg<float>(code); }
 
-    uint32_t sreg_bits(unsigned code) const { return vreg<uint32_t>(code); }
+    uint32_t sreg_bits(unsigned code) { return vreg<uint32_t>(code); }
 
-    double dreg(unsigned code) const { return vreg<double>(code); }
+    double dreg(unsigned code) { return vreg<double>(code); }
 
-    uint64_t dreg_bits(unsigned code) const { return vreg<uint64_t>(code); }
+    uint64_t dreg_bits(unsigned code) { return vreg<uint64_t>(code); }
 
-    qreg_t qreg(unsigned code) const { return vreg<qreg_t>(code); }
+    qreg_t qreg(unsigned code) { return vreg<qreg_t>(code); }
 
     // As above, with parameterized size and return type. The value is
     // either zero-extended or truncated to fit, as required.
     template <typename T>
-    T vreg(unsigned size, unsigned code) const {
+    T vreg(unsigned size, unsigned code) {
         uint64_t raw = 0;
         T result;
 
@@ -585,10 +587,10 @@ public:
         set_vreg(code, value, log_mode);
     }
 
-    bool N() const { return nzcv_.N() != 0; }
-    bool Z() const { return nzcv_.Z() != 0; }
-    bool C() const { return nzcv_.C() != 0; }
-    bool V() const { return nzcv_.V() != 0; }
+    bool N() { return nzcv_.N() != 0; }
+    bool Z() { return nzcv_.Z() != 0; }
+    bool C() { return nzcv_.C() != 0; }
+    bool V() { return nzcv_.V() != 0; }
     SimSystemRegister& nzcv() { return nzcv_; }
 
     // TODO: Find a way to make the fpcr_ members return the proper types, so
@@ -994,41 +996,47 @@ protected:
               LogicVRegister dst3,
               LogicVRegister dst4,
               uint64_t addr);
-    void st1(VectorFormat vform, LogicVRegister src, uint64_t addr);
-    void st1(VectorFormat vform, LogicVRegister src, int index, uint64_t addr);
+    void st1(VectorFormat vform, LogicVRegister src, uint64_t addr, Memory * memory);
+    void st1(VectorFormat vform, LogicVRegister src, int index, uint64_t addr, Memory * memory);
     void st2(VectorFormat vform,
              LogicVRegister src,
              LogicVRegister src2,
-             uint64_t addr);
+             uint64_t addr,
+             Memory * memory);
     void st2(VectorFormat vform,
              LogicVRegister src,
              LogicVRegister src2,
              int index,
-             uint64_t addr);
+             uint64_t addr,
+             Memory * memory);
     void st3(VectorFormat vform,
              LogicVRegister src,
              LogicVRegister src2,
              LogicVRegister src3,
-             uint64_t addr);
+             uint64_t addr,
+             Memory * memory);
     void st3(VectorFormat vform,
              LogicVRegister src,
              LogicVRegister src2,
              LogicVRegister src3,
              int index,
-             uint64_t addr);
+             uint64_t addr,
+             Memory * memory);
     void st4(VectorFormat vform,
              LogicVRegister src,
              LogicVRegister src2,
              LogicVRegister src3,
              LogicVRegister src4,
-             uint64_t addr);
+             uint64_t addr,
+             Memory * memory);
     void st4(VectorFormat vform,
              LogicVRegister src,
              LogicVRegister src2,
              LogicVRegister src3,
              LogicVRegister src4,
              int index,
-             uint64_t addr);
+             uint64_t addr,
+             Memory * memory);
     LogicVRegister cmp(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src1,
@@ -2057,7 +2065,50 @@ protected:
     T FPMulx(T op1, T op2);
 
     template <typename T>
-    T FPMulAdd(T a, T op1, T op2);
+    T FPMulAdd(T a, T op1, T op2) {
+        T result = FPProcessNaNs3(a, op1, op2);
+
+        T sign_a = copysign(1.0, a);
+        T sign_prod = copysign(1.0, op1) * copysign(1.0, op2);
+        bool isinf_prod = std::isinf(op1) || std::isinf(op2);
+        bool operation_generates_nan =
+            (std::isinf(op1) && (op2 == 0.0)) ||                     // inf * 0.0
+            (std::isinf(op2) && (op1 == 0.0)) ||                     // 0.0 * inf
+            (std::isinf(a) && isinf_prod && (sign_a != sign_prod));  // inf - inf
+
+        if (std::isnan(result)) {
+            // Generated NaNs override quiet NaNs propagated from a.
+            if (operation_generates_nan && IsQuietNaN(a)) {
+                FPProcessException();
+                return FPDefaultNaN<T>();
+            } else {
+                return result;
+            }
+        }
+
+        // If the operation would produce a NaN, return the default NaN.
+        if (operation_generates_nan) {
+            FPProcessException();
+            return FPDefaultNaN<T>();
+        }
+
+        // Work around broken fma implementations for exact zero results: The sign of
+        // exact 0.0 results is positive unless both a and op1 * op2 are negative.
+        if (((op1 == 0.0) || (op2 == 0.0)) && (a == 0.0)) {
+            return ((sign_a < 0) && (sign_prod < 0)) ? -0.0 : 0.0;
+        }
+
+        result = FusedMultiplyAdd(op1, op2, a);
+        VIXL_ASSERT(!std::isnan(result));
+
+        // Work around broken fma implementations for rounded zero results: If a is
+        // 0.0, the sign of the result is the sign of op1 * op2 before rounding.
+        if ((a == 0.0) && (result == 0.0)) {
+            return copysign(0.0, sign_prod);
+        }
+
+        return result;
+    }
 
     template <typename T>
     T FPSqrt(T op);
@@ -2151,6 +2202,7 @@ protected:
 
 private:
     const bool pipelined, simExecLatency;
+    const int maxRStationSize;
     Kraken::BranchRecords & branchRecords;
 
     Kraken::Fetcher * fetcher;
@@ -2163,6 +2215,8 @@ private:
     unsigned long instrCount = 0;
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
 
+    Kraken::RobEntry * consultor;
+    bool consultMode = false;
     const int nSuperscalar;
 
     Kraken::ReservationStation tmpRStation, rStation;
@@ -2171,18 +2225,8 @@ private:
     std::vector<Kraken::Scripture> scriptureList;
 
     void passScriptures(Kraken::RobEntry * rbe);
-    // std::vector<int> getReadRegs(const Kraken::DecodedInstr & decInstr);
-    // std::vector<int> getWriteRegs(const Kraken::DecodedInstr & decInstr);
 
-// #define DECL_READ_REG_FUNC(ITEM) \
-//     std::vector<int> RR##ITEM(const Instruction * instr);
-//     VISITOR_LIST(DECL_READ_REG_FUNC);
-// #undef DECL_READ_REG_FUNC
-
-// #define DECL_WRITE_REG_FUNC(ITEM) \
-//     std::vector<int> WR##ITEM(const Instruction * instr);
-//     VISITOR_LIST(DECL_WRITE_REG_FUNC);
-// #undef DECL_WRITE_REG_FUNC
+    Memory memory;
 
     template <typename T>
     static T FPDefaultNaN();

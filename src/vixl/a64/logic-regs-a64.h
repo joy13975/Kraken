@@ -31,38 +31,145 @@
 
 #include "vixl/a64/logic-constants-a64.h"
 #include "vixl/a64/logic-memory-a64.h"
+#include "vixl/a64/instructions-a64.h"
 #include "scripture.h"
+#include "types.h"
 #include "util.h"
+
+namespace Kraken
+{
+class RobEntry;
+}
 
 namespace vixl
 {
 
+class Memory;
+
 class ScribeReg
 {
 public:
-    ScribeReg() : written_since_last_log_(false),
-        written_since_last_commit(false) {}
+    ScribeReg() : written_since_last_log_(false) {}
 
     // TODO: Make this return a map of updated bytes, so that we can highlight
     // updated lanes for load-and-insert. (That never happens for scalar code, but
     // NEON has some instructions that can update individual lanes.)
-    bool WrittenSinceLastLog() const { return written_since_last_log_; }
+    bool WrittenSinceLastLog() const {
+        return written_since_last_log_;
+    }
 
-    void NotifyRegisterLogged() { written_since_last_log_ = false; }
-
-    bool WrittenSinceLastCommit() const { return written_since_last_commit; }
-
-    void NotifyRegisterCommitted() { written_since_last_commit = false; }
+    void NotifyRegisterLogged() {
+        written_since_last_log_ = false;
+    }
 
     int id;
+    Memory *memory;
     std::vector<Kraken::Scripture> * scriptureList = 0;
+    bool * consultMode = 0;
+    Kraken::RobEntry ** consultorPtr = 0;
+    Kraken::Scripture * lastWriteSpt = 0;
+
+    void clearLastSpt()
+    {
+        lastWriteSpt = 0;
+    }
 
 protected:
-    // Helpers to aid with register tracing.
     bool written_since_last_log_;
-    bool written_since_last_commit;
 
-    virtual void NotifyRegisterWrite() = 0;
+    virtual Kraken::Scripture * makeScripture(const Kraken::SPTMode & sptMode) = 0;
+    virtual void fillScripture(Kraken::Scripture * s) = 0;
+
+    virtual void appearAs(const Kraken::Scripture * s) = 0;
+
+    void realWrite()
+    {
+        // if it's ResetState(), lastWriteSpt should be null
+        if (!lastWriteSpt)
+            return;
+
+        using namespace Kraken;
+        written_since_last_log_ = true;
+
+        bool foundSelf = false;
+        for (Scripture *& s : (*consultorPtr)->outList)
+        {
+            if (s->type != SinkType::Mem && s->addr == id)
+            {
+                foundSelf = true;
+                fillScripture(s);
+                s->ready = true;
+                dbg("Write R%d (%p) = %p; marked ready\n",
+                    id, s, *((uint64_t*) s->value));
+            }
+        }
+
+        // if (!foundSelf) // there are multi-assignment instructions
+        //     die("Could not find self (%d) in outList of %p\n",
+        //         id, (*consultorPtr)->decInstr.instr);
+    }
+    void realRead()
+    {
+        using namespace Kraken;
+
+        bool foundSelf = false;
+        for (Scripture * s : (*consultorPtr)->inList)
+        {
+            if (s->type != SinkType::Mem && s->addr == id)
+            {
+                foundSelf = true;
+                appearAs(s);
+                s->ready = true;
+                dbg("Read R%d (%p) = %p\n",
+                    id, s, *((uint32_t*) s->value));
+            }
+        }
+
+        // if (!foundSelf) // probably print disasm
+        // {
+        //     die("Could not find self (%d) in inList of %p\n",
+        //         id, (*consultorPtr)->decInstr.instr);
+        // }
+    }
+
+    void consultRead()
+    {
+        using namespace Kraken;
+
+        if (!lastWriteSpt)
+        {
+            // can read now; make spt and give
+            Scripture *s = makeScripture(SPTMode::Read);
+            fillScripture(s);
+            s->ready = true;
+            (*consultorPtr)->inList.push_back(s);
+
+            dbg("Added R%d (new %p) to inList of %p\n",
+                id, s, (*consultorPtr)->decInstr.instr);
+        }
+        else
+        {
+            // forward that wspt and wait for it to finish
+            (*consultorPtr)->inList.push_back(lastWriteSpt);
+
+            dbg("Added R%d (linked %p) to inList of %p\n",
+                id, lastWriteSpt, (*consultorPtr)->decInstr.instr);
+        }
+    }
+
+    void consultWrite()
+    {
+        using namespace Kraken;
+
+        // just write on this new piece of spt
+        Scripture *s = makeScripture(SPTMode::Write);
+        s->ready = false;
+        (*consultorPtr)->outList.push_back(s);
+        lastWriteSpt = s;
+
+        dbg("Added R%d (writeSpt %p) to outList of %p\n",
+            id, lastWriteSpt, (*consultorPtr)->decInstr.instr);
+    }
 };
 
 // Represent a register (r0-r31, v0-v31).
@@ -75,13 +182,20 @@ public:
     // Write the specified value. The value is zero-extended if necessary.
     template <typename T>
     void Set(T new_value) {
-        VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
-        if (sizeof(new_value) < kSizeInBytes) {
-            // All AArch64 registers are zero-extending.
-            memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+        if (!consultMode || !*consultMode)
+        {
+            VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
+            if (sizeof(new_value) < kSizeInBytes) {
+                // All AArch64 registers are zero-extending.
+                memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+            }
+            memcpy(value_, &new_value, sizeof(new_value));
+            realWrite();
         }
-        memcpy(value_, &new_value, sizeof(new_value));
-        NotifyRegisterWrite();
+        else
+        {
+            consultWrite();
+        }
     }
 
     // Insert a typed value into a register, leaving the rest of the register
@@ -90,19 +204,32 @@ public:
     // 0 represents the least significant bits.
     template <typename T>
     void Insert(int lane, T new_value) {
-        VIXL_ASSERT(lane >= 0);
-        VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
-                    kSizeInBytes);
-        memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
-        NotifyRegisterWrite();
+        if (!consultMode || !*consultMode)
+        {
+            VIXL_ASSERT(lane >= 0);
+            VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
+                        kSizeInBytes);
+            memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
+            realWrite();
+        }
+        else
+        {
+            consultWrite();
+        }
     }
 
     // Read the value as the specified type. The value is truncated if necessary.
     template <typename T>
-    T Get(int lane = 0) const {
+    T Get(int lane = 0) {
         T result;
         VIXL_ASSERT(lane >= 0);
         VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
+
+        if (consultMode && *consultMode)
+            consultRead();
+        else
+            realRead();
+
         memcpy(&result, &value_[lane * sizeof(result)], sizeof(result));
         return result;
     }
@@ -110,27 +237,29 @@ public:
 protected:
     uint8_t value_[kSizeInBytes];
 
-    void NotifyRegisterWrite()
+    Kraken::Scripture * makeScripture(const Kraken::SPTMode & sptMode)
     {
-        written_since_last_log_ = true;
-        written_since_last_commit = true;
+        using namespace Kraken;
 
-        if (scriptureList)
-        {
-            if (kSizeInBytes != 8 && kSizeInBytes != 16)
-                die("What size? %d\n", kSizeInBytes);
+        return new Scripture(
+                   kSizeInBytes == 8 ?
+                   SinkType::Reg :
+                   SinkType::VReg,
+                   id,
+                   sptMode,
+                   kSizeInBytes
+               );
+    }
 
-            Kraken::Scripture s = Kraken::Scripture(
-                                      kSizeInBytes == 8 ?
-                                      Kraken::DestType::Reg :
-                                      Kraken::DestType::VReg,
-                                      id,
-                                      kSizeInBytes
-                                  );
-            s.fill(value_);
-            scriptureList->push_back(s);
-        }
-    };
+    void fillScripture(Kraken::Scripture * s)
+    {
+        s->fill(value_);
+    }
+
+    void appearAs(const Kraken::Scripture * s)
+    {
+        memcpy(value_, s->value, s->szBytes);
+    }
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
 typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
@@ -146,29 +275,85 @@ public:
     SimSystemRegister()
         : value_(0), write_ignore_mask_(0xffffffff) { }
 
-    uint32_t RawValue() const { return value_; }
-
-    void SetRawValue(uint32_t new_value) {
-        value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
-        NotifyRegisterWrite();
+    uint32_t RawValue() {
+        if (consultMode && *consultMode)
+            consultRead();
+        else
+            realRead();
+        return value_;
     }
 
-    uint32_t Bits(int msb, int lsb) const {
+    void SetRawValue(uint32_t new_value) {
+        if (!consultMode || !*consultMode)
+        {
+            value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
+            realWrite();
+        }
+        else
+        {
+            consultWrite();
+        }
+    }
+
+    uint32_t Bits(int msb, int lsb) {
+
+        if (consultMode && *consultMode)
+            consultRead();
+        else
+            realRead();
         return unsigned_bitextract_32(msb, lsb, value_);
     }
 
-    int32_t SignedBits(int msb, int lsb) const {
+    int32_t SignedBits(int msb, int lsb) {
+
+        if (consultMode && *consultMode)
+            consultRead();
+        else
+            realRead();
         return signed_bitextract_32(msb, lsb, value_);
     }
 
-    void SetBits(int msb, int lsb, uint32_t bits);
+    void SetBits(int msb, int lsb, uint32_t bits) {
+        if (!consultMode || !*consultMode)
+        {
+            int width = msb - lsb + 1;
+            VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+
+            bits <<= lsb;
+            uint32_t mask = ((1 << width) - 1) << lsb;
+            VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+
+            value_ = (value_ & ~mask) | (bits & mask);
+            realWrite();
+        }
+        else
+        {
+            consultWrite();
+        }
+    }
 
     // Default system register values.
     static SimSystemRegister DefaultValueFor(SystemRegister id);
 
-#define DEFINE_GETTER(Name, HighBit, LowBit, Func)        \
-  uint32_t Name() const { return Func(HighBit, LowBit); } \
-  void Set##Name(uint32_t bits) { SetBits(HighBit, LowBit, bits); }
+#define DEFINE_GETTER(Name, HighBit, LowBit, Func) \
+    uint32_t Name() { \
+        if (consultMode && *consultMode) \
+            consultRead(); \
+        else \
+            realRead(); \
+        return Func(HighBit, LowBit); \
+    } \
+  void Set##Name(uint32_t bits) { \
+        if (!consultMode || !*consultMode) \
+        { \
+            SetBits(HighBit, LowBit, bits); \
+            realWrite(); \
+        } \
+        else \
+        { \
+            consultWrite(); \
+        } \
+    }
 #define DEFINE_WRITE_IGNORE_MASK(Name, Mask) \
   static const uint32_t Name##WriteIgnoreMask = ~static_cast<uint32_t>(Mask);
 
@@ -179,32 +364,38 @@ public:
 
     std::vector<Kraken::Scripture> * scriptureList;
 protected:
-    // Most system registers only implement a few of the bits in the word. Other
-    // bits are "read-as-zero, write-ignored". The write_ignore_mask argument
-    // describes the bits which are not modifiable.
+// Most system registers only implement a few of the bits in the word. Other
+// bits are "read-as-zero, write-ignored". The write_ignore_mask argument
+// describes the bits which are not modifiable.
     SimSystemRegister(uint32_t value, uint32_t write_ignore_mask)
         : value_(value), write_ignore_mask_(write_ignore_mask) {}
 
     uint32_t value_;
     uint32_t write_ignore_mask_;
 
-    void NotifyRegisterWrite()
+    Kraken::Scripture * makeScripture(const Kraken::SPTMode & sptMode)
     {
-        written_since_last_log_ = true;
-        written_since_last_commit = true;
-        if (id != -1 && id != -2)
-            die("What sys reg? %d\n", id);
+        using namespace Kraken;
+        return new Scripture(
+                   id == -1 ?
+                   SinkType::NZCV :
+                   SinkType::FPCR,
+                   id,
+                   sptMode,
+                   sizeof(uint32_t)
+               );
+    }
 
-        Kraken::Scripture s = Kraken::Scripture(
-                                  id == -1 ?
-                                  Kraken::DestType::NZCV :
-                                  Kraken::DestType::FPCR,
-                                  id,
-                                  sizeof(uint32_t)
-                              );
-        s.fill((uint8_t*) &value_);
-        scriptureList->push_back(s);
-    };
+    void fillScripture(Kraken::Scripture * s)
+    {
+        s->fill((uint8_t*) &value_);
+    }
+
+    void appearAs(const Kraken::Scripture * s)
+    {
+        wrn("R%d: was %d, appear as %d\n", id, value_, *((uint32_t*) s->value));
+        memcpy(&value_, s->value, s->szBytes);
+    }
 };
 
 
@@ -381,43 +572,9 @@ public:
         }
     }
 
-    void ReadUintFromMem(VectorFormat vform, int index, uint64_t addr) const {
-        switch (LaneSizeInBitsFromFormat(vform)) {
-        case 8:
-            register_.Insert(index, Memory::Read<uint8_t>(addr));
-            break;
-        case 16:
-            register_.Insert(index, Memory::Read<uint16_t>(addr));
-            break;
-        case 32:
-            register_.Insert(index, Memory::Read<uint32_t>(addr));
-            break;
-        case 64:
-            register_.Insert(index, Memory::Read<uint64_t>(addr));
-            break;
-        default:
-            VIXL_UNREACHABLE();
-            return;
-        }
-    }
+    void ReadUintFromMem(VectorFormat vform, int index, uint64_t addr) const;
 
-    void WriteUintToMem(VectorFormat vform, int index, uint64_t addr) const {
-        uint64_t value = Uint(vform, index);
-        switch (LaneSizeInBitsFromFormat(vform)) {
-        case 8:
-            Memory::Write(addr, static_cast<uint8_t>(value));
-            break;
-        case 16:
-            Memory::Write(addr, static_cast<uint16_t>(value));
-            break;
-        case 32:
-            Memory::Write(addr, static_cast<uint32_t>(value));
-            break;
-        case 64:
-            Memory::Write(addr, value);
-            break;
-        }
-    }
+    void WriteUintToMem(VectorFormat vform, int index, uint64_t addr, Memory *memory) const;
 
     template <typename T>
     T Float(int index) const {

@@ -6,7 +6,7 @@
 namespace Kraken
 {
 
-#define FOREACH_DESTTYPE(V) \
+#define FOREACH_SINKTYPE(V) \
     V(NZCV) \
     V(FPCR) \
     V(PC) \
@@ -14,7 +14,13 @@ namespace Kraken
     V(VReg) \
     V(Mem)
 
-GEN_ENUM_AND_STRING(DestType, DestTypeString, FOREACH_DESTTYPE);
+GEN_ENUM_AND_STRING(SinkType, SinkTypeString, FOREACH_SINKTYPE);
+
+#define FOREACH_SPTMODE(V) \
+    V(Read) \
+    V(Write)
+
+GEN_ENUM_AND_STRING(SPTMode, SPTModeString, FOREACH_SPTMODE);
 
 class Scripture
 {
@@ -22,19 +28,21 @@ public:
 
     Scripture() {};
 
-    Scripture(const DestType & _type,
+    Scripture(const SinkType & _type,
               const uint64_t & _addr,
+              const SPTMode & _mode,
               const size_t & _szBytes)
         : type(_type),
           addr(_addr),
+          mode(_mode),
           szBytes(_szBytes),
-          value(new uint8_t[_szBytes])
+          value(_szBytes ? new uint8_t[_szBytes] : 0)
     {}
-
 
     Scripture(const Scripture & other)
         : Scripture(other.type,
                     other.addr,
+                    other.mode,
                     other.szBytes)
     {
         fill(other.value);
@@ -65,10 +73,12 @@ public:
         memcpy(value, val, szBytes);
     }
 
-    DestType type;
-    uint64_t addr;
-    size_t szBytes;
-    uint8_t * value;
+    SinkType    type;
+    uint64_t    addr;
+    SPTMode     mode;
+    size_t      szBytes;
+    uint8_t *   value;
+    bool        ready;
 private:
 };
 

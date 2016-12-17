@@ -21,7 +21,7 @@ void Scribe::computeComponent()
         if (!robHead)
             die("   Scribe: robHead is null\n");
 
-        for (const Scripture & s : robHead->getScriptureList())
+        for (const Scripture * s : robHead->outList)
             applyScripture(s);
 
         RobEntry * tmp = robHead;
@@ -39,8 +39,6 @@ void Scribe::computeComponent()
             (tmp->status == RobEntry::Status::CanKill ||
              tmp->status == RobEntry::Status::Invalid))
     {
-        wrn("Could pop %p for status %d\n",
-            tmp->decInstr.instr, tmp->status);
         nToPop++;
         tmp = tmp->successor;
     }
@@ -57,7 +55,7 @@ void Scribe::updateComponent()
     cachedNToPop = nToPop;
 }
 
-void Scribe::applyScripture(const Scripture & s)
+void Scribe::applyScripture(const Scripture * s)
 {
     wrn("TODO: applyScripture\n");
 }

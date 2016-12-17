@@ -67,7 +67,7 @@ Disassembly of section .text:
  164:	a9bf7bfd 	stp	x29, x30, [sp,#-16]!
  168:	910003fd 	mov	x29, sp
  16c:	d10043ff 	sub	sp, sp, #0x10
- 170:	52800140 	mov	w0, #0xa                   	// #10
+ 170:	52800c80 	mov	w0, #0x64                  	// #100
  174:	52800008 	mov	w8, #0x0                   	// #0
  178:	b81fc3a8 	stur	w8, [x29,#-4]
  17c:	97ffffe1 	bl	100 <fac>
