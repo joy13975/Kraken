@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p build
+cp -r ../tmp/* build/
