@@ -7,82 +7,142 @@ start address 0x0000000000000100
 
 Program Header:
     LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
-         filesz 0x000000000000019c memsz 0x000000000000019c flags r-x
-    LOAD off    0x000000000000019c vaddr 0x000000000001019c paddr 0x000000000001019c align 2**16
+         filesz 0x000000000000028c memsz 0x000000000000028c flags r-x
+    LOAD off    0x000000000000028c vaddr 0x000000000001028c paddr 0x000000000001028c align 2**16
          filesz 0x0000000000008000 memsz 0x0000000000010004 flags rw-
 private flags = 0:
 
 Sections:
 Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         0000009c  0000000000000100  0000000000000100  00000100  2**2
+  0 .text         0000018c  0000000000000100  0000000000000100  00000100  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00008000  000000000001019c  000000000001019c  0000019c  2**2
+  1 .data         00008000  000000000001028c  000000000001028c  0000028c  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .bss          00008000  00000000000181a0  00000000000181a0  0000819c  2**3
+  2 .bss          00008000  0000000000018290  0000000000018290  0000828c  2**3
                   ALLOC
-  3 .comment      00000015  0000000000000000  0000000000000000  0000819c  2**0
+  3 .comment      00000015  0000000000000000  0000000000000000  0000828c  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 0000000000000100 l    d  .text	0000000000000000 .text
-000000000001019c l    d  .data	0000000000000000 .data
-00000000000181a0 l    d  .bss	0000000000000000 .bss
+000000000001028c l    d  .data	0000000000000000 .data
+0000000000018290 l    d  .bss	0000000000000000 .bss
 0000000000000000 l    d  .comment	0000000000000000 .comment
 0000000000000000 l    df *ABS*	0000000000000000 mmul.c
-00000000000181a0 l     O .bss	0000000000008000 product
-00000000000201a0 g       .bss	0000000000000000 _bss_end__
-000000000001819c g       .bss	0000000000000000 __bss_start__
-000000000001019c g     O .data	0000000000004000 mats64_1
-00000000000201a0 g       .bss	0000000000000000 __bss_end__
-000000000001819c g       .bss	0000000000000000 __bss_start
-0000000000000100 g     F .text	000000000000009c main
-00000000000201a0 g       .bss	0000000000000000 __end__
-000000000001419c g     O .data	0000000000004000 mats64_2
-000000000001819c g       .data	0000000000000000 _edata
-00000000000201a0 g       .bss	0000000000000000 _end
+0000000000018290 l     O .bss	0000000000008000 product
+0000000000020290 g       .bss	0000000000000000 _bss_end__
+000000000001828c g       .bss	0000000000000000 __bss_start__
+000000000001028c g     O .data	0000000000004000 mats64_1
+0000000000020290 g       .bss	0000000000000000 __bss_end__
+000000000001828c g       .bss	0000000000000000 __bss_start
+0000000000000100 g     F .text	000000000000018c main
+0000000000020290 g       .bss	0000000000000000 __end__
+000000000001428c g     O .data	0000000000004000 mats64_2
+000000000001828c g       .data	0000000000000000 _edata
+0000000000020290 g       .bss	0000000000000000 _end
 0000000000080000 g       .comment	0000000000000000 _stack
-000000000001019c g       .data	0000000000000000 __data_start
+000000000001028c g       .data	0000000000000000 __data_start
 
 
 
 Disassembly of section .text:
 
 0000000000000100 <main>:
- 100:	aa1f03e8 	mov	x8, xzr
- 104:	90000089 	adrp	x9, 10000 <main+0xff00>
- 108:	91067129 	add	x9, x9, #0x19c
- 10c:	900000ca 	adrp	x10, 18000 <mats64_2+0x3e64>
- 110:	9106814a 	add	x10, x10, #0x1a0
- 114:	900000ab 	adrp	x11, 14000 <__data_start+0x3e64>
- 118:	9106716b 	add	x11, x11, #0x19c
- 11c:	aa1f03ec 	mov	x12, xzr
- 120:	aa1f03ee 	mov	x14, xzr
- 124:	8b08254d 	add	x13, x10, x8, lsl #9
- 128:	8b0c0dad 	add	x13, x13, x12, lsl #3
- 12c:	f94001af 	ldr	x15, [x13]
- 130:	aa0903f0 	mov	x16, x9
- 134:	b8404611 	ldr	w17, [x16],#4
- 138:	8b0e0172 	add	x18, x11, x14
- 13c:	b86c7a52 	ldr	w18, [x18,x12,lsl #2]
- 140:	1b117e51 	mul	w17, w18, w17
- 144:	8b31c1ef 	add	x15, x15, w17, sxtw
- 148:	910401ce 	add	x14, x14, #0x100
- 14c:	f14011df 	cmp	x14, #0x4, lsl #12
- 150:	54ffff21 	b.ne	134 <main+0x34>
- 154:	f90001af 	str	x15, [x13]
- 158:	9100058c 	add	x12, x12, #0x1
- 15c:	f101019f 	cmp	x12, #0x40
- 160:	54fffe01 	b.ne	120 <main+0x20>
- 164:	91000508 	add	x8, x8, #0x1
- 168:	91040129 	add	x9, x9, #0x100
- 16c:	f101011f 	cmp	x8, #0x40
- 170:	54fffd61 	b.ne	11c <main+0x1c>
- 174:	f9420948 	ldr	x8, [x10,#1040]
- 178:	d2f88229 	mov	x9, #0xc411000000000000    	// #-4318670567671595008
- 17c:	f2d3b2a9 	movk	x9, #0x9d95, lsl #32
- 180:	f2a50cc9 	movk	x9, #0x2866, lsl #16
- 184:	f2942729 	movk	x9, #0xa139
- 188:	9bc97d09 	umulh	x9, x8, x9
- 18c:	d34afd29 	lsr	x9, x9, #10
- 190:	5280a72a 	mov	w10, #0x539                 	// #1337
- 194:	1b0aa120 	msub	w0, w9, w10, w8
- 198:	d65f03c0 	ret
+ 100:	d10083ff 	sub	sp, sp, #0x20
+ 104:	52800008 	mov	w8, #0x0                   	// #0
+ 108:	b9001fe8 	str	w8, [sp,#28]
+ 10c:	b9001be8 	str	w8, [sp,#24]
+ 110:	b9401be8 	ldr	w8, [sp,#24]
+ 114:	7101011f 	cmp	w8, #0x40
+ 118:	5400004b 	b.lt	120 <main+0x20>
+ 11c:	14000050 	b	25c <main+0x15c>
+ 120:	52800008 	mov	w8, #0x0                   	// #0
+ 124:	b90017e8 	str	w8, [sp,#20]
+ 128:	b94017e8 	ldr	w8, [sp,#20]
+ 12c:	7101011f 	cmp	w8, #0x40
+ 130:	5400004b 	b.lt	138 <main+0x38>
+ 134:	14000044 	b	244 <main+0x144>
+ 138:	52800008 	mov	w8, #0x0                   	// #0
+ 13c:	b90013e8 	str	w8, [sp,#16]
+ 140:	b94013e8 	ldr	w8, [sp,#16]
+ 144:	7101011f 	cmp	w8, #0x40
+ 148:	5400004b 	b.lt	150 <main+0x50>
+ 14c:	14000038 	b	22c <main+0x12c>
+ 150:	900000c8 	adrp	x8, 18000 <mats64_2+0x3d74>
+ 154:	910a4108 	add	x8, x8, #0x290
+ 158:	900000a9 	adrp	x9, 14000 <__data_start+0x3d74>
+ 15c:	910a3129 	add	x9, x9, #0x28c
+ 160:	9000008a 	adrp	x10, 10000 <main+0xff00>
+ 164:	910a314a 	add	x10, x10, #0x28c
+ 168:	b94013eb 	ldr	w11, [sp,#16]
+ 16c:	2a0b03ec 	mov	w12, w11
+ 170:	93407d8c 	sxtw	x12, w12
+ 174:	b9401beb 	ldr	w11, [sp,#24]
+ 178:	2a0b03ed 	mov	w13, w11
+ 17c:	93407dad 	sxtw	x13, w13
+ 180:	b27d03ee 	orr	x14, xzr, #0x8
+ 184:	9ace21ad 	lsl	x13, x13, x14
+ 188:	8b0d014a 	add	x10, x10, x13
+ 18c:	b27f03ed 	orr	x13, xzr, #0x2
+ 190:	9acd218c 	lsl	x12, x12, x13
+ 194:	8b0c014a 	add	x10, x10, x12
+ 198:	b940014b 	ldr	w11, [x10]
+ 19c:	b94017ef 	ldr	w15, [sp,#20]
+ 1a0:	2a0f03ea 	mov	w10, w15
+ 1a4:	93407d4a 	sxtw	x10, w10
+ 1a8:	b94013ef 	ldr	w15, [sp,#16]
+ 1ac:	2a0f03ec 	mov	w12, w15
+ 1b0:	93407d8c 	sxtw	x12, w12
+ 1b4:	b27d03ed 	orr	x13, xzr, #0x8
+ 1b8:	9acd218c 	lsl	x12, x12, x13
+ 1bc:	8b0c0129 	add	x9, x9, x12
+ 1c0:	b27f03ec 	orr	x12, xzr, #0x2
+ 1c4:	9acc214a 	lsl	x10, x10, x12
+ 1c8:	8b0a0129 	add	x9, x9, x10
+ 1cc:	b940012f 	ldr	w15, [x9]
+ 1d0:	1b0f7d6b 	mul	w11, w11, w15
+ 1d4:	2a0b03e9 	mov	w9, w11
+ 1d8:	93407d29 	sxtw	x9, w9
+ 1dc:	b94017eb 	ldr	w11, [sp,#20]
+ 1e0:	2a0b03ea 	mov	w10, w11
+ 1e4:	93407d4a 	sxtw	x10, w10
+ 1e8:	b9401beb 	ldr	w11, [sp,#24]
+ 1ec:	2a0b03ec 	mov	w12, w11
+ 1f0:	93407d8c 	sxtw	x12, w12
+ 1f4:	d280012d 	mov	x13, #0x9                   	// #9
+ 1f8:	9acd218c 	lsl	x12, x12, x13
+ 1fc:	8b0c0108 	add	x8, x8, x12
+ 200:	b24007ec 	orr	x12, xzr, #0x3
+ 204:	9acc214a 	lsl	x10, x10, x12
+ 208:	8b0a0108 	add	x8, x8, x10
+ 20c:	f940010a 	ldr	x10, [x8]
+ 210:	8b090149 	add	x9, x10, x9
+ 214:	f9000109 	str	x9, [x8]
+ 218:	b94013e8 	ldr	w8, [sp,#16]
+ 21c:	320003e9 	orr	w9, wzr, #0x1
+ 220:	0b090108 	add	w8, w8, w9
+ 224:	b90013e8 	str	w8, [sp,#16]
+ 228:	17ffffc6 	b	140 <main+0x40>
+ 22c:	14000001 	b	230 <main+0x130>
+ 230:	b94017e8 	ldr	w8, [sp,#20]
+ 234:	320003e9 	orr	w9, wzr, #0x1
+ 238:	0b090108 	add	w8, w8, w9
+ 23c:	b90017e8 	str	w8, [sp,#20]
+ 240:	17ffffba 	b	128 <main+0x28>
+ 244:	14000001 	b	248 <main+0x148>
+ 248:	b9401be8 	ldr	w8, [sp,#24]
+ 24c:	320003e9 	orr	w9, wzr, #0x1
+ 250:	0b090108 	add	w8, w8, w9
+ 254:	b9001be8 	str	w8, [sp,#24]
+ 258:	17ffffae 	b	110 <main+0x10>
+ 25c:	d280a728 	mov	x8, #0x539                 	// #1337
+ 260:	900000c9 	adrp	x9, 18000 <mats64_2+0x3d74>
+ 264:	910a4129 	add	x9, x9, #0x290
+ 268:	f9420929 	ldr	x9, [x9,#1040]
+ 26c:	9ac80920 	udiv	x0, x9, x8
+ 270:	9b08a400 	msub	x0, x0, x8, x9
+ 274:	f90007e0 	str	x0, [sp,#8]
+ 278:	f94007e8 	ldr	x8, [sp,#8]
+ 27c:	2a0803e1 	mov	w1, w8
+ 280:	2a0103e0 	mov	w0, w1
+ 284:	910083ff 	add	sp, sp, #0x20
+ 288:	d65f03c0 	ret

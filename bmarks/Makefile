@@ -13,7 +13,7 @@ ASM_A64 		:=$(SRC:%.c=%.$(EXT_A64_ASM))
 DASM_A64 		:=$(SRC:%.c=%.$(EXT_A64_DASM))
 BIN_A64 		:=$(SRC:%.c=%.$(EXT_A64_BIN))
 
-OPT 			:=3
+OPT 			:=1
 
 ifeq ($(OPT), 1)
 	OPT_FLAGS 	:=-O0

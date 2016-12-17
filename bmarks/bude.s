@@ -3,41 +3,57 @@
 	.section	.rodata.cst4,"aM",@progbits,4
 	.align	2
 .LCPI0_0:
-	.word	3271062391              // float -124.225517
+	.word	1071442339              // float 1.72588003
 .LCPI0_1:
-	.word	872415232               // float 1.1920929E-7
-.LCPI0_2:
-	.word	3217014645              // float -1.4980303
-.LCPI0_3:
 	.word	1052001529              // float 0.35208872
+.LCPI0_2:
+	.word	1069530997              // float 1.4980303
+.LCPI0_3:
+	.word	1123578743              // float 124.225517
 .LCPI0_4:
-	.word	3218925987              // float -1.72588003
+	.word	872415232               // float 1.1920929E-7
 	.text
 	.globl	fastlog2
 	.align	2
 	.type	fastlog2,@function
 fastlog2:                               // @fastlog2
 // BB#0:                                // %entry
-	fmov	w8, s0
-	orr	w9, wzr, #0x3f000000
-	bfxil	w9, w8, #0, #23
-	ucvtf	s0, w8
+	sub	sp, sp, #32             // =32
 	adrp	x8, .LCPI0_0
 	ldr	s1, [x8, :lo12:.LCPI0_0]
 	adrp	x8, .LCPI0_1
 	ldr	s2, [x8, :lo12:.LCPI0_1]
-	fmadd	s0, s0, s2, s1
-	fmov	s1, w9
 	adrp	x8, .LCPI0_2
-	ldr	s2, [x8, :lo12:.LCPI0_2]
-	fmadd	s0, s1, s2, s0
+	ldr	s3, [x8, :lo12:.LCPI0_2]
 	adrp	x8, .LCPI0_3
-	ldr	s2, [x8, :lo12:.LCPI0_3]
-	fadd	s1, s1, s2
+	ldr	s4, [x8, :lo12:.LCPI0_3]
 	adrp	x8, .LCPI0_4
-	ldr	s2, [x8, :lo12:.LCPI0_4]
-	fdiv	s1, s2, s1
-	fadd	s0, s0, s1
+	ldr	s5, [x8, :lo12:.LCPI0_4]
+	str	s0, [sp, #28]
+	ldr	s0, [sp, #28]
+	str	s0, [sp, #24]
+	ldr	w9, [sp, #24]
+	orr	w10, wzr, #0x7fffff
+	and	 w9, w9, w10
+	orr	w10, wzr, #0x3f000000
+	orr	 w9, w9, w10
+	str	w9, [sp, #16]
+	ldr	w9, [sp, #24]
+	ucvtf	s0, w9
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
+	fmul	s0, s0, s5
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
+	fsub	s0, s0, s4
+	ldr	s4, [sp, #16]
+	fmul	s3, s3, s4
+	fsub	s0, s0, s3
+	ldr	s3, [sp, #16]
+	fadd	s2, s2, s3
+	fdiv	s1, s1, s2
+	fsub	s0, s0, s1
+	add	sp, sp, #32             // =32
 	ret
 .Ltmp1:
 	.size	fastlog2, .Ltmp1-fastlog2
@@ -45,16 +61,6 @@ fastlog2:                               // @fastlog2
 	.section	.rodata.cst4,"aM",@progbits,4
 	.align	2
 .LCPI1_0:
-	.word	3271062391              // float -124.225517
-.LCPI1_1:
-	.word	872415232               // float 1.1920929E-7
-.LCPI1_2:
-	.word	3217014645              // float -1.4980303
-.LCPI1_3:
-	.word	1052001529              // float 0.35208872
-.LCPI1_4:
-	.word	3218925987              // float -1.72588003
-.LCPI1_5:
 	.word	1060205080              // float 0.693147182
 	.text
 	.globl	fastlog
@@ -62,121 +68,109 @@ fastlog2:                               // @fastlog2
 	.type	fastlog,@function
 fastlog:                                // @fastlog
 // BB#0:                                // %entry
-	fmov	w8, s0
-	orr	w9, wzr, #0x3f000000
-	bfxil	w9, w8, #0, #23
-	ucvtf	s0, w8
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #16             // =16
+	stur	s0, [x29, #-4]
+	ldur	s0, [x29, #-4]
+	bl	fastlog2
 	adrp	x8, .LCPI1_0
 	ldr	s1, [x8, :lo12:.LCPI1_0]
-	adrp	x8, .LCPI1_1
-	ldr	s2, [x8, :lo12:.LCPI1_1]
-	fmadd	s0, s0, s2, s1
-	fmov	s1, w9
-	adrp	x8, .LCPI1_2
-	ldr	s2, [x8, :lo12:.LCPI1_2]
-	fmadd	s0, s1, s2, s0
-	adrp	x8, .LCPI1_3
-	ldr	s2, [x8, :lo12:.LCPI1_3]
-	fadd	s1, s1, s2
-	adrp	x8, .LCPI1_4
-	ldr	s2, [x8, :lo12:.LCPI1_4]
-	fdiv	s1, s2, s1
-	fadd	s0, s0, s1
-	adrp	x8, .LCPI1_5
-	ldr	s1, [x8, :lo12:.LCPI1_5]
-	fmul	s0, s0, s1
+	fmul	s0, s1, s0
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp3:
-	.size	fastlog, .Ltmp3-fastlog
+.Ltmp2:
+	.size	fastlog, .Ltmp2-fastlog
 
 	.globl	ipow
 	.align	2
 	.type	ipow,@function
 ipow:                                   // @ipow
 // BB#0:                                // %entry
-	orr	w8, wzr, #0x1
-	cmp	 w1, #1                 // =1
-	b.lt	.LBB2_11
-// BB#1:                                // %for.body.preheader
-	cbz	w1, .LBB2_5
-// BB#2:                                // %overflow.checked
-	and	w8, w1, #0xfffffff8
-	cbz	w8, .LBB2_6
-// BB#3:                                // %vector.ph
-	dup	v2.4s, w0
-	movi	v0.4s, #0x1
-	mov	 w9, w8
-	mov		v1.16b, v0.16b
-.LBB2_4:                                // %vector.body
-                                        // =>This Inner Loop Header: Depth=1
-	mul	v0.4s, v0.4s, v2.4s
-	mul	v1.4s, v1.4s, v2.4s
-	sub	w9, w9, #8              // =8
-	cbnz	w9, .LBB2_4
-	b	.LBB2_7
-.LBB2_5:
-	mov	 w8, wzr
+	sub	sp, sp, #16             // =16
+	movz	w8, #0
 	orr	w9, wzr, #0x1
-	b	.LBB2_8
-.LBB2_6:
-	mov	 w8, wzr
-	movi	v0.4s, #0x1
-	mov		v1.16b, v0.16b
-.LBB2_7:                                // %middle.block
-	mul	v0.4s, v1.4s, v0.4s
-	ext	v1.16b, v0.16b, v0.16b, #8
-	mul	v0.4s, v0.4s, v1.4s
-	mul	v0.4s, v0.4s, v0.s[1]
-	fmov	w9, s0
-	cmp	 w8, w1
-	b.eq	.LBB2_10
-.LBB2_8:                                // %for.body.preheader19
-	sub	 w8, w1, w8
-.LBB2_9:                                // %for.body
+	str	w0, [sp, #12]
+	str	w1, [sp, #8]
+	str	 w9, [sp]
+	str	w8, [sp, #4]
+.LBB2_1:                                // %for.cond
                                         // =>This Inner Loop Header: Depth=1
-	mul	 w9, w9, w0
-	sub	w8, w8, #1              // =1
-	cbnz	w8, .LBB2_9
-.LBB2_10:                               // %for.cond.for.end_crit_edge
-	sxtw	x8, w9
-.LBB2_11:                               // %for.end
-	mov	 x0, x8
+	ldr	w8, [sp, #4]
+	ldr	w9, [sp, #8]
+	cmp	 w8, w9
+	b.lt	.LBB2_2
+	b	.LBB2_4
+.LBB2_2:                                // %for.body
+                                        //   in Loop: Header=BB2_1 Depth=1
+	ldr	w8, [sp, #12]
+	ldr	 w9, [sp]
+	mul	 w8, w9, w8
+	str	 w8, [sp]
+// BB#3:                                // %for.inc
+                                        //   in Loop: Header=BB2_1 Depth=1
+	ldr	w8, [sp, #4]
+	orr	w9, wzr, #0x1
+	add	 w8, w8, w9
+	str	w8, [sp, #4]
+	b	.LBB2_1
+.LBB2_4:                                // %for.end
+	ldr	 w8, [sp]
+	mov	 w9, w8
+	sxtw	x0, w9
+	add	sp, sp, #16             // =16
 	ret
-.Ltmp5:
-	.size	ipow, .Ltmp5-ipow
+.Ltmp4:
+	.size	ipow, .Ltmp4-ipow
 
 	.globl	fpow
 	.align	2
 	.type	fpow,@function
 fpow:                                   // @fpow
 // BB#0:                                // %entry
-	mov		v2.16b, v0.16b
-	fmov	s0, #1.00000000
-	fcmp	s1, #0.0
-	b.le	.LBB3_3
-// BB#1:
-	fmov	s3, wzr
-	fmov	s4, #1.00000000
-.LBB3_2:                                // %for.body
+	sub	sp, sp, #16             // =16
+	movz	x8, #0
+	scvtf	s2, x8
+	orr	x8, xzr, #0x1
+	scvtf	s3, x8
+	str	s0, [sp, #12]
+	str	s1, [sp, #8]
+	str	 s3, [sp]
+	str	s2, [sp, #4]
+.LBB3_1:                                // %for.cond
                                         // =>This Inner Loop Header: Depth=1
-	fmul	s0, s0, s2
-	fadd	s3, s3, s4
-	fcmp	s3, s1
-	b.lt	.LBB3_2
-.LBB3_3:                                // %for.end
+	ldr	s0, [sp, #4]
+	ldr	s1, [sp, #8]
+	fcmp	s0, s1
+	b.mi	.LBB3_2
+	b	.LBB3_4
+.LBB3_2:                                // %for.body
+                                        //   in Loop: Header=BB3_1 Depth=1
+	ldr	s0, [sp, #12]
+	ldr	 s1, [sp]
+	fmul	s0, s1, s0
+	str	 s0, [sp]
+// BB#3:                                // %for.inc
+                                        //   in Loop: Header=BB3_1 Depth=1
+	orr	x8, xzr, #0x1
+	scvtf	s0, x8
+	ldr	s1, [sp, #4]
+	fadd	s0, s1, s0
+	str	s0, [sp, #4]
+	b	.LBB3_1
+.LBB3_4:                                // %for.end
+	ldr	 s0, [sp]
+	add	sp, sp, #16             // =16
 	ret
-.Ltmp7:
-	.size	fpow, .Ltmp7-fpow
+.Ltmp6:
+	.size	fpow, .Ltmp6-fpow
 
-	.section	.rodata.cst4,"aM",@progbits,4
-	.align	2
-.LCPI4_0:
-	.word	1051372203              // float 0.333333343
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
-.LCPI4_1:
+.LCPI4_0:
 	.xword	4554050699414489        // double 2.25E-308
-.LCPI4_2:
+.LCPI4_1:
 	.xword	-9218817986155361319    // double -2.25E-308
 	.text
 	.globl	sqroot
@@ -184,54 +178,103 @@ fpow:                                   // @fpow
 	.type	sqroot,@function
 sqroot:                                 // @sqroot
 // BB#0:                                // %entry
+	sub	sp, sp, #32             // =32
+	orr	x8, xzr, #0x1
+	scvtf	s1, x8
+	orr	x8, xzr, #0x3
+	scvtf	s2, x8
+	str	s0, [sp, #24]
+	ldr	s0, [sp, #24]
+	fdiv	s0, s0, s2
+	str	s0, [sp, #20]
+	str	s1, [sp, #12]
+	ldr	s0, [sp, #24]
 	fcmp	s0, #0.0
-	b.le	.LBB4_5
-// BB#1:                                // %do.body.preheader
-	adrp	x8, .LCPI4_0
-	ldr	s1, [x8, :lo12:.LCPI4_0]
-	fmul	s1, s0, s1
-	fmov	s2, #0.50000000
-	adrp	x8, .LCPI4_1
-	ldr	d3, [x8, :lo12:.LCPI4_1]
-	adrp	x8, .LCPI4_2
-	ldr	d4, [x8, :lo12:.LCPI4_2]
-.LBB4_2:                                // %do.body
+	b.ls	.LBB4_1
+	b	.LBB4_2
+.LBB4_1:                                // %if.then
+	movz	x8, #0
+	scvtf	s0, x8
+	str	s0, [sp, #28]
+	b	.LBB4_8
+.LBB4_2:                                // %if.end
+	b	.LBB4_3
+.LBB4_3:                                // %do.body
                                         // =>This Inner Loop Header: Depth=1
-	mov		v5.16b, v1.16b
-	fdiv	s1, s0, s5
-	fadd	s1, s5, s1
-	fmul	s1, s1, s2
-	fsub	s5, s1, s5
-	fcvt	d5, s5
-	fcmp	d5, d3
-	b.gt	.LBB4_2
-// BB#3:                                // %do.body
-                                        //   in Loop: Header=BB4_2 Depth=1
-	fcmp	d5, d4
-	b.lt	.LBB4_2
-// BB#4:                                // %return
-	mov		v0.16b, v1.16b
+	orr	x8, xzr, #0x2
+	scvtf	s0, x8
+	ldr	s1, [sp, #20]
+	str	s1, [sp, #16]
+	ldr	s1, [sp, #20]
+	ldr	s2, [sp, #24]
+	ldr	s3, [sp, #20]
+	fdiv	s2, s2, s3
+	fadd	s1, s1, s2
+	fdiv	s0, s1, s0
+	str	s0, [sp, #20]
+	ldr	s0, [sp, #20]
+	ldr	s1, [sp, #16]
+	fsub	s0, s0, s1
+	str	s0, [sp, #12]
+// BB#4:                                // %do.cond
+                                        //   in Loop: Header=BB4_3 Depth=1
+	orr	w8, wzr, #0x1
+	adrp	x9, .LCPI4_0
+	ldr	d0, [x9, :lo12:.LCPI4_0]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	str	w8, [sp, #8]            // 4-byte Folded Spill
+	b.gt	.LBB4_6
+// BB#5:                                // %lor.rhs
+                                        //   in Loop: Header=BB4_3 Depth=1
+	adrp	x8, .LCPI4_1
+	ldr	d0, [x8, :lo12:.LCPI4_1]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	cset	 w9, mi
+	str	w9, [sp, #8]            // 4-byte Folded Spill
+.LBB4_6:                                // %lor.end
+                                        //   in Loop: Header=BB4_3 Depth=1
+	ldr	w0, [sp, #8]            // 4-byte Folded Reload
+	cmp	 w0, #0                 // =0
+	b.ne	.LBB4_3
+// BB#7:                                // %do.end
+	ldr	s0, [sp, #20]
+	str	s0, [sp, #28]
+.LBB4_8:                                // %return
+	ldr	s0, [sp, #28]
+	add	sp, sp, #32             // =32
 	ret
-.LBB4_5:
-	fmov	s1, wzr
-	mov		v0.16b, v1.16b
-	ret
-.Ltmp9:
-	.size	sqroot, .Ltmp9-sqroot
+.Ltmp8:
+	.size	sqroot, .Ltmp8-sqroot
 
 	.globl	fabsolute
 	.align	2
 	.type	fabsolute,@function
 fabsolute:                              // @fabsolute
 // BB#0:                                // %entry
+	sub	sp, sp, #16             // =16
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
 	fcmp	s0, #0.0
-	b.gt	.LBB5_2
-// BB#1:                                // %cond.false
+	b.gt	.LBB5_1
+	b	.LBB5_2
+.LBB5_1:                                // %cond.true
+	ldr	s0, [sp, #12]
+	str	s0, [sp, #8]            // 4-byte Folded Spill
+	b	.LBB5_3
+.LBB5_2:                                // %cond.false
+	ldr	s0, [sp, #12]
 	fneg	s0, s0
-.LBB5_2:                                // %cond.end
+	str	s0, [sp, #8]            // 4-byte Folded Spill
+.LBB5_3:                                // %cond.end
+	ldr	s0, [sp, #8]            // 4-byte Folded Reload
+	add	sp, sp, #16             // =16
 	ret
-.Ltmp11:
-	.size	fabsolute, .Ltmp11-fabsolute
+.Ltmp10:
+	.size	fabsolute, .Ltmp10-fabsolute
 
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
@@ -240,14 +283,12 @@ fabsolute:                              // @fabsolute
 .LCPI6_1:
 	.xword	4614256656543962353     // double 3.1415926500000002
 .LCPI6_2:
-	.xword	-4604611780672183960    // double -6.2831853100000004
-.LCPI6_3:
 	.xword	4618760256182591848     // double 6.2831853100000004
+.LCPI6_3:
+	.xword	4600972580644005721     // double 0.40528473500000001
 .LCPI6_4:
 	.xword	4608412980290544294     // double 1.2732395400000001
 .LCPI6_5:
-	.xword	4600972580644005721     // double 0.40528473500000001
-.LCPI6_6:
 	.xword	4597274499619802317     // double 0.22500000000000001
 	.text
 	.globl	fsine
@@ -255,60 +296,163 @@ fabsolute:                              // @fabsolute
 	.type	fsine,@function
 fsine:                                  // @fsine
 // BB#0:                                // %entry
-	fcvt	d1, s0
+	sub	sp, sp, #16             // =16
 	adrp	x8, .LCPI6_0
-	ldr	d2, [x8, :lo12:.LCPI6_0]
-	fcmp	d1, d2
-	b.ge	.LBB6_2
-// BB#1:                                // %if.then
-	adrp	x8, .LCPI6_3
-	ldr	d0, [x8, :lo12:.LCPI6_3]
-	b	.LBB6_4
-.LBB6_2:                                // %if.else
-	adrp	x8, .LCPI6_1
-	ldr	d2, [x8, :lo12:.LCPI6_1]
-	fcmp	d1, d2
-	b.le	.LBB6_5
-// BB#3:                                // %if.then7
+	ldr	d1, [x8, :lo12:.LCPI6_0]
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
+	fcvt	d2, s0
+	fcmp	d2, d1
+	b.mi	.LBB6_1
+	b	.LBB6_2
+.LBB6_1:                                // %if.then
 	adrp	x8, .LCPI6_2
 	ldr	d0, [x8, :lo12:.LCPI6_2]
-.LBB6_4:                                // %if.end10
-	fadd	d0, d1, d0
-	fcvt	s0, d0
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fadd	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+	b	.LBB6_5
+.LBB6_2:                                // %if.else
+	adrp	x8, .LCPI6_1
+	ldr	d0, [x8, :lo12:.LCPI6_1]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	b.gt	.LBB6_3
+	b	.LBB6_4
+.LBB6_3:                                // %if.then7
+	adrp	x8, .LCPI6_2
+	ldr	d0, [x8, :lo12:.LCPI6_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fsub	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+.LBB6_4:                                // %if.end
+	b	.LBB6_5
 .LBB6_5:                                // %if.end10
-	fcvt	d2, s0
+	ldr	s0, [sp, #12]
+	fcmp	s0, #0.0
+	b.mi	.LBB6_6
+	b	.LBB6_10
+.LBB6_6:                                // %if.then13
+	adrp	x8, .LCPI6_3
+	ldr	d0, [x8, :lo12:.LCPI6_3]
 	adrp	x8, .LCPI6_4
 	ldr	d1, [x8, :lo12:.LCPI6_4]
-	fmul	d1, d2, d1
-	fmul	d2, d2, d2
-	adrp	x8, .LCPI6_5
-	ldr	d3, [x8, :lo12:.LCPI6_5]
-	fmul	d2, d2, d3
-	fcmp	s0, #0.0
-	b.ge	.LBB6_7
-// BB#6:                                // %if.then13
-	fadd	d0, d1, d2
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fadd	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB6_7
 	b	.LBB6_8
-.LBB6_7:                                // %if.else41
-	fsub	d0, d1, d2
-.LBB6_8:                                // %if.then13
-	fcvt	s0, d0
-	fmul	s1, s0, s0
-	fcmp	s0, #0.0
-	b.ge	.LBB6_10
-// BB#9:                                // %if.then23
-	fneg	s1, s1
-.LBB6_10:                               // %if.else61
-	fsub	s1, s1, s0
-	fcvt	d1, s1
-	fcvt	d0, s0
-	adrp	x8, .LCPI6_6
-	ldr	d2, [x8, :lo12:.LCPI6_6]
-	fmadd	d0, d1, d2, d0
-	fcvt	s0, d0
+.LBB6_7:                                // %if.then23
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB6_9
+.LBB6_8:                                // %if.else32
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB6_9:                                // %if.end40
+	b	.LBB6_14
+.LBB6_10:                               // %if.else41
+	adrp	x8, .LCPI6_3
+	ldr	d0, [x8, :lo12:.LCPI6_3]
+	adrp	x8, .LCPI6_4
+	ldr	d1, [x8, :lo12:.LCPI6_4]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fsub	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB6_11
+	b	.LBB6_12
+.LBB6_11:                               // %if.then52
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB6_13
+.LBB6_12:                               // %if.else61
+	adrp	x8, .LCPI6_5
+	ldr	d0, [x8, :lo12:.LCPI6_5]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB6_13:                               // %if.end69
+	b	.LBB6_14
+.LBB6_14:                               // %if.end70
+	ldr	s0, [sp, #8]
+	add	sp, sp, #16             // =16
 	ret
-.Ltmp13:
-	.size	fsine, .Ltmp13-fsine
+.Ltmp12:
+	.size	fsine, .Ltmp12-fsine
 
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
@@ -317,16 +461,14 @@ fsine:                                  // @fsine
 .LCPI7_1:
 	.xword	4614256656543962353     // double 3.1415926500000002
 .LCPI7_2:
-	.xword	-4604611780672183960    // double -6.2831853100000004
-.LCPI7_3:
 	.xword	4618760256182591848     // double 6.2831853100000004
-.LCPI7_4:
+.LCPI7_3:
 	.xword	4609753056894073858     // double 1.5707963199999999
+.LCPI7_4:
+	.xword	4600972580644005721     // double 0.40528473500000001
 .LCPI7_5:
 	.xword	4608412980290544294     // double 1.2732395400000001
 .LCPI7_6:
-	.xword	4600972580644005721     // double 0.40528473500000001
-.LCPI7_7:
 	.xword	4597274499619802317     // double 0.22500000000000001
 	.text
 	.globl	fcosine
@@ -334,827 +476,1145 @@ fsine:                                  // @fsine
 	.type	fcosine,@function
 fcosine:                                // @fcosine
 // BB#0:                                // %entry
-	fcvt	d1, s0
+	sub	sp, sp, #16             // =16
 	adrp	x8, .LCPI7_0
-	ldr	d2, [x8, :lo12:.LCPI7_0]
-	fcmp	d1, d2
-	b.ge	.LBB7_2
-// BB#1:                                // %if.then
-	adrp	x8, .LCPI7_3
-	ldr	d0, [x8, :lo12:.LCPI7_3]
-	b	.LBB7_4
+	ldr	d1, [x8, :lo12:.LCPI7_0]
+	str	s0, [sp, #12]
+	ldr	s0, [sp, #12]
+	fcvt	d2, s0
+	fcmp	d2, d1
+	b.mi	.LBB7_1
+	b	.LBB7_2
+.LBB7_1:                                // %if.then
+	adrp	x8, .LCPI7_2
+	ldr	d0, [x8, :lo12:.LCPI7_2]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fadd	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+	b	.LBB7_5
 .LBB7_2:                                // %if.else
 	adrp	x8, .LCPI7_1
-	ldr	d2, [x8, :lo12:.LCPI7_1]
-	fcmp	d1, d2
-	b.le	.LBB7_5
-// BB#3:                                // %if.then7
+	ldr	d0, [x8, :lo12:.LCPI7_1]
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fcmp	d2, d0
+	b.gt	.LBB7_3
+	b	.LBB7_4
+.LBB7_3:                                // %if.then7
 	adrp	x8, .LCPI7_2
 	ldr	d0, [x8, :lo12:.LCPI7_2]
-.LBB7_4:                                // %if.end10
-	fadd	d0, d1, d0
-	fcvt	s0, d0
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fsub	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
+.LBB7_4:                                // %if.end
+	b	.LBB7_5
 .LBB7_5:                                // %if.end10
-	fcvt	d0, s0
-	adrp	x8, .LCPI7_4
-	ldr	d1, [x8, :lo12:.LCPI7_4]
-	fadd	d0, d0, d1
-	fcvt	s0, d0
-	fcvt	d1, s0
 	adrp	x8, .LCPI7_1
-	ldr	d2, [x8, :lo12:.LCPI7_1]
-	fcmp	d1, d2
-	b.le	.LBB7_7
-// BB#6:                                // %if.then17
+	ldr	d0, [x8, :lo12:.LCPI7_1]
+	adrp	x8, .LCPI7_3
+	ldr	d1, [x8, :lo12:.LCPI7_3]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fadd	d1, d3, d1
+	fcvt	s2, d1
+	str	s2, [sp, #12]
+	ldr	s2, [sp, #12]
+	fcvt	d1, s2
+	fcmp	d1, d0
+	b.gt	.LBB7_6
+	b	.LBB7_7
+.LBB7_6:                                // %if.then17
 	adrp	x8, .LCPI7_2
 	ldr	d0, [x8, :lo12:.LCPI7_2]
-	fadd	d0, d1, d0
-	fcvt	s0, d0
+	ldr	s1, [sp, #12]
+	fcvt	d2, s1
+	fsub	d0, d2, d0
+	fcvt	s1, d0
+	str	s1, [sp, #12]
 .LBB7_7:                                // %if.end21
-	fcvt	d2, s0
+	ldr	s0, [sp, #12]
+	fcmp	s0, #0.0
+	b.mi	.LBB7_8
+	b	.LBB7_12
+.LBB7_8:                                // %if.then24
+	adrp	x8, .LCPI7_4
+	ldr	d0, [x8, :lo12:.LCPI7_4]
 	adrp	x8, .LCPI7_5
 	ldr	d1, [x8, :lo12:.LCPI7_5]
-	fmul	d1, d2, d1
-	fmul	d2, d2, d2
-	adrp	x8, .LCPI7_6
-	ldr	d3, [x8, :lo12:.LCPI7_6]
-	fmul	d2, d2, d3
-	fcmp	s0, #0.0
-	b.ge	.LBB7_9
-// BB#8:                                // %if.then24
-	fadd	d0, d1, d2
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fadd	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB7_9
 	b	.LBB7_10
-.LBB7_9:                                // %if.else52
-	fsub	d0, d1, d2
-.LBB7_10:                               // %if.then24
-	fcvt	s0, d0
-	fmul	s1, s0, s0
-	fcmp	s0, #0.0
-	b.ge	.LBB7_12
-// BB#11:                               // %if.then34
-	fneg	s1, s1
-.LBB7_12:                               // %if.else72
-	fsub	s1, s1, s0
-	fcvt	d1, s1
-	fcvt	d0, s0
-	adrp	x8, .LCPI7_7
-	ldr	d2, [x8, :lo12:.LCPI7_7]
-	fmadd	d0, d1, d2, d0
-	fcvt	s0, d0
+.LBB7_9:                                // %if.then34
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB7_11
+.LBB7_10:                               // %if.else43
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB7_11:                               // %if.end51
+	b	.LBB7_16
+.LBB7_12:                               // %if.else52
+	adrp	x8, .LCPI7_4
+	ldr	d0, [x8, :lo12:.LCPI7_4]
+	adrp	x8, .LCPI7_5
+	ldr	d1, [x8, :lo12:.LCPI7_5]
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d1, d1, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	ldr	s2, [sp, #12]
+	fcvt	d3, s2
+	fmul	d0, d0, d3
+	fsub	d0, d1, d0
+	fcvt	s2, d0
+	str	s2, [sp, #8]
+	ldr	s2, [sp, #8]
+	fcmp	s2, #0.0
+	b.mi	.LBB7_13
+	b	.LBB7_14
+.LBB7_13:                               // %if.then63
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fneg	s2, s2
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+	b	.LBB7_15
+.LBB7_14:                               // %if.else72
+	adrp	x8, .LCPI7_6
+	ldr	d0, [x8, :lo12:.LCPI7_6]
+	ldr	s1, [sp, #8]
+	ldr	s2, [sp, #8]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #8]
+	fsub	s1, s1, s2
+	fcvt	d3, s1
+	fmul	d0, d0, d3
+	ldr	s1, [sp, #8]
+	fcvt	d3, s1
+	fadd	d0, d0, d3
+	fcvt	s1, d0
+	str	s1, [sp, #8]
+.LBB7_15:                               // %if.end80
+	b	.LBB7_16
+.LBB7_16:                               // %if.end81
+	ldr	s0, [sp, #8]
+	add	sp, sp, #16             // =16
 	ret
-.Ltmp15:
-	.size	fcosine, .Ltmp15-fcosine
+.Ltmp14:
+	.size	fcosine, .Ltmp14-fcosine
 
-	.section	.rodata.cst8,"aM",@progbits,8
-	.align	3
-.LCPI8_0:
-	.xword	4630967054332067840     // double 41
-	.text
 	.globl	main
 	.align	2
 	.type	main,@function
 main:                                   // @main
 // BB#0:                                // %entry
-	stp	x20, x19, [sp, #-32]!
-	stp	x29, x30, [sp, #16]
-	add	x29, sp, #16            // =16
-	adrp	x19, params
-	add	x19, x19, :lo12:params
-	orr	w8, wzr, #0x1
-	adrp	x20, params
-	adrp	x9, data_ligand_dat_len
-	str	w8, [x19, #48]
-	adrp	x8, data_ligand_dat
-	add	x8, x8, :lo12:data_ligand_dat
-	ldr	w9, [x9, :lo12:data_ligand_dat_len]
-	lsr	w9, w9, #4
-	str	w9, [x20, :lo12:params]
-	adrp	x9, data_protein_dat_len
-	str	x8, [x19, #24]
-	adrp	x8, data_protein_dat
-	add	x8, x8, :lo12:data_protein_dat
-	ldr	w9, [x9, :lo12:data_protein_dat_len]
-	lsr	w9, w9, #4
-	str	w9, [x19, #4]
-	adrp	x9, data_forcefield_dat_len
-	ldr	w9, [x9, :lo12:data_forcefield_dat_len]
-	str	x8, [x19, #16]
-	lsr	w8, w9, #4
-	str	w8, [x19, #8]
-	adrp	x8, data_forcefield_dat
-	add	x8, x8, :lo12:data_forcefield_dat
-	str	x8, [x19, #32]
-	adrp	x8, data_poses_dat_len
-	ldr	w8, [x8, :lo12:data_poses_dat_len]
-	cmp	 w8, #47                // =47
-	b.hi	.LBB8_2
-// BB#1:                                // %cond.true.i
-	ubfx	x8, x8, #0, #32
-	movz	w9, #0xaaaa, lsl #16
-	movk	w9, #0xaaab
-	mul	 x8, x8, x9
-	lsr	x8, x8, #36
-	b	.LBB8_3
-.LBB8_2:
-	orr	w8, wzr, #0x2
-.LBB8_3:                                // %loadParameters.exit
-	str	w8, [x19, #12]
-	adrp	x8, data_poses_dat
-	add	x8, x8, :lo12:data_poses_dat
-	str	x8, [x19, #40]
-	adrp	x0, energiesOMP
-	add	x0, x0, :lo12:energiesOMP
+	stp	x29, x30, [sp, #-16]!
+	mov	 x29, sp
+	sub	sp, sp, #48             // =48
+	movz	w8, #0
+	stur	w8, [x29, #-4]
+	stur	w0, [x29, #-8]
+	stur	x1, [x29, #-16]
+	ldur	w0, [x29, #-8]
+	ldur	x1, [x29, #-16]
+	bl	loadParameters
+	adrp	x1, energiesOMP
+	add	x0, x1, :lo12:energiesOMP
 	bl	runOpenMP
-	ldr	s0, [x20, :lo12:params]
-	sshll	v0.2d, v0.2s, #0
-	scvtf	d0, d0
-	ldr	s1, [x19, #4]
-	sshll	v1.2d, v1.2s, #0
-	scvtf	d1, d1
-	adrp	x8, .LCPI8_0
-	ldr	d2, [x8, :lo12:.LCPI8_0]
-	fmov	d3, #21.00000000
-	fmadd	d1, d1, d2, d3
-	fmov	d2, #28.00000000
-	fmadd	d0, d0, d1, d2
-	ldr	s1, [x19, #12]
-	sshll	v1.2d, v1.2s, #0
-	scvtf	d1, d1
-	fmul	d0, d1, d0
+	adrp	x0, params
+	add	x0, x0, :lo12:params
+	movz	x1, #0xb
+	scvtf	d0, x1
+	orr	x1, xzr, #0x1e
+	scvtf	d1, x1
+	orr	x1, xzr, #0x3
+	scvtf	d2, x1
+	movz	x1, #0x12
+	scvtf	d3, x1
+	movz	x1, #0x1b
+	scvtf	d4, x1
+	orr	x1, xzr, #0x1
+	scvtf	d5, x1
+	str	d5, [sp, #24]
+	ldr	d5, [sp, #24]
+	fmul	d4, d4, d5
+	ldr	 w8, [x0]
+	scvtf	d5, w8
+	ldr	d6, [sp, #24]
+	fmul	d3, d3, d6
+	fadd	d2, d2, d3
+	ldr	w8, [x0, #4]
+	scvtf	d3, w8
+	ldr	d6, [sp, #24]
+	fmul	d1, d1, d6
+	fadd	d0, d0, d1
+	fmul	d0, d3, d0
+	fadd	d0, d2, d0
+	fmul	d0, d5, d0
+	fadd	d0, d4, d0
+	ldr	d1, [sp, #24]
+	fadd	d0, d0, d1
+	str	d0, [sp, #16]
+	ldr	d0, [sp, #16]
+	ldr	w8, [x0, #12]
+	scvtf	d1, w8
+	ldr	d2, [sp, #24]
+	fdiv	d1, d1, d2
+	fmul	d0, d0, d1
+	str	d0, [sp, #8]
+	ldr	d0, [sp, #8]
 	fcvtzs	w0, d0
-	ldp	x29, x30, [sp, #16]
-	ldp	x20, x19, [sp], #32
+	mov	 sp, x29
+	ldp	x29, x30, [sp], #16
 	ret
-.Ltmp16:
-	.size	main, .Ltmp16-main
+.Ltmp15:
+	.size	main, .Ltmp15-main
 
 	.globl	loadParameters
 	.align	2
 	.type	loadParameters,@function
 loadParameters:                         // @loadParameters
 // BB#0:                                // %entry
-	adrp	x8, params
-	add	x8, x8, :lo12:params
-	orr	w9, wzr, #0x1
-	adrp	x10, params
-	str	w9, [x8, #48]
-	adrp	x9, data_ligand_dat_len
-	ldr	w9, [x9, :lo12:data_ligand_dat_len]
-	lsr	w9, w9, #4
-	str	w9, [x10, :lo12:params]
-	adrp	x9, data_ligand_dat
-	add	x9, x9, :lo12:data_ligand_dat
-	adrp	x10, data_protein_dat_len
-	str	x9, [x8, #24]
-	adrp	x9, data_protein_dat
-	add	x9, x9, :lo12:data_protein_dat
-	ldr	w10, [x10, :lo12:data_protein_dat_len]
-	lsr	w10, w10, #4
-	str	w10, [x8, #4]
-	adrp	x10, data_forcefield_dat_len
-	ldr	w10, [x10, :lo12:data_forcefield_dat_len]
-	str	x9, [x8, #16]
-	lsr	w9, w10, #4
-	str	w9, [x8, #8]
+	sub	sp, sp, #48             // =48
+	adrp	x8, data_poses_dat_len
+	add	x8, x8, :lo12:data_poses_dat_len
 	adrp	x9, data_forcefield_dat
 	add	x9, x9, :lo12:data_forcefield_dat
-	str	x9, [x8, #32]
-	adrp	x9, data_poses_dat_len
-	ldr	w9, [x9, :lo12:data_poses_dat_len]
-	cmp	 w9, #47                // =47
-	b.hi	.LBB9_2
-// BB#1:                                // %cond.true
-	ubfx	x9, x9, #0, #32
-	movz	w10, #0xaaaa, lsl #16
-	movk	w10, #0xaaab
-	mul	 x9, x9, x10
-	lsr	x9, x9, #36
+	adrp	x10, params
+	add	x10, x10, :lo12:params
+	adrp	x11, data_forcefield_dat_len
+	add	x11, x11, :lo12:data_forcefield_dat_len
+	adrp	x12, data_protein_dat
+	add	x12, x12, :lo12:data_protein_dat
+	adrp	x13, data_protein_dat_len
+	add	x13, x13, :lo12:data_protein_dat_len
+	adrp	x14, data_ligand_dat
+	add	x14, x14, :lo12:data_ligand_dat
+	adrp	x15, data_ligand_dat_len
+	add	x15, x15, :lo12:data_ligand_dat_len
+	orr	w16, wzr, #0x2
+	orr	w17, wzr, #0x1
+	str	w0, [sp, #44]
+	str	x1, [sp, #32]
+	str	w17, [x10, #48]
+	str	w16, [sp, #28]
+	ldr	 w16, [x15]
+	mov	 w15, w16
+	ubfx	x15, x15, #0, #32
+	orr	x1, xzr, #0x4
+	lsr	x15, x15, x1
+	mov	 w0, w15
+	str	 w0, [x10]
+	str	x14, [x10, #24]
+	ldr	 w16, [x13]
+	mov	 w13, w16
+	ubfx	x13, x13, #0, #32
+	orr	x14, xzr, #0x4
+	lsr	x13, x13, x14
+	mov	 w0, w13
+	str	w0, [x10, #4]
+	str	x12, [x10, #16]
+	ldr	 w16, [x11]
+	mov	 w11, w16
+	ubfx	x11, x11, #0, #32
+	orr	x12, xzr, #0x4
+	lsr	x11, x11, x12
+	mov	 w0, w11
+	str	w0, [x10, #8]
+	str	x9, [x10, #32]
+	ldr	 w16, [x8]
+	mov	 w8, w16
+	ubfx	x8, x8, #0, #32
+	orr	x9, xzr, #0x18
+	udiv	x8, x8, x9
+	str	x8, [sp, #16]
+	ldr	w16, [sp, #28]
+	mov	 w8, w16
+	sxtw	x1, w8
+	ldr	x8, [sp, #16]
+	cmp	 x1, x8
+	b.gt	.LBB9_1
+	b	.LBB9_2
+.LBB9_1:                                // %cond.true
+	ldr	x8, [sp, #16]
+	str	x8, [sp, #8]            // 8-byte Folded Spill
 	b	.LBB9_3
-.LBB9_2:
-	orr	w9, wzr, #0x2
+.LBB9_2:                                // %cond.false
+	ldr	w8, [sp, #28]
+	mov	 w9, w8
+	sxtw	x9, w9
+	str	x9, [sp, #8]            // 8-byte Folded Spill
 .LBB9_3:                                // %cond.end
-	str	w9, [x8, #12]
-	adrp	x9, data_poses_dat
-	add	x9, x9, :lo12:data_poses_dat
-	str	x9, [x8, #40]
+	ldr	x0, [sp, #8]            // 8-byte Folded Reload
+	adrp	x8, data_poses_dat
+	add	x8, x8, :lo12:data_poses_dat
+	adrp	x9, params
+	add	x9, x9, :lo12:params
+	mov	 w1, w0
+	str	w1, [x9, #12]
+	str	x8, [x9, #40]
+	add	sp, sp, #48             // =48
 	ret
-.Ltmp18:
-	.size	loadParameters, .Ltmp18-loadParameters
+.Ltmp17:
+	.size	loadParameters, .Ltmp17-loadParameters
 
 	.section	.rodata.cst8,"aM",@progbits,8
 	.align	3
 .LCPI10_0:
-	.xword	-4609115380310813455    // double -3.1415926500000002
-.LCPI10_1:
-	.xword	4614256656543962353     // double 3.1415926500000002
-.LCPI10_2:
-	.xword	-4604611780672183960    // double -6.2831853100000004
-.LCPI10_3:
-	.xword	4618760256182591848     // double 6.2831853100000004
-.LCPI10_4:
-	.xword	4608412980290544294     // double 1.2732395400000001
-.LCPI10_5:
-	.xword	4600972580644005721     // double 0.40528473500000001
-.LCPI10_6:
-	.xword	4597274499619802317     // double 0.22500000000000001
-.LCPI10_7:
 	.xword	-4039728866288205824    // double -3.4028234663852886E+38
-.LCPI10_9:
-	.xword	4554050699414489        // double 2.25E-308
-.LCPI10_10:
-	.xword	-9218817986155361319    // double -2.25E-308
-	.section	.rodata.cst4,"aM",@progbits,4
-	.align	2
-.LCPI10_8:
-	.word	1051372203              // float 0.333333343
-.LCPI10_11:
-	.word	1117257728              // float 76
-.LCPI10_12:
-	.word	1110704128              // float 45
-.LCPI10_13:
-	.word	3258187776              // float -45
 	.text
 	.globl	runOpenMP
 	.align	2
 	.type	runOpenMP,@function
 runOpenMP:                              // @runOpenMP
 // BB#0:                                // %entry
-	stp	d15, d14, [sp, #-160]!
-	stp	d13, d12, [sp, #16]
-	stp	d11, d10, [sp, #32]
-	stp	d9, d8, [sp, #48]
-	stp	x28, x27, [sp, #64]
-	stp	x26, x25, [sp, #80]
-	stp	x24, x23, [sp, #96]
-	stp	x22, x21, [sp, #112]
-	stp	x20, x19, [sp, #128]
-	stp	x29, x30, [sp, #144]
-	add	x29, sp, #144           // =144
-	sub	sp, sp, #144            // =144
-	str	x0, [sp, #72]           // 8-byte Folded Spill
-	adrp	x8, params
-	add	x8, x8, :lo12:params
-	ldr	w8, [x8, #48]
-	str	w8, [sp, #32]           // 4-byte Folded Spill
-	cmp	 w8, #1                 // =1
-	b.lt	.LBB10_52
-// BB#1:                                // %for.cond1.preheader.lr.ph
-	mov	 w11, wzr
-	adrp	x8, params
-	add	x8, x8, :lo12:params
-	ldr	w12, [x8, #12]
-	str	w12, [sp, #84]          // 4-byte Folded Spill
-	adrp	x8, .LCPI10_0
-	ldr	d8, [x8, :lo12:.LCPI10_0]
-	str	d8, [sp, #64]           // 8-byte Folded Spill
-	adrp	x8, .LCPI10_3
-	adrp	x9, .LCPI10_4
-	ldr	d0, [x8, :lo12:.LCPI10_3]
-	str	d0, [sp, #88]           // 8-byte Folded Spill
-	adrp	x8, .LCPI10_5
-	adrp	x10, .LCPI10_6
-	ldr	d11, [x9, :lo12:.LCPI10_4]
-	str	d11, [sp, #56]          // 8-byte Folded Spill
-	fmov	s13, #2.00000000
-	fmov	s15, #0.50000000
-	fmov	s10, #1.00000000
-	adrp	x26, .LCPI10_7
-	ldr	d12, [x8, :lo12:.LCPI10_5]
-	str	d12, [sp, #48]          // 8-byte Folded Spill
-	adrp	x27, .LCPI10_8
-	adrp	x28, .LCPI10_9
-	ldr	d14, [x10, :lo12:.LCPI10_6]
-	str	d14, [sp, #40]          // 8-byte Folded Spill
-	adrp	x21, .LCPI10_10
-	adrp	x22, .LCPI10_11
-	adrp	x24, .LCPI10_13
-	adrp	x25, .LCPI10_12
-	mov	 w8, w12
-.LBB10_2:                               // %for.cond1.preheader
+	stp	x28, x27, [sp, #-32]!
+	stp	x29, x30, [sp, #16]
+	add	x29, sp, #16            // =16
+	sub	sp, sp, #352            // =352
+	movz	w8, #0
+	stur	x0, [x29, #-24]
+	stur	w8, [x29, #-28]
+.LBB10_1:                               // %for.cond
                                         // =>This Loop Header: Depth=1
-                                        //     Child Loop BB10_4 Depth 2
-                                        //       Child Loop BB10_36 Depth 3
-                                        //         Child Loop BB10_42 Depth 4
-                                        //           Child Loop BB10_44 Depth 5
-                                        //         Child Loop BB10_37 Depth 4
-                                        //           Child Loop BB10_39 Depth 5
-	cbz	w8, .LBB10_50
-// BB#3:                                // %for.body3.lr.ph
-                                        //   in Loop: Header=BB10_2 Depth=1
-	str	w11, [sp, #36]          // 4-byte Folded Spill
-	mov	 w19, wzr
+                                        //     Child Loop BB10_3 Depth 2
+                                        //       Child Loop BB10_5 Depth 3
+                                        //         Child Loop BB10_6 Depth 4
 	adrp	x8, params
 	add	x8, x8, :lo12:params
-	ldr	x23, [x8, #40]
-.LBB10_4:                               // %for.body3
-                                        //   Parent Loop BB10_2 Depth=1
+	ldur	w9, [x29, #-28]
+	ldr	w10, [x8, #48]
+	cmp	 w9, w10
+	b.lt	.LBB10_2
+	b	.LBB10_38
+.LBB10_2:                               // %for.body
+                                        //   in Loop: Header=BB10_1 Depth=1
+	movz	w8, #0
+	stur	w8, [x29, #-32]
+.LBB10_3:                               // %for.cond1
+                                        //   Parent Loop BB10_1 Depth=1
                                         // =>  This Loop Header: Depth=2
-                                        //       Child Loop BB10_36 Depth 3
-                                        //         Child Loop BB10_42 Depth 4
-                                        //           Child Loop BB10_44 Depth 5
-                                        //         Child Loop BB10_37 Depth 4
-                                        //           Child Loop BB10_39 Depth 5
-	orr	w8, wzr, #0x6
-	mul	 w20, w19, w8
-	ldr	s0, [x23, w20, uxtw #2]
-	fcvt	d2, s0
-	fcmp	d2, d8
-	b.ge	.LBB10_6
-// BB#5:                                // %if.then.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	ldr	d1, [sp, #88]           // 8-byte Folded Reload
-	b	.LBB10_8
-.LBB10_6:                               // %if.else.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	adrp	x8, .LCPI10_1
-	ldr	d1, [x8, :lo12:.LCPI10_1]
-	fcmp	d2, d1
-	mov		v1.16b, v0.16b
-	b.le	.LBB10_9
-// BB#7:                                // %if.then7.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	adrp	x8, .LCPI10_2
-	ldr	d1, [x8, :lo12:.LCPI10_2]
-.LBB10_8:                               // %if.end10.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fadd	d1, d2, d1
-	fcvt	s1, d1
-.LBB10_9:                               // %if.end10.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fcvt	d3, s1
-	fmul	d2, d3, d11
-	fmul	d3, d3, d3
-	fmul	d3, d3, d12
-	fcmp	s1, #0.0
-	b.ge	.LBB10_11
-// BB#10:                               // %if.then13.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fadd	d1, d2, d3
-	b	.LBB10_12
-.LBB10_11:                              // %if.else41.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fsub	d1, d2, d3
-.LBB10_12:                              // %if.then13.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fcvt	s1, d1
-	fmul	s2, s1, s1
-	fcmp	s1, #0.0
-	b.ge	.LBB10_14
-// BB#13:                               // %if.then23.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fneg	s2, s2
-.LBB10_14:                              // %if.else61.i
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fsub	s2, s2, s1
-	fcvt	d2, s2
-	fcvt	d1, s1
-	fmadd	d1, d2, d14, d1
-	fcvt	s9, d1
+                                        //       Child Loop BB10_5 Depth 3
+                                        //         Child Loop BB10_6 Depth 4
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	ldur	w9, [x29, #-32]
+	ldr	w10, [x8, #12]
+	cmp	 w9, w10
+	b.lo	.LBB10_4
+	b	.LBB10_36
+.LBB10_4:                               // %for.body3
+                                        //   in Loop: Header=BB10_3 Depth=2
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w9, wzr, #0x6
+	movz	x10, #0
+	scvtf	s0, x10
+	stur	s0, [x29, #-36]
+	ldur	w11, [x29, #-32]
+	mul	 w9, w11, w9
+	movz	w11, #0
+	add	 w9, w9, w11
+	mov	 w10, w9
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
+	bl	fsine
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w9, wzr, #0x6
+	stur	s0, [x29, #-40]
+	ldur	w11, [x29, #-32]
+	mul	 w9, w11, w9
+	movz	w11, #0
+	add	 w9, w9, w11
+	mov	 w10, w9
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
 	bl	fcosine
-	mov		v4.16b, v0.16b
-	orr	w8, w20, #0x1
-	ldr	s0, [x23, w8, uxtw #2]
-	fcvt	d2, s0
-	fcmp	d2, d8
-	b.ge	.LBB10_16
-// BB#15:                               // %if.then.i389
-                                        //   in Loop: Header=BB10_4 Depth=2
-	ldr	d1, [sp, #88]           // 8-byte Folded Reload
-	b	.LBB10_18
-.LBB10_16:                              // %if.else.i391
-                                        //   in Loop: Header=BB10_4 Depth=2
-	adrp	x8, .LCPI10_1
-	ldr	d1, [x8, :lo12:.LCPI10_1]
-	fcmp	d2, d1
-	mov		v1.16b, v0.16b
-	b.le	.LBB10_19
-// BB#17:                               // %if.then7.i394
-                                        //   in Loop: Header=BB10_4 Depth=2
-	adrp	x8, .LCPI10_2
-	ldr	d1, [x8, :lo12:.LCPI10_2]
-.LBB10_18:                              // %if.end10.i400
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fadd	d1, d2, d1
-	fcvt	s1, d1
-.LBB10_19:                              // %if.end10.i400
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fcvt	d3, s1
-	fmul	d2, d3, d11
-	fmul	d3, d3, d3
-	fmul	d3, d3, d12
-	fcmp	s1, #0.0
-	b.ge	.LBB10_21
-// BB#20:                               // %if.then13.i404
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fadd	d1, d2, d3
-	b	.LBB10_22
-.LBB10_21:                              // %if.else41.i421
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fsub	d1, d2, d3
-.LBB10_22:                              // %if.then13.i404
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fcvt	s1, d1
-	fmul	s2, s1, s1
-	fcmp	s1, #0.0
-	b.ge	.LBB10_24
-// BB#23:                               // %if.then23.i411
-                                        //   in Loop: Header=BB10_4 Depth=2
-	stp	s4, s9, [sp, #100]
-	fneg	s2, s2
-	b	.LBB10_25
-.LBB10_24:                              // %if.else61.i434
-                                        //   in Loop: Header=BB10_4 Depth=2
-	stp	s4, s9, [sp, #100]
-.LBB10_25:                              // %fsine.exit437
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fsub	s2, s2, s1
-	fcvt	d2, s2
-	fcvt	d1, s1
-	fmadd	d1, d2, d14, d1
-	fcvt	s1, d1
-	str	s1, [sp, #140]          // 4-byte Folded Spill
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w9, wzr, #0x6
+	stur	s0, [x29, #-44]
+	ldur	w11, [x29, #-32]
+	mul	 w9, w11, w9
+	orr	w11, wzr, #0x1
+	add	 w9, w9, w11
+	mov	 w10, w9
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
+	bl	fsine
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w9, wzr, #0x6
+	stur	s0, [x29, #-48]
+	ldur	w11, [x29, #-32]
+	mul	 w9, w11, w9
+	orr	w11, wzr, #0x1
+	add	 w9, w9, w11
+	mov	 w10, w9
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
 	bl	fcosine
-	mov		v9.16b, v0.16b
-	add	w8, w20, #2             // =2
-	ldr	s0, [x23, w8, uxtw #2]
-	fcvt	d2, s0
-	fcmp	d2, d8
-	b.ge	.LBB10_27
-// BB#26:                               // %if.then.i442
-                                        //   in Loop: Header=BB10_4 Depth=2
-	ldr	d1, [sp, #88]           // 8-byte Folded Reload
-	b	.LBB10_29
-.LBB10_27:                              // %if.else.i444
-                                        //   in Loop: Header=BB10_4 Depth=2
-	adrp	x8, .LCPI10_1
-	ldr	d1, [x8, :lo12:.LCPI10_1]
-	fcmp	d2, d1
-	mov		v1.16b, v0.16b
-	b.le	.LBB10_30
-// BB#28:                               // %if.then7.i447
-                                        //   in Loop: Header=BB10_4 Depth=2
-	adrp	x8, .LCPI10_2
-	ldr	d1, [x8, :lo12:.LCPI10_2]
-.LBB10_29:                              // %if.end10.i453
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fadd	d1, d2, d1
-	fcvt	s1, d1
-.LBB10_30:                              // %if.end10.i453
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fcvt	d3, s1
-	fmul	d2, d3, d11
-	fmul	d3, d3, d3
-	fmul	d3, d3, d12
-	fcmp	s1, #0.0
-	b.ge	.LBB10_32
-// BB#31:                               // %if.then13.i457
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fadd	d1, d2, d3
-	b	.LBB10_33
-.LBB10_32:                              // %if.else41.i474
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fsub	d1, d2, d3
-.LBB10_33:                              // %if.then13.i457
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fcvt	s1, d1
-	fmul	s2, s1, s1
-	fcmp	s1, #0.0
-	b.ge	.LBB10_35
-// BB#34:                               // %if.then23.i464
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fneg	s2, s2
-.LBB10_35:                              // %if.else61.i487
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fsub	s2, s2, s1
-	fcvt	d2, s2
-	fcvt	d1, s1
-	fmadd	d1, d2, d14, d1
-	fcvt	s8, d1
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w9, wzr, #0x6
+	stur	s0, [x29, #-52]
+	ldur	w11, [x29, #-32]
+	mul	 w9, w11, w9
+	orr	w11, wzr, #0x2
+	add	 w9, w9, w11
+	mov	 w10, w9
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
+	bl	fsine
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w9, wzr, #0x6
+	stur	s0, [x29, #-56]
+	ldur	w11, [x29, #-32]
+	mul	 w9, w11, w9
+	orr	w11, wzr, #0x2
+	add	 w9, w9, w11
+	mov	 w10, w9
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
 	bl	fcosine
-	mov	 x8, xzr
-	fmul	s1, s9, s0
-	str	s1, [sp, #136]          // 4-byte Folded Spill
-	ldr	s3, [sp, #140]          // 4-byte Folded Reload
-	ldp	s5, s4, [sp, #100]
-	fmul	s1, s4, s3
-	fmul	s2, s5, s8
-	fnmsub	s2, s1, s0, s2
-	str	s2, [sp, #132]          // 4-byte Folded Spill
-	fmul	s2, s5, s3
-	fmul	s3, s2, s0
-	fmadd	s3, s4, s8, s3
-	str	s3, [sp, #128]          // 4-byte Folded Spill
-	add	w9, w20, #3             // =3
-	ldr	s3, [x23, w9, uxtw #2]
-	str	s3, [sp, #124]          // 4-byte Folded Spill
-	fmul	s3, s9, s8
-	str	s3, [sp, #120]          // 4-byte Folded Spill
-	fmul	s3, s5, s0
-	fmadd	s1, s1, s8, s3
-	str	s1, [sp, #116]          // 4-byte Folded Spill
-	add	w9, w20, #4             // =4
-	ldr	s1, [x23, w9, uxtw #2]
-	fmul	s0, s4, s0
-	fnmsub	s0, s2, s8, s0
-	stp	s0, s1, [sp, #108]
-	add	w9, w20, #5             // =5
-	ldr	s16, [x23, w9, uxtw #2]
-	fmul	s17, s4, s9
-	fmul	s18, s5, s9
+	movz	w9, #0
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	orr	w11, wzr, #0x6
+	stur	s0, [x29, #-60]
+	ldur	s0, [x29, #-52]
+	ldur	s1, [x29, #-60]
+	fmul	s0, s0, s1
+	stur	s0, [x29, #-108]
+	ldur	s0, [x29, #-40]
+	ldur	s1, [x29, #-48]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-60]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-44]
+	ldur	s2, [x29, #-56]
+	fmul	s1, s1, s2
+	fsub	s0, s0, s1
+	stur	s0, [x29, #-104]
+	ldur	s0, [x29, #-44]
+	ldur	s1, [x29, #-48]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-60]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-40]
+	ldur	s2, [x29, #-56]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	stur	s0, [x29, #-100]
+	ldur	w13, [x29, #-32]
+	mul	 w13, w13, w11
+	orr	w14, wzr, #0x3
+	add	 w13, w13, w14
+	mov	 w10, w13
+	ubfx	x10, x10, #0, #32
+	ldr	x12, [x8, #40]
+	orr	x15, xzr, #0x2
+	lsl	x10, x10, x15
+	add	 x10, x12, x10
+	ldr	 s0, [x10]
+	stur	s0, [x29, #-96]
+	ldur	s0, [x29, #-52]
+	ldur	s1, [x29, #-56]
+	fmul	s0, s0, s1
+	stur	s0, [x29, #-92]
+	ldur	s0, [x29, #-40]
+	ldur	s1, [x29, #-48]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-56]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-44]
+	ldur	s2, [x29, #-60]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	stur	s0, [x29, #-88]
+	ldur	s0, [x29, #-44]
+	ldur	s1, [x29, #-48]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-56]
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-40]
+	ldur	s2, [x29, #-60]
+	fmul	s1, s1, s2
+	fsub	s0, s0, s1
+	stur	s0, [x29, #-84]
+	ldur	w13, [x29, #-32]
+	mul	 w13, w13, w11
+	orr	w14, wzr, #0x4
+	add	 w13, w13, w14
+	mov	 w10, w13
+	ubfx	x10, x10, #0, #32
+	ldr	x12, [x8, #40]
+	orr	x15, xzr, #0x2
+	lsl	x10, x10, x15
+	add	 x10, x12, x10
+	ldr	 s0, [x10]
+	stur	s0, [x29, #-80]
+	ldur	s0, [x29, #-48]
+	fneg	s0, s0
+	stur	s0, [x29, #-76]
+	ldur	s0, [x29, #-40]
+	ldur	s1, [x29, #-52]
+	fmul	s0, s0, s1
+	stur	s0, [x29, #-72]
+	ldur	s0, [x29, #-44]
+	ldur	s1, [x29, #-52]
+	fmul	s0, s0, s1
+	stur	s0, [x29, #-68]
+	ldur	w13, [x29, #-32]
+	mul	 w11, w13, w11
+	movz	w13, #0x5
+	add	 w11, w11, w13
+	mov	 w10, w11
+	ubfx	x10, x10, #0, #32
+	ldr	x8, [x8, #40]
+	orr	x12, xzr, #0x2
+	lsl	x10, x10, x12
+	add	 x8, x8, x10
+	ldr	 s0, [x8]
+	stur	s0, [x29, #-64]
+	stur	w9, [x29, #-112]
+.LBB10_5:                               // %do.body
+                                        //   Parent Loop BB10_1 Depth=1
+                                        //     Parent Loop BB10_3 Depth=2
+                                        // =>    This Loop Header: Depth=3
+                                        //         Child Loop BB10_6 Depth 4
+	movz	w8, #0
 	adrp	x9, params
 	add	x9, x9, :lo12:params
-	mov	 x12, x9
-	ldp	x9, x10, [x12, #16]
-	ldr	x11, [x12, #32]
-	ldr	w12, [x12, #4]
-	adrp	x13, params
-	ldr	w13, [x13, :lo12:params]
-	fmov	s31, wzr
-.LBB10_36:                              // %do.body
-                                        //   Parent Loop BB10_2 Depth=1
-                                        //     Parent Loop BB10_4 Depth=2
-                                        // =>    This Loop Header: Depth=3
-                                        //         Child Loop BB10_42 Depth 4
-                                        //           Child Loop BB10_44 Depth 5
-                                        //         Child Loop BB10_37 Depth 4
-                                        //           Child Loop BB10_39 Depth 5
-	mov	 x15, xzr
-	mov	 x14, xzr
-	ldr	d1, [x26, :lo12:.LCPI10_7]
-	add	x16, x10, x8, lsl #4
-	ldp	 s2, s3, [x16]
-	ldr	s4, [x16, #8]
-	ldrsw	x16, [x16, #12]
-	add	x16, x11, x16, lsl #4
-	ldr	 w17, [x16]
-	ldp	s19, s20, [x16, #4]
-	ldr	s21, [x16, #12]
-	ldr	s0, [sp, #136]          // 4-byte Folded Reload
-	ldr	s5, [sp, #124]          // 4-byte Folded Reload
-	fmadd	s5, s0, s2, s5
-	ldr	s0, [sp, #132]          // 4-byte Folded Reload
-	fmadd	s5, s0, s3, s5
-	ldr	s0, [sp, #128]          // 4-byte Folded Reload
-	fmadd	s22, s0, s4, s5
-	ldr	s0, [sp, #120]          // 4-byte Folded Reload
-	ldr	s5, [sp, #112]          // 4-byte Folded Reload
-	fmadd	s5, s0, s2, s5
-	ldr	s0, [sp, #116]          // 4-byte Folded Reload
-	fmadd	s5, s0, s3, s5
-	ldr	s0, [sp, #108]          // 4-byte Folded Reload
-	fmadd	s23, s0, s4, s5
-	ldr	s0, [sp, #140]          // 4-byte Folded Reload
-	fmsub	s2, s0, s2, s16
-	fmadd	s2, s17, s3, s2
-	fmadd	s24, s18, s4, s2
-	cmp	 w17, #70               // =70
-	fmov	s0, #4.00000000
-	fcsel	s25, s0, s13, eq
+	ldur	w10, [x29, #-112]
+	mov	 w11, w10
+	sxtw	x11, w11
+	ldr	x12, [x9, #24]
+	orr	x13, xzr, #0x4
+	lsl	x11, x11, x13
+	add	 x11, x12, x11
+	ldr	 w10, [x11]
+	stur	w10, [x29, #-128]
+	ldr	w10, [x11, #4]
+	stur	w10, [x29, #-124]
+	ldr	w10, [x11, #8]
+	stur	w10, [x29, #-120]
+	ldr	w10, [x11, #12]
+	stur	w10, [x29, #-116]
+	ldur	w10, [x29, #-116]
+	mov	 w11, w10
+	sxtw	x11, w11
+	ldr	x9, [x9, #32]
+	orr	x12, xzr, #0x4
+	lsl	x11, x11, x12
+	add	 x9, x9, x11
+	ldr	 w10, [x9]
+	stur	w10, [x29, #-144]
+	ldr	w10, [x9, #4]
+	stur	w10, [x29, #-140]
+	ldr	w10, [x9, #8]
+	stur	w10, [x29, #-136]
+	ldr	w10, [x9, #12]
+	stur	w10, [x29, #-132]
+	ldur	s0, [x29, #-136]
+	fcmp	s0, #0.0
+	cset	 w10, mi
+	and	w10, w10, #0x1
+	stur	w10, [x29, #-148]
+	ldur	s0, [x29, #-136]
+	fcmp	s0, #0.0
+	cset	 w10, gt
+	and	w10, w10, #0x1
+	stur	w10, [x29, #-152]
+	ldur	s0, [x29, #-96]
+	ldur	s1, [x29, #-128]
+	ldur	s2, [x29, #-108]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	ldur	s1, [x29, #-124]
+	ldur	s2, [x29, #-104]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	ldur	s1, [x29, #-120]
+	ldur	s2, [x29, #-100]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	stur	s0, [x29, #-156]
+	ldur	s0, [x29, #-80]
+	ldur	s1, [x29, #-128]
+	ldur	s2, [x29, #-92]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	ldur	s1, [x29, #-124]
+	ldur	s2, [x29, #-88]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	ldur	s1, [x29, #-120]
+	ldur	s2, [x29, #-84]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	stur	s0, [x29, #-160]
+	ldur	s0, [x29, #-64]
+	ldur	s1, [x29, #-128]
+	ldur	s2, [x29, #-76]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	ldur	s1, [x29, #-124]
+	ldur	s2, [x29, #-72]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	ldur	s1, [x29, #-120]
+	ldur	s2, [x29, #-68]
+	fmul	s1, s1, s2
+	fadd	s0, s0, s1
+	stur	s0, [x29, #-164]
+	stur	w8, [x29, #-168]
+.LBB10_6:                               // %do.body141
+                                        //   Parent Loop BB10_1 Depth=1
+                                        //     Parent Loop BB10_3 Depth=2
+                                        //       Parent Loop BB10_5 Depth=3
+                                        // =>      This Inner Loop Header: Depth=4
+	movz	w8, #0
+	orr	x9, xzr, #0x1
+	scvtf	s0, x9
+	adrp	x9, params
+	add	x9, x9, :lo12:params
+	ldur	w10, [x29, #-168]
+	mov	 w11, w10
+	sxtw	x11, w11
+	ldr	x12, [x9, #16]
+	orr	x13, xzr, #0x4
+	lsl	x11, x11, x13
+	add	 x11, x12, x11
+	ldr	 w10, [x11]
+	str	w10, [sp, #184]
+	ldr	w10, [x11, #4]
+	str	w10, [sp, #188]
+	ldr	w10, [x11, #8]
+	str	w10, [sp, #192]
+	ldr	w10, [x11, #12]
+	str	w10, [sp, #196]
+	ldr	w10, [sp, #196]
+	mov	 w11, w10
+	sxtw	x11, w11
+	ldr	x9, [x9, #32]
+	orr	x12, xzr, #0x4
+	lsl	x11, x11, x12
+	add	 x9, x9, x11
+	ldr	 w10, [x9]
+	str	w10, [sp, #168]
+	ldr	w10, [x9, #4]
+	str	w10, [sp, #172]
+	ldr	w10, [x9, #8]
+	str	w10, [sp, #176]
+	ldr	w10, [x9, #12]
+	str	w10, [sp, #180]
+	ldr	s1, [sp, #172]
+	ldur	s2, [x29, #-140]
+	fadd	s1, s1, s2
+	str	s1, [sp, #164]
+	ldr	s1, [sp, #164]
+	fdiv	s0, s0, s1
+	str	s0, [sp, #160]
+	ldr	w10, [sp, #168]
+	cmp	 w10, #70               // =70
+	str	w8, [sp, #68]           // 4-byte Folded Spill
+	b.eq	.LBB10_7
+	b	.LBB10_8
+.LBB10_7:                               // %land.rhs
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldur	w8, [x29, #-144]
+	cmp	 w8, #70                // =70
+	cset	 w8, eq
+	str	w8, [sp, #68]           // 4-byte Folded Spill
+.LBB10_8:                               // %land.end
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #68]           // 4-byte Folded Reload
+	movz	w9, #0
+	orr	x10, xzr, #0x4
+	scvtf	s0, x10
+	orr	x10, xzr, #0x2
+	scvtf	s1, x10
+	and	w8, w8, #0x1
+	subs	w8, w8, #0              // =0
+	fcsel	s0, s0, s1, ne
+	str	s0, [sp, #156]
+	ldr	w8, [sp, #168]
+	cmp	 w8, #70                // =70
+	str	w9, [sp, #64]           // 4-byte Folded Spill
+	b.eq	.LBB10_9
+	b	.LBB10_10
+.LBB10_9:                               // %land.rhs157
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldur	w8, [x29, #-144]
+	cmp	 w8, #70                // =70
+	cset	 w8, eq
+	str	w8, [sp, #64]           // 4-byte Folded Spill
+.LBB10_10:                              // %land.end161
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #64]           // 4-byte Folded Reload
+	orr	w9, wzr, #0x1
 	fmov	s0, #0.25000000
-	fcsel	s26, s0, s15, eq
-	fcmp	s20, #0.0
-	fmov	s0, #-1.00000000
-	fcsel	s27, s0, s10, gt
-	fcsel	s28, s0, s10, lt
-	fmov	d0, #1.00000000
-	fmov	d2, #5.50000000
-	fcsel	d29, d2, d0, lt
-	fcsel	d30, d0, d1, lt
-	cmp	 w17, #69               // =69
-	b.ne	.LBB10_42
-.LBB10_37:                              // %do.body141.us
-                                        //   Parent Loop BB10_2 Depth=1
-                                        //     Parent Loop BB10_4 Depth=2
-                                        //       Parent Loop BB10_36 Depth=3
-                                        // =>      This Loop Header: Depth=4
-                                        //           Child Loop BB10_39 Depth 5
-	add	x14, x9, x15, lsl #4
-	ldp	 s5, s6, [x14]
-	ldr	s7, [x14, #8]
-	ldrsw	x14, [x14, #12]
-	add	x14, x11, x14, lsl #4
-	ldr	 w16, [x14]
-	ldp	s1, s9, [x14, #4]
-	ldr	s11, [x14, #12]
-	cmp	 w16, #70               // =70
-	fcsel	s12, s25, s13, eq
-	fcsel	s8, s26, s15, eq
-	fcmp	s9, #0.0
-	fcsel	s2, s27, s10, lt
-	fcsel	s3, s28, s10, gt
-	fcsel	d4, d29, d30, lt
-	fsub	s5, s22, s5
-	fsub	s6, s23, s6
-	fsub	s7, s24, s7
-	fmul	s6, s6, s6
-	fmadd	s5, s5, s5, s6
-	fmadd	s6, s7, s7, s5
-	fmov	s14, wzr
-	fcmp	s6, #0.0
-	mov		v5.16b, v14.16b
-	b.le	.LBB10_41
-// BB#38:                               // %do.body.preheader.i.us
-                                        //   in Loop: Header=BB10_37 Depth=4
-	ldr	s5, [x27, :lo12:.LCPI10_8]
-	fmul	s5, s6, s5
-.LBB10_39:                              // %do.body.i.us
-                                        //   Parent Loop BB10_2 Depth=1
-                                        //     Parent Loop BB10_4 Depth=2
-                                        //       Parent Loop BB10_36 Depth=3
-                                        //         Parent Loop BB10_37 Depth=4
-                                        // =>        This Inner Loop Header: Depth=5
-	mov		v7.16b, v5.16b
-	fdiv	s5, s6, s7
-	fadd	s5, s7, s5
-	fmul	s5, s5, s15
-	fsub	s7, s5, s7
-	fcvt	d7, s7
-	ldr	d0, [x28, :lo12:.LCPI10_9]
-	fcmp	d7, d0
-	b.gt	.LBB10_39
-// BB#40:                               // %do.body.i.us
-                                        //   in Loop: Header=BB10_39 Depth=5
-	ldr	d0, [x21, :lo12:.LCPI10_10]
-	fcmp	d7, d0
-	b.lt	.LBB10_39
-.LBB10_41:                              // %sqroot.exit.us
-                                        //   in Loop: Header=BB10_37 Depth=4
-	fadd	s0, s19, s1
-	fdiv	s1, s10, s0
-	fmul	s3, s20, s3
-	fcvt	s4, d4
-	fdiv	s6, s10, s4
-	fmul	s7, s21, s11
-	fmadd	s2, s9, s2, s3
-	fsub	s0, s5, s0
-	fmsub	s1, s1, s5, s10
+	fmov	s1, #0.50000000
+	and	w8, w8, #0x1
+	subs	w8, w8, #0              // =0
+	fcsel	s0, s0, s1, ne
+	str	s0, [sp, #152]
+	ldr	w8, [sp, #168]
+	cmp	 w8, #69                // =69
+	str	w9, [sp, #60]           // 4-byte Folded Spill
+	b.eq	.LBB10_12
+// BB#11:                               // %lor.rhs
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldur	w8, [x29, #-144]
+	cmp	 w8, #69                // =69
+	cset	 w8, eq
+	str	w8, [sp, #60]           // 4-byte Folded Spill
+.LBB10_12:                              // %lor.end
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #60]           // 4-byte Folded Reload
+	movz	w9, #0
+	and	w8, w8, #0x1
+	str	w8, [sp, #148]
+	ldr	s0, [sp, #176]
 	fcmp	s0, #0.0
-	ldr	s3, [x22, :lo12:.LCPI10_11]
-	fcsel	s3, s3, s14, lt
-	fmadd	s1, s1, s3, s31
-	fmsub	s3, s8, s0, s10
-	fcsel	s3, s10, s3, lt
-	fcmp	s0, s12
-	fcsel	s5, s10, s14, lt
-	fmul	s3, s5, s3
-	fmul	s3, s7, s3
-	fcmp	s3, #0.0
-	fneg	s5, s3
-	fcsel	s3, s3, s5, gt
-	ldr	s5, [x24, :lo12:.LCPI10_13]
-	fmadd	s1, s3, s5, s1
-	fmsub	s3, s6, s0, s10
-	fcmp	s9, #0.0
-	fcsel	s5, s10, s14, ne
-	fcmp	s0, s4
-	fcsel	s4, s14, s5, ge
-	fmul	s2, s2, s4
+	cset	 w8, mi
+	and	w8, w8, #0x1
+	str	w8, [sp, #144]
+	ldr	s0, [sp, #176]
 	fcmp	s0, #0.0
-	fcsel	s0, s10, s3, lt
-	fmadd	s31, s0, s2, s1
-	add	x15, x15, #1            // =1
-	cmp	 w15, w12
-	b.lt	.LBB10_37
-	b	.LBB10_47
-.LBB10_42:                              // %do.body141
-                                        //   Parent Loop BB10_2 Depth=1
-                                        //     Parent Loop BB10_4 Depth=2
-                                        //       Parent Loop BB10_36 Depth=3
-                                        // =>      This Loop Header: Depth=4
-                                        //           Child Loop BB10_44 Depth 5
-	add	x15, x9, x14, lsl #4
-	ldp	 s0, s5, [x15]
-	ldr	s6, [x15, #8]
-	ldrsw	x15, [x15, #12]
-	add	x16, x11, x15, lsl #4
-	ldr	 w15, [x16]
-	ldp	s1, s9, [x16, #4]
-	ldr	s11, [x16, #12]
-	cmp	 w15, #70               // =70
-	fcsel	s12, s25, s13, eq
-	fcsel	s8, s26, s15, eq
-	fcmp	s9, #0.0
-	fcsel	s2, s27, s10, lt
-	fcsel	s3, s28, s10, gt
-	fcsel	d4, d29, d30, lt
-	fsub	s0, s22, s0
-	fsub	s5, s23, s5
-	fsub	s6, s24, s6
-	fmul	s5, s5, s5
-	fmadd	s0, s0, s0, s5
-	fmadd	s6, s6, s6, s0
-	fmov	s14, wzr
-	fcmp	s6, #0.0
-	mov		v5.16b, v14.16b
-	b.le	.LBB10_46
-// BB#43:                               // %do.body.preheader.i
-                                        //   in Loop: Header=BB10_42 Depth=4
-	ldr	s0, [x27, :lo12:.LCPI10_8]
-	fmul	s5, s6, s0
-.LBB10_44:                              // %do.body.i
-                                        //   Parent Loop BB10_2 Depth=1
-                                        //     Parent Loop BB10_4 Depth=2
-                                        //       Parent Loop BB10_36 Depth=3
-                                        //         Parent Loop BB10_42 Depth=4
-                                        // =>        This Inner Loop Header: Depth=5
-	mov		v0.16b, v5.16b
-	fdiv	s5, s6, s0
-	fadd	s5, s0, s5
-	fmul	s5, s5, s15
-	fsub	s0, s5, s0
-	fcvt	d7, s0
-	ldr	d0, [x28, :lo12:.LCPI10_9]
-	fcmp	d7, d0
-	b.gt	.LBB10_44
-// BB#45:                               // %do.body.i
-                                        //   in Loop: Header=BB10_44 Depth=5
-	ldr	d0, [x21, :lo12:.LCPI10_10]
-	fcmp	d7, d0
-	b.lt	.LBB10_44
-.LBB10_46:                              // %sqroot.exit
-                                        //   in Loop: Header=BB10_42 Depth=4
-	fadd	s0, s19, s1
-	fdiv	s1, s10, s0
-	fmul	s3, s20, s3
-	fcvt	s4, d4
-	fdiv	s6, s10, s4
-	fmul	s7, s21, s11
-	fmadd	s2, s9, s2, s3
-	fsub	s0, s5, s0
-	fmsub	s1, s1, s5, s10
+	cset	 w8, gt
+	and	w8, w8, #0x1
+	str	w8, [sp, #140]
+	ldr	s0, [sp, #176]
 	fcmp	s0, #0.0
-	ldr	s3, [x22, :lo12:.LCPI10_11]
-	fcsel	s3, s3, s14, lt
-	fmadd	s1, s1, s3, s31
-	fmsub	s3, s8, s0, s10
-	fcsel	s3, s10, s3, lt
-	fcmp	s0, s12
-	fcsel	s5, s10, s14, lt
-	fmul	s3, s5, s3
-	fmul	s3, s7, s3
-	fcmp	s3, #0.0
-	fneg	s5, s3
-	fcsel	s5, s3, s5, gt
-	fneg	s5, s5
-	cmp	 w15, #69               // =69
-	fcsel	s3, s5, s3, eq
-	ldr	s5, [x25, :lo12:.LCPI10_12]
-	fmadd	s1, s3, s5, s1
-	fmsub	s3, s6, s0, s10
-	fcmp	s9, #0.0
-	fcsel	s5, s10, s14, ne
-	fcmp	s0, s4
-	fcsel	s4, s14, s5, ge
-	fmul	s2, s2, s4
+	cset	 w8, ne
+	and	w8, w8, #0x1
+	str	w8, [sp, #136]
+	ldr	s0, [sp, #176]
+	ldr	w8, [sp, #144]
+	cmp	 w8, #0                 // =0
+	str	s0, [sp, #56]           // 4-byte Folded Spill
+	str	w9, [sp, #52]           // 4-byte Folded Spill
+	b.ne	.LBB10_13
+	b	.LBB10_14
+.LBB10_13:                              // %land.rhs179
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldur	w8, [x29, #-152]
+	cmp	 w8, #0                 // =0
+	cset	 w8, ne
+	str	w8, [sp, #52]           // 4-byte Folded Spill
+.LBB10_14:                              // %land.end181
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #52]           // 4-byte Folded Reload
+	movz	w9, #0
+	movn	x10, #0
+	scvtf	s0, x10
+	orr	x10, xzr, #0x1
+	scvtf	s1, x10
+	and	w8, w8, #0x1
+	subs	w8, w8, #0              // =0
+	fcsel	s0, s0, s1, ne
+	ldr	s1, [sp, #56]           // 4-byte Folded Reload
+	fmul	s0, s1, s0
+	str	s0, [sp, #132]
+	ldur	s0, [x29, #-136]
+	ldr	w8, [sp, #140]
+	cmp	 w8, #0                 // =0
+	str	s0, [sp, #48]           // 4-byte Folded Spill
+	str	w9, [sp, #44]           // 4-byte Folded Spill
+	b.ne	.LBB10_15
+	b	.LBB10_16
+.LBB10_15:                              // %land.rhs186
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldur	w8, [x29, #-148]
+	cmp	 w8, #0                 // =0
+	cset	 w8, ne
+	str	w8, [sp, #44]           // 4-byte Folded Spill
+.LBB10_16:                              // %land.end188
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #44]           // 4-byte Folded Reload
+	movn	x9, #0
+	scvtf	s0, x9
+	orr	x9, xzr, #0x1
+	scvtf	s1, x9
+	and	w8, w8, #0x1
+	subs	w8, w8, #0              // =0
+	fcsel	s0, s0, s1, ne
+	ldr	s1, [sp, #48]           // 4-byte Folded Reload
+	fmul	s0, s1, s0
+	str	s0, [sp, #128]
+	ldr	w8, [sp, #144]
+	cmp	 w8, #0                 // =0
+	b.ne	.LBB10_17
+	b	.LBB10_18
+.LBB10_17:                              // %cond.true
+                                        //   in Loop: Header=BB10_6 Depth=4
+	fmov	s0, #5.50000000
+	orr	x8, xzr, #0x1
+	scvtf	s1, x8
+	ldur	w9, [x29, #-148]
+	cmp	 w9, #0                 // =0
+	cset	 w9, ne
+	and	w9, w9, #0x1
+	subs	w9, w9, #0              // =0
+	fcsel	s0, s0, s1, ne
+	fcvt	d2, s0
+	str	d2, [sp, #32]           // 8-byte Folded Spill
+	b	.LBB10_19
+.LBB10_18:                              // %cond.false
+                                        //   in Loop: Header=BB10_6 Depth=4
+	orr	x8, xzr, #0x1
+	scvtf	d0, x8
+	adrp	x8, .LCPI10_0
+	ldr	d1, [x8, :lo12:.LCPI10_0]
+	ldur	w9, [x29, #-148]
+	cmp	 w9, #0                 // =0
+	cset	 w9, ne
+	and	w9, w9, #0x1
+	subs	w9, w9, #0              // =0
+	fcsel	d0, d0, d1, ne
+	str	d0, [sp, #32]           // 8-byte Folded Spill
+.LBB10_19:                              // %cond.end
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	d0, [sp, #32]           // 8-byte Folded Reload
+	orr	x8, xzr, #0x1
+	scvtf	s1, x8
+	fcvt	s2, d0
+	str	s2, [sp, #124]
+	ldr	s2, [sp, #124]
+	fdiv	s1, s1, s2
+	str	s1, [sp, #120]
+	ldur	s1, [x29, #-132]
+	ldr	s2, [sp, #180]
+	fmul	s1, s1, s2
+	str	s1, [sp, #116]
+	ldr	s1, [sp, #132]
+	ldr	s2, [sp, #128]
+	fadd	s1, s1, s2
+	str	s1, [sp, #112]
+	ldur	s1, [x29, #-156]
+	ldr	s2, [sp, #184]
+	fsub	s1, s1, s2
+	str	s1, [sp, #108]
+	ldur	s1, [x29, #-160]
+	ldr	s2, [sp, #188]
+	fsub	s1, s1, s2
+	str	s1, [sp, #104]
+	ldur	s1, [x29, #-164]
+	ldr	s2, [sp, #192]
+	fsub	s1, s1, s2
+	str	s1, [sp, #100]
+	ldr	s1, [sp, #108]
+	ldr	s2, [sp, #108]
+	fmul	s1, s1, s2
+	ldr	s2, [sp, #104]
+	ldr	s3, [sp, #104]
+	fmul	s2, s2, s3
+	fadd	s1, s1, s2
+	ldr	s2, [sp, #100]
+	ldr	s3, [sp, #100]
+	fmul	s2, s2, s3
+	fadd	s0, s1, s2
+	bl	sqroot
+	movz	x8, #0x4c
+	scvtf	s1, x8
+	movz	x8, #0
+	scvtf	s2, x8
+	orr	x8, xzr, #0x1
+	scvtf	s3, x8
+	str	s0, [sp, #96]
+	ldr	s0, [sp, #96]
+	ldr	s4, [sp, #164]
+	fsub	s0, s0, s4
+	str	s0, [sp, #92]
+	ldr	s0, [sp, #92]
 	fcmp	s0, #0.0
-	fcsel	s0, s10, s3, lt
-	fmadd	s31, s0, s2, s1
-	add	x14, x14, #1            // =1
-	cmp	 w14, w12
-	b.lt	.LBB10_42
-.LBB10_47:                              // %do.cond266
-                                        //   in Loop: Header=BB10_36 Depth=3
-	add	x8, x8, #1              // =1
-	cmp	 w8, w13
-	b.lt	.LBB10_36
-// BB#48:                               // %do.end270
-                                        //   in Loop: Header=BB10_4 Depth=2
-	fmul	s0, s31, s15
-	ldr	x8, [sp, #72]           // 8-byte Folded Reload
-	str	s0, [x8, w19, uxtw #2]
-	add	w19, w19, #1            // =1
-	ldr	w8, [sp, #84]           // 4-byte Folded Reload
-	cmp	 w19, w8
-	ldp	d11, d8, [sp, #56]
-	ldp	d14, d12, [sp, #40]
-	b.lo	.LBB10_4
-// BB#49:                               //   in Loop: Header=BB10_2 Depth=1
-	ldr	w8, [sp, #84]           // 4-byte Folded Reload
-	ldr	w11, [sp, #36]          // 4-byte Folded Reload
-	b	.LBB10_51
-.LBB10_50:                              //   in Loop: Header=BB10_2 Depth=1
-	mov	 w8, wzr
-.LBB10_51:                              // %for.inc275
-                                        //   in Loop: Header=BB10_2 Depth=1
-	add	w11, w11, #1            // =1
-	ldr	w9, [sp, #32]           // 4-byte Folded Reload
-	cmp	 w11, w9
-	b.lt	.LBB10_2
-.LBB10_52:                              // %for.end277
-	sub	sp, x29, #144           // =144
-	ldp	x29, x30, [sp, #144]
-	ldp	x20, x19, [sp, #128]
-	ldp	x22, x21, [sp, #112]
-	ldp	x24, x23, [sp, #96]
-	ldp	x26, x25, [sp, #80]
-	ldp	x28, x27, [sp, #64]
-	ldp	d9, d8, [sp, #48]
-	ldp	d11, d10, [sp, #32]
-	ldp	d13, d12, [sp, #16]
-	ldp	d15, d14, [sp], #160
+	cset	 w9, mi
+	and	w9, w9, #0x1
+	str	w9, [sp, #88]
+	ldr	s0, [sp, #96]
+	ldr	s4, [sp, #160]
+	fmul	s0, s0, s4
+	fsub	s0, s3, s0
+	ldr	w9, [sp, #88]
+	cmp	 w9, #0                 // =0
+	cset	 w9, ne
+	and	w9, w9, #0x1
+	subs	w9, w9, #0              // =0
+	fcsel	s1, s1, s2, ne
+	fmul	s0, s0, s1
+	ldur	s1, [x29, #-36]
+	fadd	s0, s1, s0
+	stur	s0, [x29, #-36]
+	ldr	s0, [sp, #116]
+	ldr	w9, [sp, #88]
+	cmp	 w9, #0                 // =0
+	str	s0, [sp, #28]           // 4-byte Folded Spill
+	b.ne	.LBB10_20
+	b	.LBB10_21
+.LBB10_20:                              // %cond.true228
+                                        //   in Loop: Header=BB10_6 Depth=4
+	orr	x8, xzr, #0x1
+	scvtf	s0, x8
+	str	s0, [sp, #24]           // 4-byte Folded Spill
+	b	.LBB10_22
+.LBB10_21:                              // %cond.false229
+                                        //   in Loop: Header=BB10_6 Depth=4
+	orr	x8, xzr, #0x1
+	scvtf	s0, x8
+	ldr	s1, [sp, #92]
+	ldr	s2, [sp, #152]
+	fmul	s1, s1, s2
+	fsub	s0, s0, s1
+	str	s0, [sp, #24]           // 4-byte Folded Spill
+.LBB10_22:                              // %cond.end232
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	s0, [sp, #24]           // 4-byte Folded Reload
+	orr	x8, xzr, #0x1
+	scvtf	s1, x8
+	movz	x8, #0
+	scvtf	s2, x8
+	ldr	s3, [sp, #92]
+	ldr	s4, [sp, #156]
+	fcmp	s3, s4
+	cset	 w9, mi
+	and	w9, w9, #0x1
+	subs	w9, w9, #0              // =0
+	fcsel	s1, s1, s2, ne
+	fmul	s0, s0, s1
+	ldr	s1, [sp, #28]           // 4-byte Folded Reload
+	fmul	s0, s1, s0
+	str	s0, [sp, #84]
+	ldr	s0, [sp, #84]
+	bl	fabsolute
+	fneg	s0, s0
+	str	s0, [sp, #80]
+	ldr	w9, [sp, #148]
+	cmp	 w9, #0                 // =0
+	b.ne	.LBB10_23
+	b	.LBB10_24
+.LBB10_23:                              // %cond.true242
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	s0, [sp, #80]
+	str	s0, [sp, #20]           // 4-byte Folded Spill
+	b	.LBB10_25
+.LBB10_24:                              // %cond.false243
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	s0, [sp, #84]
+	str	s0, [sp, #20]           // 4-byte Folded Spill
+.LBB10_25:                              // %cond.end244
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	s0, [sp, #20]           // 4-byte Folded Reload
+	movz	w8, #0
+	orr	x9, xzr, #0x1
+	scvtf	s1, x9
+	movz	x9, #0x2d
+	scvtf	s2, x9
+	str	s0, [sp, #84]
+	ldr	s0, [sp, #84]
+	fmul	s0, s0, s2
+	ldur	s2, [x29, #-36]
+	fadd	s0, s2, s0
+	stur	s0, [x29, #-36]
+	ldr	s0, [sp, #92]
+	ldr	s2, [sp, #120]
+	fmul	s0, s0, s2
+	fsub	s0, s1, s0
+	str	s0, [sp, #76]
+	ldr	s0, [sp, #112]
+	ldr	s1, [sp, #92]
+	ldr	s2, [sp, #124]
+	fcmp	s1, s2
+	str	s0, [sp, #16]           // 4-byte Folded Spill
+	str	w8, [sp, #12]           // 4-byte Folded Spill
+	b.mi	.LBB10_26
+	b	.LBB10_27
+.LBB10_26:                              // %land.rhs252
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #136]
+	cmp	 w8, #0                 // =0
+	cset	 w8, ne
+	str	w8, [sp, #12]           // 4-byte Folded Spill
+.LBB10_27:                              // %land.end254
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	w8, [sp, #12]           // 4-byte Folded Reload
+	orr	x9, xzr, #0x1
+	scvtf	s0, x9
+	movz	x9, #0
+	scvtf	s1, x9
+	and	w8, w8, #0x1
+	subs	w8, w8, #0              // =0
+	fcsel	s0, s0, s1, ne
+	ldr	s1, [sp, #16]           // 4-byte Folded Reload
+	fmul	s0, s1, s0
+	str	s0, [sp, #72]
+	ldr	w8, [sp, #88]
+	cmp	 w8, #0                 // =0
+	b.ne	.LBB10_28
+	b	.LBB10_29
+.LBB10_28:                              // %cond.true258
+                                        //   in Loop: Header=BB10_6 Depth=4
+	orr	x8, xzr, #0x1
+	scvtf	s0, x8
+	str	s0, [sp, #8]            // 4-byte Folded Spill
+	b	.LBB10_30
+.LBB10_29:                              // %cond.false259
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	s0, [sp, #76]
+	str	s0, [sp, #8]            // 4-byte Folded Spill
+.LBB10_30:                              // %cond.end260
+                                        //   in Loop: Header=BB10_6 Depth=4
+	ldr	s0, [sp, #8]            // 4-byte Folded Reload
+	ldr	s1, [sp, #72]
+	fmul	s0, s1, s0
+	str	s0, [sp, #72]
+	ldr	s0, [sp, #72]
+	ldur	s1, [x29, #-36]
+	fadd	s0, s1, s0
+	stur	s0, [x29, #-36]
+// BB#31:                               // %do.cond
+                                        //   in Loop: Header=BB10_6 Depth=4
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	ldur	w9, [x29, #-168]
+	orr	w10, wzr, #0x1
+	add	 w9, w9, w10
+	stur	w9, [x29, #-168]
+	ldr	w10, [x8, #4]
+	cmp	 w9, w10
+	b.lt	.LBB10_6
+// BB#32:                               // %do.end
+                                        //   in Loop: Header=BB10_5 Depth=3
+	b	.LBB10_33
+.LBB10_33:                              // %do.cond266
+                                        //   in Loop: Header=BB10_5 Depth=3
+	adrp	x8, params
+	add	x8, x8, :lo12:params
+	ldur	w9, [x29, #-112]
+	orr	w10, wzr, #0x1
+	add	 w9, w9, w10
+	stur	w9, [x29, #-112]
+	ldr	 w10, [x8]
+	cmp	 w9, w10
+	b.lt	.LBB10_5
+// BB#34:                               // %do.end270
+                                        //   in Loop: Header=BB10_3 Depth=2
+	fmov	s0, #0.50000000
+	ldur	s1, [x29, #-36]
+	fmul	s0, s1, s0
+	ldur	w8, [x29, #-32]
+	mov	 w9, w8
+	ubfx	x9, x9, #0, #32
+	ldur	x10, [x29, #-24]
+	orr	x11, xzr, #0x2
+	lsl	x9, x9, x11
+	add	 x9, x10, x9
+	str	 s0, [x9]
+// BB#35:                               // %for.inc
+                                        //   in Loop: Header=BB10_3 Depth=2
+	ldur	w8, [x29, #-32]
+	orr	w9, wzr, #0x1
+	add	 w8, w8, w9
+	stur	w8, [x29, #-32]
+	b	.LBB10_3
+.LBB10_36:                              // %for.end
+                                        //   in Loop: Header=BB10_1 Depth=1
+	b	.LBB10_37
+.LBB10_37:                              // %for.inc275
+                                        //   in Loop: Header=BB10_1 Depth=1
+	ldur	w8, [x29, #-28]
+	orr	w9, wzr, #0x1
+	add	 w8, w8, w9
+	stur	w8, [x29, #-28]
+	b	.LBB10_1
+.LBB10_38:                              // %for.end277
+	sub	sp, x29, #16            // =16
+	ldp	x29, x30, [sp, #16]
+	ldp	x28, x27, [sp], #32
 	ret
-.Ltmp19:
-	.size	runOpenMP, .Ltmp19-runOpenMP
+.Ltmp18:
+	.size	runOpenMP, .Ltmp18-runOpenMP
 
 	.type	data_ligand_dat,@object // @data_ligand_dat
 	.data
