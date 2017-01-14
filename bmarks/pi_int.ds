@@ -7,29 +7,29 @@ start address 0x0000000000000100
 
 Program Header:
     LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
-         filesz 0x00000000000002a0 memsz 0x00000000000002a0 flags r-x
+         filesz 0x00000000000001fc memsz 0x00000000000001fc flags r-x
 private flags = 0:
 
 Sections:
 Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         000001a0  0000000000000100  0000000000000100  00000100  2**2
+  0 .text         000000fc  0000000000000100  0000000000000100  00000100  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .comment      00000015  0000000000000000  0000000000000000  000002a0  2**0
+  1 .comment      00000015  0000000000000000  0000000000000000  000001fc  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 0000000000000100 l    d  .text	0000000000000000 .text
 0000000000000000 l    d  .comment	0000000000000000 .comment
 0000000000000000 l    df *ABS*	0000000000000000 pi_int.c
-00000000000102a0 g       .text	0000000000000000 _bss_end__
-00000000000102a0 g       .text	0000000000000000 __bss_start__
-00000000000102a0 g       .text	0000000000000000 __bss_end__
-00000000000102a0 g       .text	0000000000000000 __bss_start
-0000000000000100 g     F .text	00000000000001a0 main
-00000000000102a0 g       .text	0000000000000000 __end__
-00000000000102a0 g       .text	0000000000000000 _edata
-00000000000102a0 g       .text	0000000000000000 _end
+00000000000101fc g       .text	0000000000000000 _bss_end__
+00000000000101fc g       .text	0000000000000000 __bss_start__
+00000000000101fc g       .text	0000000000000000 __bss_end__
+00000000000101fc g       .text	0000000000000000 __bss_start
+0000000000000100 g     F .text	00000000000000fc main
+0000000000010200 g       .text	0000000000000000 __end__
+00000000000101fc g       .text	0000000000000000 _edata
+0000000000010200 g       .text	0000000000000000 _end
 0000000000080000 g       .comment	0000000000000000 _stack
-00000000000102a0 g       .text	0000000000000000 __data_start
+00000000000101fc g       .text	0000000000000000 __data_start
 
 
 
@@ -38,105 +38,64 @@ Disassembly of section .text:
 0000000000000100 <main>:
  100:	a9bf6ffc 	stp	x28, x27, [sp,#-16]!
  104:	d1400bff 	sub	sp, sp, #0x2, lsl #12
- 108:	d12f83ff 	sub	sp, sp, #0xbe0
- 10c:	52800008 	mov	w8, #0x0                   	// #0
- 110:	b92bdfe8 	str	w8, [sp,#11228]
- 114:	b90007e8 	str	w8, [sp,#4]
- 118:	b90017e8 	str	w8, [sp,#20]
- 11c:	b94017e8 	ldr	w8, [sp,#20]
- 120:	712bc11f 	cmp	w8, #0xaf0
- 124:	5400004b 	b.lt	12c <main+0x2c>
- 128:	1400000f 	b	164 <main+0x64>
- 12c:	5280fa08 	mov	w8, #0x7d0                 	// #2000
- 130:	910063e9 	add	x9, sp, #0x18
- 134:	b94017ea 	ldr	w10, [sp,#20]
- 138:	2a0a03eb 	mov	w11, w10
- 13c:	93407d6b 	sxtw	x11, w11
- 140:	b27f03ec 	orr	x12, xzr, #0x2
- 144:	9acc216b 	lsl	x11, x11, x12
- 148:	8b0b0129 	add	x9, x9, x11
- 14c:	b9000128 	str	w8, [x9]
- 150:	b94017e8 	ldr	w8, [sp,#20]
- 154:	320003e9 	orr	w9, wzr, #0x1
- 158:	0b090108 	add	w8, w8, w9
- 15c:	b90017e8 	str	w8, [sp,#20]
- 160:	17ffffef 	b	11c <main+0x1c>
- 164:	52815e08 	mov	w8, #0xaf0                 	// #2800
- 168:	b90013e8 	str	w8, [sp,#16]
- 16c:	b94013e8 	ldr	w8, [sp,#16]
- 170:	7100011f 	cmp	w8, #0x0
- 174:	5400004c 	b.gt	17c <main+0x7c>
- 178:	14000045 	b	28c <main+0x18c>
- 17c:	52800008 	mov	w8, #0x0                   	// #0
- 180:	b9000be8 	str	w8, [sp,#8]
- 184:	b94013e8 	ldr	w8, [sp,#16]
- 188:	b90017e8 	str	w8, [sp,#20]
- 18c:	910063e8 	add	x8, sp, #0x18
- 190:	321f03e9 	orr	w9, wzr, #0x2
- 194:	5284e20a 	mov	w10, #0x2710                	// #10000
- 198:	b94017eb 	ldr	w11, [sp,#20]
- 19c:	2a0b03ec 	mov	w12, w11
- 1a0:	93407d8c 	sxtw	x12, w12
- 1a4:	b27f03ed 	orr	x13, xzr, #0x2
- 1a8:	9acd218c 	lsl	x12, x12, x13
- 1ac:	8b0c010c 	add	x12, x8, x12
- 1b0:	b940018b 	ldr	w11, [x12]
- 1b4:	1b0a7d6a 	mul	w10, w11, w10
- 1b8:	b9400beb 	ldr	w11, [sp,#8]
- 1bc:	0b0a016a 	add	w10, w11, w10
- 1c0:	b9000bea 	str	w10, [sp,#8]
- 1c4:	b94017ea 	ldr	w10, [sp,#20]
- 1c8:	1b0a7d29 	mul	w9, w9, w10
- 1cc:	320003ea 	orr	w10, wzr, #0x1
- 1d0:	6b0a0129 	subs	w9, w9, w10
- 1d4:	b9000fe9 	str	w9, [sp,#12]
- 1d8:	b9400be9 	ldr	w9, [sp,#8]
- 1dc:	b9400fea 	ldr	w10, [sp,#12]
- 1e0:	1aca0d2b 	sdiv	w11, w9, w10
- 1e4:	1b0aa569 	msub	w9, w11, w10, w9
- 1e8:	b94017ea 	ldr	w10, [sp,#20]
- 1ec:	2a0a03ec 	mov	w12, w10
- 1f0:	93407d8c 	sxtw	x12, w12
- 1f4:	b27f03ed 	orr	x13, xzr, #0x2
- 1f8:	9acd218c 	lsl	x12, x12, x13
- 1fc:	8b0c0108 	add	x8, x8, x12
- 200:	b9000109 	str	w9, [x8]
- 204:	b9400fe9 	ldr	w9, [sp,#12]
- 208:	b9400bea 	ldr	w10, [sp,#8]
- 20c:	1ac90d49 	sdiv	w9, w10, w9
- 210:	b9000be9 	str	w9, [sp,#8]
- 214:	b94017e9 	ldr	w9, [sp,#20]
- 218:	1280000a 	mov	w10, #0xffffffff            	// #-1
- 21c:	0b0a0129 	add	w9, w9, w10
- 220:	b90017e9 	str	w9, [sp,#20]
- 224:	b94017e9 	ldr	w9, [sp,#20]
- 228:	7100013f 	cmp	w9, #0x0
- 22c:	54000040 	b.eq	234 <main+0x134>
- 230:	14000002 	b	238 <main+0x138>
- 234:	14000006 	b	24c <main+0x14c>
- 238:	b94017e8 	ldr	w8, [sp,#20]
- 23c:	b9400be9 	ldr	w9, [sp,#8]
- 240:	1b087d28 	mul	w8, w9, w8
- 244:	b9000be8 	str	w8, [sp,#8]
- 248:	17ffffd1 	b	18c <main+0x8c>
- 24c:	5284e208 	mov	w8, #0x2710                	// #10000
- 250:	b94007e9 	ldr	w9, [sp,#4]
- 254:	b9400bea 	ldr	w10, [sp,#8]
- 258:	5284e20b 	mov	w11, #0x2710                	// #10000
- 25c:	1acb0d4a 	sdiv	w10, w10, w11
- 260:	0b0a0129 	add	w9, w9, w10
- 264:	b90003e9 	str	w9, [sp]
- 268:	b9400be9 	ldr	w9, [sp,#8]
- 26c:	1ac80d2a 	sdiv	w10, w9, w8
- 270:	1b08a548 	msub	w8, w10, w8, w9
- 274:	b90007e8 	str	w8, [sp,#4]
- 278:	b94013e8 	ldr	w8, [sp,#16]
- 27c:	321f0be9 	orr	w9, wzr, #0xe
- 280:	6b090108 	subs	w8, w8, w9
- 284:	b90013e8 	str	w8, [sp,#16]
- 288:	17ffffb9 	b	16c <main+0x6c>
- 28c:	b94003e0 	ldr	w0, [sp]
- 290:	91400bff 	add	sp, sp, #0x2, lsl #12
- 294:	912f83ff 	add	sp, sp, #0xbe0
- 298:	a8c16ffc 	ldp	x28, x27, [sp],#16
- 29c:	d65f03c0 	ret
+ 108:	d12f43ff 	sub	sp, sp, #0xbd0
+ 10c:	928577eb 	mov	x11, #0xffffffffffffd440    	// #-11200
+ 110:	910033e8 	add	x8, sp, #0xc
+ 114:	5280fa09 	mov	w9, #0x7d0                 	// #2000
+ 118:	4e040d20 	dup	v0.4s, w9
+ 11c:	52815de9 	mov	w9, #0xaef                 	// #2799
+ 120:	52815e0a 	mov	w10, #0xaf0                 	// #2800
+ 124:	8b0b010c 	add	x12, x8, x11
+ 128:	3d8af180 	str	q0, [x12,#11200]
+ 12c:	3d8af580 	str	q0, [x12,#11216]
+ 130:	9100816b 	add	x11, x11, #0x20
+ 134:	b5ffff8b 	cbnz	x11, 124 <main+0x24>
+ 138:	2a1f03f0 	mov	w16, wzr
+ 13c:	5282bbac 	mov	w12, #0x15dd                	// #5597
+ 140:	5284e20d 	mov	w13, #0x2710                	// #10000
+ 144:	52ad1b6e 	mov	w14, #0x68db0000            	// #1759182848
+ 148:	729175ae 	movk	w14, #0x8bad
+ 14c:	2a1003eb 	mov	w11, w16
+ 150:	d37ef550 	lsl	x16, x10, #2
+ 154:	b870690f 	ldr	w15, [x8,x16]
+ 158:	1b0d7df1 	mul	w17, w15, w13
+ 15c:	d37ff94f 	lsl	x15, x10, #1
+ 160:	510005f2 	sub	w18, w15, #0x1
+ 164:	1ad20e2f 	sdiv	w15, w17, w18
+ 168:	1b12c5f1 	msub	w17, w15, w18, w17
+ 16c:	b8306911 	str	w17, [x8,x16]
+ 170:	2a0c03f0 	mov	w16, w12
+ 174:	aa0903f1 	mov	x17, x9
+ 178:	d37ef632 	lsl	x18, x17, #2
+ 17c:	b8726900 	ldr	w0, [x8,x18]
+ 180:	1b0d7c00 	mul	w0, w0, w13
+ 184:	1b1101e0 	madd	w0, w15, w17, w0
+ 188:	1ad00c0f 	sdiv	w15, w0, w16
+ 18c:	1b1081e0 	msub	w0, w15, w16, w0
+ 190:	b8326900 	str	w0, [x8,x18]
+ 194:	d1000631 	sub	x17, x17, #0x1
+ 198:	51000a10 	sub	w16, w16, #0x2
+ 19c:	35fffef1 	cbnz	w17, 178 <main+0x78>
+ 1a0:	93407df0 	sxtw	x16, w15
+ 1a4:	9b0e7e10 	mul	x16, x16, x14
+ 1a8:	d37ffe11 	lsr	x17, x16, #63
+ 1ac:	936cfe10 	asr	x16, x16, #44
+ 1b0:	0b110210 	add	w16, w16, w17
+ 1b4:	1b0dbe10 	msub	w16, w16, w13, w15
+ 1b8:	d100394a 	sub	x10, x10, #0xe
+ 1bc:	d1003929 	sub	x9, x9, #0xe
+ 1c0:	5100718c 	sub	w12, w12, #0x1c
+ 1c4:	7100015f 	cmp	w10, #0x0
+ 1c8:	54fffc2c 	b.gt	14c <main+0x4c>
+ 1cc:	93407de8 	sxtw	x8, w15
+ 1d0:	52ad1b69 	mov	w9, #0x68db0000            	// #1759182848
+ 1d4:	729175a9 	movk	w9, #0x8bad
+ 1d8:	9b097d08 	mul	x8, x8, x9
+ 1dc:	d37ffd09 	lsr	x9, x8, #63
+ 1e0:	936cfd08 	asr	x8, x8, #44
+ 1e4:	0b090108 	add	w8, w8, w9
+ 1e8:	0b0b0100 	add	w0, w8, w11
+ 1ec:	91400bff 	add	sp, sp, #0x2, lsl #12
+ 1f0:	912f43ff 	add	sp, sp, #0xbd0
+ 1f4:	a8c16ffc 	ldp	x28, x27, [sp],#16
+ 1f8:	d65f03c0 	ret

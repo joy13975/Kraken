@@ -5,129 +5,54 @@
 	.type	MurmurHash2,@function
 MurmurHash2:                            // @MurmurHash2
 // BB#0:                                // %entry
-	sub	sp, sp, #80             // =80
-	orr	w8, wzr, #0x18
-	movz	w9, #0x5bd1, lsl #16
-	movk	w9, #0xe995
-	str	x0, [sp, #72]
-	str	w1, [sp, #68]
-	str	w2, [sp, #64]
-	str	w9, [sp, #60]
-	str	w8, [sp, #56]
-	ldr	w8, [sp, #64]
-	ldr	w9, [sp, #68]
-	eor	 w8, w8, w9
-	str	w8, [sp, #52]
-	ldr	x0, [sp, #72]
-	str	x0, [sp, #40]
-.LBB0_1:                                // %while.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldr	w8, [sp, #68]
-	cmp	 w8, #4                 // =4
-	b.ge	.LBB0_2
-	b	.LBB0_3
+	movz	w8, #0x5bd1, lsl #16
+	movk	w8, #0xe995
+	eor	 w9, w2, w1
+	subs	w10, w1, #4             // =4
+	b.lt	.LBB0_4
+// BB#1:                                // %while.body.lr.ph
+	lsr	w11, w10, #2
+	lsl	w11, w11, #2
+	orr	w12, wzr, #0x4
+	add	x12, x12, w11, uxtw
+	mov	 x13, x0
 .LBB0_2:                                // %while.body
-                                        //   in Loop: Header=BB0_1 Depth=1
-	movz	w8, #0x5bd1, lsl #16
-	movk	w8, #0xe995
-	ldr	x9, [sp, #40]
-	ldr	 w10, [x9]
-	str	w10, [sp, #36]
-	movz	w11, #0x5bd1, lsl #16
-	movk	w11, #0xe995
-	mul	 w10, w10, w11
-	str	w10, [sp, #36]
-	mov	 w11, w10
-	lsr	w10, w10, #24
-	ldr	w12, [sp, #36]
-	eor	 w10, w12, w10
-	str	w10, [sp, #36]
-	ldr	w10, [sp, #36]
-	mul	 w10, w10, w8
-	str	w10, [sp, #36]
-	ldr	w10, [sp, #52]
-	mul	 w8, w10, w8
-	str	w8, [sp, #52]
-	ldr	w8, [sp, #36]
-	ldr	w10, [sp, #52]
-	eor	 w8, w10, w8
-	str	w8, [sp, #52]
-	ldr	x9, [sp, #40]
-	orr	x13, xzr, #0x4
-	add	 x9, x9, x13
-	str	x9, [sp, #40]
-	ldr	w8, [sp, #68]
-	orr	w10, wzr, #0x4
-	subs	 w8, w8, w10
-	str	w8, [sp, #68]
-	str	w11, [sp, #32]          // 4-byte Folded Spill
-	b	.LBB0_1
-.LBB0_3:                                // %while.end
-	ldr	w8, [sp, #68]
-	mov	 w9, w8
-	subs	w8, w8, #1              // =1
-	str	w9, [sp, #28]           // 4-byte Folded Spill
-	str	w8, [sp, #24]           // 4-byte Folded Spill
-	b.eq	.LBB0_8
-	b	.LBB0_4
+                                        // =>This Inner Loop Header: Depth=1
+	ldr	w14, [x13], #4
+	mul	 w14, w14, w8
+	eor	w14, w14, w14, lsr #24
+	mul	 w14, w14, w8
+	mul	 w9, w9, w8
+	eor	 w9, w14, w9
+	sub	w1, w1, #4              // =4
+	cmp	 w1, #3                 // =3
+	b.gt	.LBB0_2
+// BB#3:                                // %while.cond.while.end_crit_edge
+	sub	 w1, w10, w11
+	add	 x0, x0, x12
 .LBB0_4:                                // %while.end
-	ldr	w8, [sp, #28]           // 4-byte Folded Reload
-	subs	w9, w8, #2              // =2
-	str	w9, [sp, #20]           // 4-byte Folded Spill
-	b.eq	.LBB0_7
-	b	.LBB0_5
-.LBB0_5:                                // %while.end
-	ldr	w8, [sp, #28]           // 4-byte Folded Reload
-	subs	w9, w8, #3              // =3
-	str	w9, [sp, #16]           // 4-byte Folded Spill
-	b.ne	.LBB0_9
-	b	.LBB0_6
-.LBB0_6:                                // %sw.bb
-	ldr	x8, [sp, #40]
-	ldrb	w9, [x8, #2]
-	mov	 w0, w9
-	lsl	w9, w9, #16
-	ldr	w10, [sp, #52]
+	cmp	 w1, #1                 // =1
+	b.eq	.LBB0_9
+// BB#5:                                // %while.end
+	cmp	 w1, #2                 // =2
+	b.eq	.LBB0_8
+// BB#6:                                // %while.end
+	cmp	 w1, #3                 // =3
+	b.ne	.LBB0_10
+// BB#7:                                // %sw.bb
+	ldrb	w10, [x0, #2]
+	eor	w9, w9, w10, lsl #16
+.LBB0_8:                                // %sw.bb6
+	ldrb	w10, [x0, #1]
+	eor	w9, w9, w10, lsl #8
+.LBB0_9:                                // %sw.bb11
+	ldrb	 w10, [x0]
 	eor	 w9, w10, w9
-	str	w9, [sp, #52]
-	str	w0, [sp, #12]           // 4-byte Folded Spill
-.LBB0_7:                                // %sw.bb6
-	ldr	x8, [sp, #40]
-	ldrb	w9, [x8, #1]
-	mov	 w0, w9
-	lsl	w9, w9, #8
-	ldr	w10, [sp, #52]
-	eor	 w9, w10, w9
-	str	w9, [sp, #52]
-	str	w0, [sp, #8]            // 4-byte Folded Spill
-.LBB0_8:                                // %sw.bb11
-	movz	w8, #0x5bd1, lsl #16
-	movk	w8, #0xe995
-	ldr	x9, [sp, #40]
-	ldrb	 w10, [x9]
-	uxtb	w10, w10
-	ldr	w11, [sp, #52]
-	eor	 w10, w11, w10
-	str	w10, [sp, #52]
-	ldr	w10, [sp, #52]
-	mul	 w8, w10, w8
-	str	w8, [sp, #52]
-.LBB0_9:                                // %sw.epilog
-	ldr	w8, [sp, #52]
-	eor	w8, w8, w8, lsr #13
-	str	w8, [sp, #52]
-	movz	w9, #0x5bd1, lsl #16
-	movk	w9, #0xe995
-	mul	 w8, w8, w9
-	str	w8, [sp, #52]
-	mov	 w9, w8
-	lsr	w8, w8, #15
-	ldr	w10, [sp, #52]
-	eor	 w8, w10, w8
-	str	w8, [sp, #52]
-	ldr	w0, [sp, #52]
-	str	w9, [sp, #4]            // 4-byte Folded Spill
-	add	sp, sp, #80             // =80
+	mul	 w9, w9, w8
+.LBB0_10:                               // %sw.epilog
+	eor	w9, w9, w9, lsr #13
+	mul	 w8, w9, w8
+	eor	w0, w8, w8, lsr #15
 	ret
 .Ltmp1:
 	.size	MurmurHash2, .Ltmp1-MurmurHash2
@@ -137,62 +62,93 @@ MurmurHash2:                            // @MurmurHash2
 	.type	main,@function
 main:                                   // @main
 // BB#0:                                // %entry
-	stp	x28, x27, [sp, #-32]!
-	stp	x29, x30, [sp, #16]
-	add	x29, sp, #16            // =16
-	sub	sp, sp, #832            // =832
-	movz	w8, #0
-	stur	w8, [x29, #-20]
-	str	w8, [sp, #20]
-.LBB1_1:                                // %for.cond
-                                        // =>This Inner Loop Header: Depth=1
-	ldr	w8, [sp, #20]
-	cmp	 w8, #100               // =100
-	b.lt	.LBB1_2
-	b	.LBB1_4
-.LBB1_2:                                // %for.body
+	stp	x28, x27, [sp, #-16]!
+	sub	sp, sp, #800            // =800
+	mov	 x8, xzr
+	movz	w9, #0x1337
+	movz	w10, #0xdead, lsl #16
+	movk	w10, #0xbeef
+	movz	w11, #0x1333
+	movz	w12, #0x5bd1, lsl #16
+	movk	w12, #0xe995
+	mov	 x13, sp
+	adrp	x14, nums1k1
+	add	x14, x14, :lo12:nums1k1
+.LBB1_1:                                // %while.body.lr.ph.i
+                                        // =>This Loop Header: Depth=1
+                                        //     Child Loop BB1_2 Depth 2
+	add	 w17, w8, w9
+	eor	 w15, w17, w10
+	add	 w18, w8, w11
+	lsr	w0, w18, #2
+	lsl	w16, w0, #2
+	mov	 x1, x14
+.LBB1_2:                                // %while.body.i
+                                        //   Parent Loop BB1_1 Depth=1
+                                        // =>  This Inner Loop Header: Depth=2
+	ldr	w2, [x1], #4
+	mul	 w2, w2, w12
+	eor	w2, w2, w2, lsr #24
+	mul	 w2, w2, w12
+	mul	 w15, w15, w12
+	eor	 w15, w2, w15
+	sub	w17, w17, #4            // =4
+	cmp	 w17, #3                // =3
+	b.gt	.LBB1_2
+// BB#3:                                // %while.end.i
                                         //   in Loop: Header=BB1_1 Depth=1
-	adrp	x8, nums1k1
-	add	x8, x8, :lo12:nums1k1
-	movz	w2, #0xdead, lsl #16
-	movk	w2, #0xbeef
-	ldr	w9, [sp, #20]
-	movz	w10, #0x1337
-	add	 w1, w9, w10
-	mov	 x0, x8
-	bl	MurmurHash2
-	add	x8, sp, #24             // =24
-	mov	 w11, w0
-	ubfx	x11, x11, #0, #32
-	ldr	w9, [sp, #20]
-	mov	 w12, w9
-	sxtw	x12, w12
-	orr	x13, xzr, #0x3
-	lsl	x12, x12, x13
-	add	 x8, x8, x12
-	ldr	 x12, [x8]
-	add	 x11, x12, x11
-	str	 x11, [x8]
-// BB#3:                                // %for.inc
+	sub	w17, w18, w0, lsl #2
+	cmp	 w17, #1                // =1
+	b.eq	.LBB1_8
+// BB#4:                                // %while.end.i
                                         //   in Loop: Header=BB1_1 Depth=1
-	ldr	w8, [sp, #20]
-	orr	w9, wzr, #0x1
-	add	 w8, w8, w9
-	str	w8, [sp, #20]
-	b	.LBB1_1
-.LBB1_4:                                // %for.end
-	movz	x8, #0x800d, lsl #16
-	movk	x8, #0xbeef
-	ldr	x9, [sp, #816]
-	udiv	x0, x9, x8
-	msub	x0, x0, x8, x9
-	str	x0, [sp, #8]
-	ldr	x8, [sp, #8]
-	mov	 w1, w8
-	mov	 w0, w1
-	sub	sp, x29, #16            // =16
-	ldp	x29, x30, [sp, #16]
-	ldp	x28, x27, [sp], #32
+	cmp	 w17, #2                // =2
+	b.eq	.LBB1_7
+// BB#5:                                // %while.end.i
+                                        //   in Loop: Header=BB1_1 Depth=1
+	cmp	 w17, #3                // =3
+	b.ne	.LBB1_9
+// BB#6:                                // %sw.bb.i
+                                        //   in Loop: Header=BB1_1 Depth=1
+	add	 x17, x16, x14
+	ldrb	w17, [x17, #6]
+	eor	w15, w15, w17, lsl #16
+.LBB1_7:                                // %sw.bb6.i
+                                        //   in Loop: Header=BB1_1 Depth=1
+	add	 x17, x16, x14
+	ldrb	w17, [x17, #5]
+	eor	w15, w15, w17, lsl #8
+.LBB1_8:                                // %sw.bb11.i
+                                        //   in Loop: Header=BB1_1 Depth=1
+	add	x16, x16, #4            // =4
+	ldrb	 w16, [x14, x16]
+	eor	 w15, w16, w15
+	mul	 w15, w15, w12
+.LBB1_9:                                // %MurmurHash2.exit
+                                        //   in Loop: Header=BB1_1 Depth=1
+	eor	w15, w15, w15, lsr #13
+	mul	 w15, w15, w12
+	eor	w15, w15, w15, lsr #15
+	lsl	x16, x8, #3
+	ldr	 x17, [x13, x16]
+	add	x15, x17, w15, uxtw
+	str	 x15, [x13, x16]
+	add	x8, x8, #1              // =1
+	cmp	 x8, #100               // =100
+	b.ne	.LBB1_1
+// BB#10:                               // %for.end
+	ldr	x8, [sp, #792]
+	movz	x9, #0xffe4, lsl #48
+	movk	x9, #0x8515, lsl #32
+	movk	x9, #0x7995, lsl #16
+	movk	x9, #0x4845
+	umulh	x9, x8, x9
+	lsr	x9, x9, #31
+	movz	w10, #0x800d, lsl #16
+	movk	w10, #0xbeef
+	msub	w0, w9, w10, w8
+	add	sp, sp, #800            // =800
+	ldp	x28, x27, [sp], #16
 	ret
 .Ltmp2:
 	.size	main, .Ltmp2-main

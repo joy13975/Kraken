@@ -4132,5 +4132,5 @@ Disassembly of section .text:
     40f4:	d503201f 	nop
     40f8:	d503201f 	nop
     40fc:	d503201f 	nop
-    4100:	52800000 	mov	w0, #0x0                   	// #0
+    4100:	2a1f03e0 	mov	w0, wzr
     4104:	d65f03c0 	ret

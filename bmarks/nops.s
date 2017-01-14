@@ -12293,7 +12293,7 @@ main:                                   // @main
 	//APP
 	nop
 	//NO_APP
-	movz	w0, #0
+	mov	 w0, wzr
 	ret
 .Ltmp1:
 	.size	main, .Ltmp1-main

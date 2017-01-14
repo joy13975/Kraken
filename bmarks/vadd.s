@@ -6,60 +6,40 @@
 main:                                   // @main
 // BB#0:                                // %entry
 	stp	x28, x27, [sp, #-16]!
-	sub	sp, sp, #2064           // =2064
-	movz	w8, #0
-	str	w8, [sp, #2060]
-	str	w8, [sp, #8]
-.LBB0_1:                                // %for.cond
+	sub	sp, sp, #2048           // =2048
+	mov	 x8, xzr
+	adrp	x9, nums1k1
+	add	x9, x9, :lo12:nums1k1
+	mov	 x10, sp
+	adrp	x11, nums1k2
+	add	x11, x11, :lo12:nums1k2
+.LBB0_1:                                // %vector.body
                                         // =>This Inner Loop Header: Depth=1
-	ldr	w8, [sp, #8]
-	cmp	 w8, #512               // =512
-	b.lt	.LBB0_2
-	b	.LBB0_4
-.LBB0_2:                                // %for.body
-                                        //   in Loop: Header=BB0_1 Depth=1
-	add	x8, sp, #12             // =12
-	adrp	x9, nums1k2
-	add	x9, x9, :lo12:nums1k2
-	adrp	x10, nums1k1
-	add	x10, x10, :lo12:nums1k1
-	ldr	w11, [sp, #8]
-	mov	 w12, w11
-	sxtw	x12, w12
-	orr	x13, xzr, #0x2
-	lsl	x12, x12, x13
-	add	 x10, x10, x12
-	ldr	 w11, [x10]
-	ldr	w14, [sp, #8]
-	mov	 w10, w14
-	sxtw	x10, w10
-	orr	x12, xzr, #0x2
-	lsl	x10, x10, x12
-	add	 x9, x9, x10
-	ldr	 w14, [x9]
-	add	 w11, w11, w14
-	ldr	w14, [sp, #8]
-	mov	 w9, w14
-	sxtw	x9, w9
-	orr	x10, xzr, #0x2
-	lsl	x9, x9, x10
-	add	 x8, x8, x9
-	str	 w11, [x8]
-// BB#3:                                // %for.inc
-                                        //   in Loop: Header=BB0_1 Depth=1
-	ldr	w8, [sp, #8]
-	orr	w9, wzr, #0x1
-	add	 w8, w8, w9
-	str	w8, [sp, #8]
-	b	.LBB0_1
-.LBB0_4:                                // %for.end
-	orr	w8, wzr, #0xff
-	ldr	w9, [sp, #2056]
-	sdiv	w0, w9, w8
-	msub	w0, w0, w8, w9
-	str	w0, [sp, #4]
-	ldr	w0, [sp, #4]
-	add	sp, sp, #2064           // =2064
+	add	 x12, x9, x8
+	ldp	 q0, q1, [x12]
+	add	 x12, x11, x8
+	ldp	 q2, q3, [x12]
+	add	v0.4s, v2.4s, v0.4s
+	add	v1.4s, v3.4s, v1.4s
+	add	 x12, x10, x8
+	stp	 q0, q1, [x12]
+	add	x8, x8, #32             // =32
+	cmp	 x8, #2048              // =2048
+	b.ne	.LBB0_1
+// BB#2:                                // %for.end
+	ldr	w8, [sp, #2044]
+	sxtw	x9, w8
+	movn	x10, #0x7f7f, lsl #16
+	movk	x10, #0x8081
+	mul	 x9, x9, x10
+	lsr	x9, x9, #32
+	add	 w9, w9, w8
+	asr	w10, w9, #7
+	add	w9, w10, w9, lsr #31
+	lsl	w10, w9, #8
+	sub	 w9, w10, w9
+	sub	 w0, w8, w9
+	add	sp, sp, #2048           // =2048
 	ldp	x28, x27, [sp], #16
 	ret
 .Ltmp0:

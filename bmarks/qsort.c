@@ -32,6 +32,9 @@ void sort(int arr[], int beg, int end)
 int main(void)
 {
     sort(nums1k1, 0, N - 1);
+    sort(nums1k2, 0, N - 1);
+    sort(nums1k1, 0, N - 1);
+    sort(nums1k2, 0, N - 1);
 
     int ret = nums1k1[N - 1] % 255;
 

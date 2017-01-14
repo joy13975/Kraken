@@ -21,7 +21,7 @@
 #include "bude_data/poses.h"
 
 #define N_ITRS              1
-#define N_POSES             2
+#define N_POSES             4
 #define POSE_NDIM           6
 #define ACCESS(ptr, i, j)   (ptr)[(i) * POSE_NDIM + (j)]
 #define GACCESS(i, j)       ACCESS(params.poses, (i), (j))

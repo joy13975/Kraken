@@ -35,6 +35,8 @@ public:
     void dumpStack();
 
     void printMemInfo();
+    unsigned long getCycleCount() { return cycleCount; }
+    vixl::Logic * getLogic() { return &logic; };
 
 protected:
     virtual void softResetComponent();
@@ -55,6 +57,8 @@ private:
 
     // flags
     bool breakSubsequent = false;
+
+    unsigned long cycleCount;
 
     void init();
     void run();

@@ -7,130 +7,77 @@ main:                                   // @main
 // BB#0:                                // %entry
 	stp	x28, x27, [sp, #-16]!
 	sub	sp, sp, #2, lsl #12     // =8192
-	sub	sp, sp, #3040           // =3040
-	movz	w8, #0
-	str	w8, [sp, #11228]
-	str	w8, [sp, #4]
-	str	w8, [sp, #20]
-.LBB0_1:                                // %for.cond
+	sub	sp, sp, #3024           // =3024
+	movn	x11, #0x2bbf
+	add	x8, sp, #12             // =12
+	movz	w9, #0x7d0
+	dup	v0.4s, w9
+	movz	w9, #0xaef
+	movz	w10, #0xaf0
+.LBB0_1:                                // %vector.body
                                         // =>This Inner Loop Header: Depth=1
-	ldr	w8, [sp, #20]
-	cmp	 w8, #2800              // =2800
-	b.lt	.LBB0_2
-	b	.LBB0_4
-.LBB0_2:                                // %for.body
-                                        //   in Loop: Header=BB0_1 Depth=1
-	movz	w8, #0x7d0
-	add	x9, sp, #24             // =24
-	ldr	w10, [sp, #20]
-	mov	 w11, w10
-	sxtw	x11, w11
-	orr	x12, xzr, #0x2
-	lsl	x11, x11, x12
-	add	 x9, x9, x11
-	str	 w8, [x9]
-// BB#3:                                // %for.inc
-                                        //   in Loop: Header=BB0_1 Depth=1
-	ldr	w8, [sp, #20]
-	orr	w9, wzr, #0x1
-	add	 w8, w8, w9
-	str	w8, [sp, #20]
-	b	.LBB0_1
-.LBB0_4:                                // %for.end
-	movz	w8, #0xaf0
-	str	w8, [sp, #16]
-.LBB0_5:                                // %for.cond1
+	add	 x12, x8, x11
+	str	q0, [x12, #11200]
+	str	q0, [x12, #11216]
+	add	x11, x11, #32           // =32
+	cbnz	x11, .LBB0_1
+// BB#2:
+	mov	 w16, wzr
+	movz	w12, #0x15dd
+	movz	w13, #0x2710
+	movz	w14, #0x68db, lsl #16
+	movk	w14, #0x8bad
+.LBB0_3:                                // %for.cond4.preheader
                                         // =>This Loop Header: Depth=1
-                                        //     Child Loop BB0_7 Depth 2
-	ldr	w8, [sp, #16]
-	cmp	 w8, #0                 // =0
-	b.gt	.LBB0_6
-	b	.LBB0_12
-.LBB0_6:                                // %for.body3
-                                        //   in Loop: Header=BB0_5 Depth=1
-	movz	w8, #0
-	str	w8, [sp, #8]
-	ldr	w8, [sp, #16]
-	str	w8, [sp, #20]
-.LBB0_7:                                // %for.cond4
-                                        //   Parent Loop BB0_5 Depth=1
+                                        //     Child Loop BB0_4 Depth 2
+	mov	 w11, w16
+	lsl	x16, x10, #2
+	ldr	 w15, [x8, x16]
+	mul	 w17, w15, w13
+	lsl	x15, x10, #1
+	sub	w18, w15, #1            // =1
+	sdiv	w15, w17, w18
+	msub	w17, w15, w18, w17
+	str	 w17, [x8, x16]
+	mov	 w16, w12
+	mov	 x17, x9
+.LBB0_4:                                // %if.end
+                                        //   Parent Loop BB0_3 Depth=1
                                         // =>  This Inner Loop Header: Depth=2
-	add	x8, sp, #24             // =24
-	orr	w9, wzr, #0x2
-	movz	w10, #0x2710
-	ldr	w11, [sp, #20]
-	mov	 w12, w11
-	sxtw	x12, w12
-	orr	x13, xzr, #0x2
-	lsl	x12, x12, x13
-	add	 x12, x8, x12
-	ldr	 w11, [x12]
-	mul	 w10, w11, w10
-	ldr	w11, [sp, #8]
-	add	 w10, w11, w10
-	str	w10, [sp, #8]
-	ldr	w10, [sp, #20]
-	mul	 w9, w9, w10
-	orr	w10, wzr, #0x1
-	subs	 w9, w9, w10
-	str	w9, [sp, #12]
-	ldr	w9, [sp, #8]
-	ldr	w10, [sp, #12]
-	sdiv	w11, w9, w10
-	msub	w9, w11, w10, w9
-	ldr	w10, [sp, #20]
-	mov	 w12, w10
-	sxtw	x12, w12
-	orr	x13, xzr, #0x2
-	lsl	x12, x12, x13
-	add	 x8, x8, x12
-	str	 w9, [x8]
-	ldr	w9, [sp, #12]
-	ldr	w10, [sp, #8]
-	sdiv	w9, w10, w9
-	str	w9, [sp, #8]
-	ldr	w9, [sp, #20]
-	movn	w10, #0
-	add	 w9, w9, w10
-	str	w9, [sp, #20]
-	ldr	w9, [sp, #20]
-	cmp	 w9, #0                 // =0
-	b.eq	.LBB0_8
-	b	.LBB0_9
-.LBB0_8:                                // %if.then
-                                        //   in Loop: Header=BB0_5 Depth=1
-	b	.LBB0_10
-.LBB0_9:                                // %if.end
-                                        //   in Loop: Header=BB0_7 Depth=2
-	ldr	w8, [sp, #20]
-	ldr	w9, [sp, #8]
-	mul	 w8, w9, w8
-	str	w8, [sp, #8]
-	b	.LBB0_7
-.LBB0_10:                               // %for.end12
-                                        //   in Loop: Header=BB0_5 Depth=1
-	movz	w8, #0x2710
-	ldr	w9, [sp, #4]
-	ldr	w10, [sp, #8]
-	movz	w11, #0x2710
-	sdiv	w10, w10, w11
-	add	 w9, w9, w10
-	str	 w9, [sp]
-	ldr	w9, [sp, #8]
-	sdiv	w10, w9, w8
-	msub	w8, w10, w8, w9
-	str	w8, [sp, #4]
-// BB#11:                               // %for.inc16
-                                        //   in Loop: Header=BB0_5 Depth=1
-	ldr	w8, [sp, #16]
-	orr	w9, wzr, #0xe
-	subs	 w8, w8, w9
-	str	w8, [sp, #16]
-	b	.LBB0_5
-.LBB0_12:                               // %for.end18
-	ldr	 w0, [sp]
+	lsl	x18, x17, #2
+	ldr	 w0, [x8, x18]
+	mul	 w0, w0, w13
+	madd	w0, w15, w17, w0
+	sdiv	w15, w0, w16
+	msub	w0, w15, w16, w0
+	str	 w0, [x8, x18]
+	sub	x17, x17, #1            // =1
+	sub	w16, w16, #2            // =2
+	cbnz	w17, .LBB0_4
+// BB#5:                                // %for.end12
+                                        //   in Loop: Header=BB0_3 Depth=1
+	sxtw	x16, w15
+	mul	 x16, x16, x14
+	lsr	x17, x16, #63
+	asr	x16, x16, #44
+	add	 w16, w16, w17
+	msub	w16, w16, w13, w15
+	sub	x10, x10, #14           // =14
+	sub	x9, x9, #14             // =14
+	sub	w12, w12, #28           // =28
+	cmp	 w10, #0                // =0
+	b.gt	.LBB0_3
+// BB#6:                                // %for.end18
+	sxtw	x8, w15
+	movz	w9, #0x68db, lsl #16
+	movk	w9, #0x8bad
+	mul	 x8, x8, x9
+	lsr	x9, x8, #63
+	asr	x8, x8, #44
+	add	 w8, w8, w9
+	add	 w0, w8, w11
 	add	sp, sp, #2, lsl #12     // =8192
-	add	sp, sp, #3040           // =3040
+	add	sp, sp, #3024           // =3024
 	ldp	x28, x27, [sp], #16
 	ret
 .Ltmp0:

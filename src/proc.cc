@@ -49,6 +49,11 @@ void signalHandler(int sig)
         currentProc->printMemInfo();
         currentProc->dumpData();
         currentProc->dumpStack();
+        const unsigned long cc = currentProc->getCycleCount();
+        const unsigned long ic = currentProc->getLogic()->getInstrCount();
+        err("Last cycle count: %ld\n", cc);
+        err("Last instr count: %ld\n", ic);
+        err("Last IPC: %.2f\n", (float) ic / cc);
     }
     else
     {
@@ -142,7 +147,7 @@ void Proc::run()
     bool shouldHalt = false;
 
     // statistics
-    long cycleCount = 0;
+    cycleCount = 0;
 
     // execution loop
     ProcStage stage = options.pipelined ? PIPELINED : FETCH;

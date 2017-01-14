@@ -3,209 +3,151 @@ mmhash2.a64:     file format elf64-littleaarch64
 mmhash2.a64
 architecture: aarch64, flags 0x00000112:
 EXEC_P, HAS_SYMS, D_PAGED
-start address 0x00000000000002c4
+start address 0x0000000000000198
 
 Program Header:
     LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
-         filesz 0x000000000000038c memsz 0x000000000000038c flags r-x
-    LOAD off    0x000000000000038c vaddr 0x000000000001038c paddr 0x000000000001038c align 2**16
+         filesz 0x00000000000002a4 memsz 0x00000000000002a4 flags r-x
+    LOAD off    0x00000000000002a4 vaddr 0x00000000000102a4 paddr 0x00000000000102a4 align 2**16
          filesz 0x0000000000002000 memsz 0x0000000000002000 flags rw-
 private flags = 0:
 
 Sections:
 Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         0000028c  0000000000000100  0000000000000100  00000100  2**2
+  0 .text         000001a4  0000000000000100  0000000000000100  00000100  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00002000  000000000001038c  000000000001038c  0000038c  2**2
+  1 .data         00002000  00000000000102a4  00000000000102a4  000002a4  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000015  0000000000000000  0000000000000000  0000238c  2**0
+  2 .comment      00000015  0000000000000000  0000000000000000  000022a4  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 0000000000000100 l    d  .text	0000000000000000 .text
-000000000001038c l    d  .data	0000000000000000 .data
+00000000000102a4 l    d  .data	0000000000000000 .data
 0000000000000000 l    d  .comment	0000000000000000 .comment
 0000000000000000 l    df *ABS*	0000000000000000 mmhash2.c
-000000000001238c g       .data	0000000000000000 _bss_end__
-000000000001238c g       .data	0000000000000000 __bss_start__
-000000000001238c g       .data	0000000000000000 __bss_end__
-000000000001038c g     O .data	0000000000001000 nums1k1
-000000000001238c g       .data	0000000000000000 __bss_start
-00000000000002c4 g     F .text	00000000000000c8 main
-0000000000012390 g       .data	0000000000000000 __end__
-0000000000000100 g     F .text	00000000000001c4 MurmurHash2
-000000000001238c g       .data	0000000000000000 _edata
-0000000000012390 g       .data	0000000000000000 _end
+00000000000122a4 g       .data	0000000000000000 _bss_end__
+00000000000122a4 g       .data	0000000000000000 __bss_start__
+00000000000122a4 g       .data	0000000000000000 __bss_end__
+00000000000102a4 g     O .data	0000000000001000 nums1k1
+00000000000122a4 g       .data	0000000000000000 __bss_start
+0000000000000198 g     F .text	000000000000010c main
+00000000000122a8 g       .data	0000000000000000 __end__
+0000000000000100 g     F .text	0000000000000098 MurmurHash2
+00000000000122a4 g       .data	0000000000000000 _edata
+00000000000122a8 g       .data	0000000000000000 _end
 0000000000080000 g       .comment	0000000000000000 _stack
-000000000001038c g       .data	0000000000000000 __data_start
-000000000001138c g     O .data	0000000000001000 nums1k2
+00000000000102a4 g       .data	0000000000000000 __data_start
+00000000000112a4 g     O .data	0000000000001000 nums1k2
 
 
 
 Disassembly of section .text:
 
 0000000000000100 <MurmurHash2>:
- 100:	d10143ff 	sub	sp, sp, #0x50
- 104:	321d07e8 	orr	w8, wzr, #0x18
- 108:	52ab7a29 	mov	w9, #0x5bd10000            	// #1540423680
- 10c:	729d32a9 	movk	w9, #0xe995
- 110:	f90027e0 	str	x0, [sp,#72]
- 114:	b90047e1 	str	w1, [sp,#68]
- 118:	b90043e2 	str	w2, [sp,#64]
- 11c:	b9003fe9 	str	w9, [sp,#60]
- 120:	b9003be8 	str	w8, [sp,#56]
- 124:	b94043e8 	ldr	w8, [sp,#64]
- 128:	b94047e9 	ldr	w9, [sp,#68]
- 12c:	4a090108 	eor	w8, w8, w9
- 130:	b90037e8 	str	w8, [sp,#52]
- 134:	f94027e0 	ldr	x0, [sp,#72]
- 138:	f90017e0 	str	x0, [sp,#40]
- 13c:	b94047e8 	ldr	w8, [sp,#68]
- 140:	7100111f 	cmp	w8, #0x4
- 144:	5400004a 	b.ge	14c <MurmurHash2+0x4c>
- 148:	14000023 	b	1d4 <MurmurHash2+0xd4>
- 14c:	52ab7a28 	mov	w8, #0x5bd10000            	// #1540423680
- 150:	729d32a8 	movk	w8, #0xe995
- 154:	f94017e9 	ldr	x9, [sp,#40]
- 158:	b940012a 	ldr	w10, [x9]
- 15c:	b90027ea 	str	w10, [sp,#36]
- 160:	52ab7a2b 	mov	w11, #0x5bd10000            	// #1540423680
- 164:	729d32ab 	movk	w11, #0xe995
- 168:	1b0b7d4a 	mul	w10, w10, w11
- 16c:	b90027ea 	str	w10, [sp,#36]
- 170:	2a0a03eb 	mov	w11, w10
- 174:	53187d4a 	lsr	w10, w10, #24
- 178:	b94027ec 	ldr	w12, [sp,#36]
- 17c:	4a0a018a 	eor	w10, w12, w10
- 180:	b90027ea 	str	w10, [sp,#36]
- 184:	b94027ea 	ldr	w10, [sp,#36]
- 188:	1b087d4a 	mul	w10, w10, w8
- 18c:	b90027ea 	str	w10, [sp,#36]
- 190:	b94037ea 	ldr	w10, [sp,#52]
- 194:	1b087d48 	mul	w8, w10, w8
- 198:	b90037e8 	str	w8, [sp,#52]
- 19c:	b94027e8 	ldr	w8, [sp,#36]
- 1a0:	b94037ea 	ldr	w10, [sp,#52]
- 1a4:	4a080148 	eor	w8, w10, w8
- 1a8:	b90037e8 	str	w8, [sp,#52]
- 1ac:	f94017e9 	ldr	x9, [sp,#40]
- 1b0:	b27e03ed 	orr	x13, xzr, #0x4
- 1b4:	8b0d0129 	add	x9, x9, x13
- 1b8:	f90017e9 	str	x9, [sp,#40]
- 1bc:	b94047e8 	ldr	w8, [sp,#68]
- 1c0:	321e03ea 	orr	w10, wzr, #0x4
- 1c4:	6b0a0108 	subs	w8, w8, w10
- 1c8:	b90047e8 	str	w8, [sp,#68]
- 1cc:	b90023eb 	str	w11, [sp,#32]
- 1d0:	17ffffdb 	b	13c <MurmurHash2+0x3c>
- 1d4:	b94047e8 	ldr	w8, [sp,#68]
- 1d8:	2a0803e9 	mov	w9, w8
- 1dc:	71000508 	subs	w8, w8, #0x1
- 1e0:	b9001fe9 	str	w9, [sp,#28]
- 1e4:	b9001be8 	str	w8, [sp,#24]
- 1e8:	54000380 	b.eq	258 <MurmurHash2+0x158>
- 1ec:	14000001 	b	1f0 <MurmurHash2+0xf0>
- 1f0:	b9401fe8 	ldr	w8, [sp,#28]
- 1f4:	71000909 	subs	w9, w8, #0x2
- 1f8:	b90017e9 	str	w9, [sp,#20]
- 1fc:	540001e0 	b.eq	238 <MurmurHash2+0x138>
- 200:	14000001 	b	204 <MurmurHash2+0x104>
- 204:	b9401fe8 	ldr	w8, [sp,#28]
- 208:	71000d09 	subs	w9, w8, #0x3
- 20c:	b90013e9 	str	w9, [sp,#16]
- 210:	540003a1 	b.ne	284 <MurmurHash2+0x184>
- 214:	14000001 	b	218 <MurmurHash2+0x118>
- 218:	f94017e8 	ldr	x8, [sp,#40]
- 21c:	39400909 	ldrb	w9, [x8,#2]
- 220:	2a0903e0 	mov	w0, w9
- 224:	53103d29 	lsl	w9, w9, #16
- 228:	b94037ea 	ldr	w10, [sp,#52]
- 22c:	4a090149 	eor	w9, w10, w9
- 230:	b90037e9 	str	w9, [sp,#52]
- 234:	b9000fe0 	str	w0, [sp,#12]
- 238:	f94017e8 	ldr	x8, [sp,#40]
- 23c:	39400509 	ldrb	w9, [x8,#1]
- 240:	2a0903e0 	mov	w0, w9
- 244:	53185d29 	lsl	w9, w9, #8
- 248:	b94037ea 	ldr	w10, [sp,#52]
- 24c:	4a090149 	eor	w9, w10, w9
- 250:	b90037e9 	str	w9, [sp,#52]
- 254:	b9000be0 	str	w0, [sp,#8]
- 258:	52ab7a28 	mov	w8, #0x5bd10000            	// #1540423680
- 25c:	729d32a8 	movk	w8, #0xe995
- 260:	f94017e9 	ldr	x9, [sp,#40]
- 264:	3940012a 	ldrb	w10, [x9]
- 268:	53001d4a 	uxtb	w10, w10
- 26c:	b94037eb 	ldr	w11, [sp,#52]
- 270:	4a0a016a 	eor	w10, w11, w10
- 274:	b90037ea 	str	w10, [sp,#52]
- 278:	b94037ea 	ldr	w10, [sp,#52]
- 27c:	1b087d48 	mul	w8, w10, w8
- 280:	b90037e8 	str	w8, [sp,#52]
- 284:	b94037e8 	ldr	w8, [sp,#52]
- 288:	4a483508 	eor	w8, w8, w8, lsr #13
- 28c:	b90037e8 	str	w8, [sp,#52]
- 290:	52ab7a29 	mov	w9, #0x5bd10000            	// #1540423680
- 294:	729d32a9 	movk	w9, #0xe995
- 298:	1b097d08 	mul	w8, w8, w9
- 29c:	b90037e8 	str	w8, [sp,#52]
- 2a0:	2a0803e9 	mov	w9, w8
- 2a4:	530f7d08 	lsr	w8, w8, #15
- 2a8:	b94037ea 	ldr	w10, [sp,#52]
- 2ac:	4a080148 	eor	w8, w10, w8
- 2b0:	b90037e8 	str	w8, [sp,#52]
- 2b4:	b94037e0 	ldr	w0, [sp,#52]
- 2b8:	b90007e9 	str	w9, [sp,#4]
- 2bc:	910143ff 	add	sp, sp, #0x50
- 2c0:	d65f03c0 	ret
+ 100:	52ab7a28 	mov	w8, #0x5bd10000            	// #1540423680
+ 104:	729d32a8 	movk	w8, #0xe995
+ 108:	4a010049 	eor	w9, w2, w1
+ 10c:	7100102a 	subs	w10, w1, #0x4
+ 110:	5400022b 	b.lt	154 <MurmurHash2+0x54>
+ 114:	53027d4b 	lsr	w11, w10, #2
+ 118:	531e756b 	lsl	w11, w11, #2
+ 11c:	321e03ec 	orr	w12, wzr, #0x4
+ 120:	8b2b418c 	add	x12, x12, w11, uxtw
+ 124:	aa0003ed 	mov	x13, x0
+ 128:	b84045ae 	ldr	w14, [x13],#4
+ 12c:	1b087dce 	mul	w14, w14, w8
+ 130:	4a4e61ce 	eor	w14, w14, w14, lsr #24
+ 134:	1b087dce 	mul	w14, w14, w8
+ 138:	1b087d29 	mul	w9, w9, w8
+ 13c:	4a0901c9 	eor	w9, w14, w9
+ 140:	51001021 	sub	w1, w1, #0x4
+ 144:	71000c3f 	cmp	w1, #0x3
+ 148:	54ffff0c 	b.gt	128 <MurmurHash2+0x28>
+ 14c:	4b0b0141 	sub	w1, w10, w11
+ 150:	8b0c0000 	add	x0, x0, x12
+ 154:	7100043f 	cmp	w1, #0x1
+ 158:	54000120 	b.eq	17c <MurmurHash2+0x7c>
+ 15c:	7100083f 	cmp	w1, #0x2
+ 160:	540000a0 	b.eq	174 <MurmurHash2+0x74>
+ 164:	71000c3f 	cmp	w1, #0x3
+ 168:	54000101 	b.ne	188 <MurmurHash2+0x88>
+ 16c:	3940080a 	ldrb	w10, [x0,#2]
+ 170:	4a0a4129 	eor	w9, w9, w10, lsl #16
+ 174:	3940040a 	ldrb	w10, [x0,#1]
+ 178:	4a0a2129 	eor	w9, w9, w10, lsl #8
+ 17c:	3940000a 	ldrb	w10, [x0]
+ 180:	4a090149 	eor	w9, w10, w9
+ 184:	1b087d29 	mul	w9, w9, w8
+ 188:	4a493529 	eor	w9, w9, w9, lsr #13
+ 18c:	1b087d28 	mul	w8, w9, w8
+ 190:	4a483d00 	eor	w0, w8, w8, lsr #15
+ 194:	d65f03c0 	ret
 
-00000000000002c4 <main>:
- 2c4:	a9be6ffc 	stp	x28, x27, [sp,#-32]!
- 2c8:	a9017bfd 	stp	x29, x30, [sp,#16]
- 2cc:	910043fd 	add	x29, sp, #0x10
- 2d0:	d10d03ff 	sub	sp, sp, #0x340
- 2d4:	52800008 	mov	w8, #0x0                   	// #0
- 2d8:	b81ec3a8 	stur	w8, [x29,#-20]
- 2dc:	b90017e8 	str	w8, [sp,#20]
- 2e0:	b94017e8 	ldr	w8, [sp,#20]
- 2e4:	7101911f 	cmp	w8, #0x64
- 2e8:	5400004b 	b.lt	2f0 <main+0x2c>
- 2ec:	1400001b 	b	358 <main+0x94>
- 2f0:	90000088 	adrp	x8, 10000 <main+0xfd3c>
- 2f4:	910e3108 	add	x8, x8, #0x38c
- 2f8:	52bbd5a2 	mov	w2, #0xdead0000            	// #-559087616
- 2fc:	7297dde2 	movk	w2, #0xbeef
- 300:	b94017e9 	ldr	w9, [sp,#20]
- 304:	528266ea 	mov	w10, #0x1337                	// #4919
- 308:	0b0a0121 	add	w1, w9, w10
- 30c:	aa0803e0 	mov	x0, x8
- 310:	97ffff7c 	bl	100 <MurmurHash2>
- 314:	910063e8 	add	x8, sp, #0x18
- 318:	2a0003eb 	mov	w11, w0
- 31c:	d3407d6b 	ubfx	x11, x11, #0, #32
- 320:	b94017e9 	ldr	w9, [sp,#20]
- 324:	2a0903ec 	mov	w12, w9
- 328:	93407d8c 	sxtw	x12, w12
- 32c:	b24007ed 	orr	x13, xzr, #0x3
- 330:	9acd218c 	lsl	x12, x12, x13
- 334:	8b0c0108 	add	x8, x8, x12
- 338:	f940010c 	ldr	x12, [x8]
- 33c:	8b0b018b 	add	x11, x12, x11
- 340:	f900010b 	str	x11, [x8]
- 344:	b94017e8 	ldr	w8, [sp,#20]
- 348:	320003e9 	orr	w9, wzr, #0x1
- 34c:	0b090108 	add	w8, w8, w9
- 350:	b90017e8 	str	w8, [sp,#20]
- 354:	17ffffe3 	b	2e0 <main+0x1c>
- 358:	d2b001a8 	mov	x8, #0x800d0000            	// #2148335616
- 35c:	f297dde8 	movk	x8, #0xbeef
- 360:	f9419be9 	ldr	x9, [sp,#816]
- 364:	9ac80920 	udiv	x0, x9, x8
- 368:	9b08a400 	msub	x0, x0, x8, x9
- 36c:	f90007e0 	str	x0, [sp,#8]
- 370:	f94007e8 	ldr	x8, [sp,#8]
- 374:	2a0803e1 	mov	w1, w8
- 378:	2a0103e0 	mov	w0, w1
- 37c:	d10043bf 	sub	sp, x29, #0x10
- 380:	a9417bfd 	ldp	x29, x30, [sp,#16]
- 384:	a8c26ffc 	ldp	x28, x27, [sp],#32
- 388:	d65f03c0 	ret
+0000000000000198 <main>:
+ 198:	a9bf6ffc 	stp	x28, x27, [sp,#-16]!
+ 19c:	d10c83ff 	sub	sp, sp, #0x320
+ 1a0:	aa1f03e8 	mov	x8, xzr
+ 1a4:	528266e9 	mov	w9, #0x1337                	// #4919
+ 1a8:	52bbd5aa 	mov	w10, #0xdead0000            	// #-559087616
+ 1ac:	7297ddea 	movk	w10, #0xbeef
+ 1b0:	5282666b 	mov	w11, #0x1333                	// #4915
+ 1b4:	52ab7a2c 	mov	w12, #0x5bd10000            	// #1540423680
+ 1b8:	729d32ac 	movk	w12, #0xe995
+ 1bc:	910003ed 	mov	x13, sp
+ 1c0:	9000008e 	adrp	x14, 10000 <main+0xfe68>
+ 1c4:	910a91ce 	add	x14, x14, #0x2a4
+ 1c8:	0b090111 	add	w17, w8, w9
+ 1cc:	4a0a022f 	eor	w15, w17, w10
+ 1d0:	0b0b0112 	add	w18, w8, w11
+ 1d4:	53027e40 	lsr	w0, w18, #2
+ 1d8:	531e7410 	lsl	w16, w0, #2
+ 1dc:	aa0e03e1 	mov	x1, x14
+ 1e0:	b8404422 	ldr	w2, [x1],#4
+ 1e4:	1b0c7c42 	mul	w2, w2, w12
+ 1e8:	4a426042 	eor	w2, w2, w2, lsr #24
+ 1ec:	1b0c7c42 	mul	w2, w2, w12
+ 1f0:	1b0c7def 	mul	w15, w15, w12
+ 1f4:	4a0f004f 	eor	w15, w2, w15
+ 1f8:	51001231 	sub	w17, w17, #0x4
+ 1fc:	71000e3f 	cmp	w17, #0x3
+ 200:	54ffff0c 	b.gt	1e0 <main+0x48>
+ 204:	4b000a51 	sub	w17, w18, w0, lsl #2
+ 208:	7100063f 	cmp	w17, #0x1
+ 20c:	54000160 	b.eq	238 <main+0xa0>
+ 210:	71000a3f 	cmp	w17, #0x2
+ 214:	540000c0 	b.eq	22c <main+0x94>
+ 218:	71000e3f 	cmp	w17, #0x3
+ 21c:	54000161 	b.ne	248 <main+0xb0>
+ 220:	8b0e0211 	add	x17, x16, x14
+ 224:	39401a31 	ldrb	w17, [x17,#6]
+ 228:	4a1141ef 	eor	w15, w15, w17, lsl #16
+ 22c:	8b0e0211 	add	x17, x16, x14
+ 230:	39401631 	ldrb	w17, [x17,#5]
+ 234:	4a1121ef 	eor	w15, w15, w17, lsl #8
+ 238:	91001210 	add	x16, x16, #0x4
+ 23c:	387069d0 	ldrb	w16, [x14,x16]
+ 240:	4a0f020f 	eor	w15, w16, w15
+ 244:	1b0c7def 	mul	w15, w15, w12
+ 248:	4a4f35ef 	eor	w15, w15, w15, lsr #13
+ 24c:	1b0c7def 	mul	w15, w15, w12
+ 250:	4a4f3def 	eor	w15, w15, w15, lsr #15
+ 254:	d37df110 	lsl	x16, x8, #3
+ 258:	f87069b1 	ldr	x17, [x13,x16]
+ 25c:	8b2f422f 	add	x15, x17, w15, uxtw
+ 260:	f83069af 	str	x15, [x13,x16]
+ 264:	91000508 	add	x8, x8, #0x1
+ 268:	f101911f 	cmp	x8, #0x64
+ 26c:	54fffae1 	b.ne	1c8 <main+0x30>
+ 270:	f9418fe8 	ldr	x8, [sp,#792]
+ 274:	d2fffc89 	mov	x9, #0xffe4000000000000    	// #-7881299347898368
+ 278:	f2d0a2a9 	movk	x9, #0x8515, lsl #32
+ 27c:	f2af32a9 	movk	x9, #0x7995, lsl #16
+ 280:	f28908a9 	movk	x9, #0x4845
+ 284:	9bc97d09 	umulh	x9, x8, x9
+ 288:	d35ffd29 	lsr	x9, x9, #31
+ 28c:	52b001aa 	mov	w10, #0x800d0000            	// #-2146631680
+ 290:	7297ddea 	movk	w10, #0xbeef
+ 294:	1b0aa120 	msub	w0, w9, w10, w8
+ 298:	910c83ff 	add	sp, sp, #0x320
+ 29c:	a8c16ffc 	ldp	x28, x27, [sp],#16
+ 2a0:	d65f03c0 	ret
