@@ -91,7 +91,7 @@ float parse_float(const char *str);
 long parse_long(const char *str);
 const char *get_error_string();
 void print_arg_title(const char *title);
-void print_arg_bundles(const argument_bundle *argbv, const int n);
+void print_arg_bundles(const argument_bundle **argbv, const int n);
 void _log(const char *filename, const int line, const Log_Level lvl, const char *fmt, ...);
 
 #define jmin(a, b)                   (a < b ? a : b)

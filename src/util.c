@@ -44,16 +44,17 @@ void print_arg_title(const char *title)
     reset_leading_spaces();
 }
 
-void print_arg_bundles(const argument_bundle *argbv, const int n)
+void print_arg_bundles(const argument_bundle **argbv, const int n)
 {
     for (int i = 0; i < n; i++)
     {
-        const argument_bundle *ab = &(argbv[i]);
+        const argument_bundle *ab = &((*argbv)[i]);
         set_leading_spaces(8);
         raw("%s, %s\n", ab->short_form, ab->long_form);
         set_leading_spaces(12);
         raw("%s\n", ab->description);
     }
+    (*argbv) += n;
     reset_leading_spaces();
 }
 

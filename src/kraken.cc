@@ -65,13 +65,13 @@ DECL_ARG_CALLBACK(helpAndExit)
     raw("Kraken Processor Simulator\n");
     raw("Usage: ./kraken [INPUT] [OPTIONS]\n");
 
-    int count = 0;
+    argument_bundle ptr = argbv;
     print_arg_title("INPUT:");
-    print_arg_bundles(argbv, count += 1);
+    print_arg_bundles(&ptr, 1);
     print_arg_title("OPTIONS:");
-    print_arg_bundles(argbv + count, count += 6);
+    print_arg_bundles(&ptr, 6);
     print_arg_title("FEATURES:");
-    print_arg_bundles(argbv + count, count += (ARG_BUND_SIZE - count));
+    print_arg_bundles(&ptr, ARG_BUND_SIZE - 8);
 
     exit(1);
 }
