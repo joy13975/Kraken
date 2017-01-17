@@ -50,7 +50,7 @@ void Decoder::computeComponent()
     if (!fetcher || exUnits.size() == 0)
         die("Decoder's fetcher pointer is not set or no EU added\n");
 
-    const short vacancy = MAX_ROB_SIZE - buffer.size();
+    const short vacancy = MAX_BUF_SIZE - buffer.size();
 
     // decode as many as possible to fill the buffer
     while (tmpBuffer.size() < vacancy)
@@ -96,8 +96,8 @@ void Decoder::computeComponent()
 
                 dbg("   Decoder: issue instr %p ac %d (%d left in buffer)\n",
                     di.instr, di.ac, buffer.size());
-                wrn("   Decoder: Rd=%d, Rn=%d, Rm=%d, Ra=%d, Rt=%d, Rt2=%d\n",
-                    di.instr->Rd(), di.instr->Rn(), di.instr->Rm(), di.instr->Ra(), di.instr->Rt(), di.instr->Rt2());
+                // wrn("   Decoder: Rd=%d, Rn=%d, Rm=%d, Ra=%d, Rt=%d, Rt2=%d\n",
+                //     di.instr->Rd(), di.instr->Rn(), di.instr->Rm(), di.instr->Ra(), di.instr->Rt(), di.instr->Rt2());
 
                 issued = true;
             }

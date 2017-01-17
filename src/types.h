@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cstddef>
 #include <deque>
+#include <tuple>
 
 #include <elf.h>
 #include <string.h>
@@ -13,22 +14,13 @@
 #include "bit_util.h"
 #include "util.h"
 
-#include "vixl/a64/logic-regs-a64.h"
+#include "vixl/a64/instructions-a64.h"
 #include "visits.h"
 
 namespace Kraken
 {
 
 typedef const vixl::Instruction* InstrPtr;
-
-struct State
-{
-    InstrPtr pc = 0;
-    vixl::SimRegister               regs[vixl::kNumberOfRegisters];
-    vixl::SimVRegister              vregs[vixl::kNumberOfVRegisters];
-    vixl::SimSystemRegister         nzcv;
-    vixl::SimSystemRegister         fpcr;
-};
 
 struct DecodedInstr
 {
@@ -39,19 +31,18 @@ struct DecodedInstr
         : ac(_ac), instr(_instr) {}
 };
 
+#define FOREACH_ROB_STATUS(v) \
+        v(Idle) \
+        v(Waiting) \
+        v(Ready) \
+        v(Done) \
+        v(CanKill) \
+        v(Invalid)
+GEN_ENUM_AND_STRING(RobStatus, RobStatusString, FOREACH_ROB_STATUS);
+
 class RobEntry
 {
 public:
-    enum Status
-    {
-        Idle,
-        Waiting,
-        InProgress,
-        Done,
-        CanKill,
-        Invalid
-    };
-
     RobEntry()
         : decInstr((ActionCode) 0, 0),
           status(Invalid),
@@ -61,8 +52,7 @@ public:
     RobEntry(const RobEntry & other)
         : decInstr(other.decInstr),
           status(other.status),
-          successor(other.successor),
-          scriptureList(other.scriptureList) {}
+          successor(other.successor) {}
     RobEntry& operator=(const RobEntry& other)
     {
         if (this == &other)
@@ -71,27 +61,37 @@ public:
         decInstr = other.decInstr;
         status = other.status;
         successor = other.successor;
-        scriptureList = other.scriptureList;
-
         return *this;
     }
     virtual ~RobEntry() {};
 
-    void setScriptureList(const std::vector<Scripture> & s)
+    const RobEntry * findDependency(const void * findReg) const
     {
-        scriptureList = s;
+        for (const auto& d : depends)
+            if (std::get<0>(d) == findReg)
+                return std::get<1>(d);
+
+        return NULL;
     }
-    const std::vector<Scripture> & getScriptureList() const
-    {
-        return scriptureList;
+
+    bool isReady() const {
+        if (depends.size() == 0)
+            return true;
+
+        for (const auto& d : depends)
+            if (!std::get<1>(d)->isReady())
+                return false;
+
+        return true;
     }
 
     DecodedInstr decInstr;
-    Status status = Idle;
+    RobStatus status = Idle;
     RobEntry * successor = 0;
-
+    std::vector<std::tuple<const void *, const RobEntry *>> depends;
+    unsigned short valLen;
+    uint8_t * val = 0;
 private:
-    std::vector<Scripture> scriptureList;
 };
 
 typedef std::deque<RobEntry *> ReservationStation;

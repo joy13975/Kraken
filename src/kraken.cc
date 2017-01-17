@@ -65,7 +65,7 @@ DECL_ARG_CALLBACK(helpAndExit)
     raw("Kraken Processor Simulator\n");
     raw("Usage: ./kraken [INPUT] [OPTIONS]\n");
 
-    argument_bundle ptr = argbv;
+    const argument_bundle * ptr = argbv;
     print_arg_title("INPUT:");
     print_arg_bundles(&ptr, 1);
     print_arg_title("OPTIONS:");

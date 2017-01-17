@@ -28,9 +28,18 @@
 
 #ifndef _LOGIC_MEMORY_A64_H_
 #define _LOGIC_MEMORY_A64_H_
+#include <tuple>
+
+#include "types.h"
 
 namespace vixl
 {
+static Kraken::RobEntry     ** memRobCursorPtr;
+static bool                 * memDepCheckModePtr;
+static Kraken::RobEntry     * memLastReader;
+static Kraken::RobEntry     * memLastWriter;
+static std::vector<std::tuple<const void *, const size_t, const Kraken::RobEntry *>> memReaders;
+static std::vector<std::tuple<const void *, const size_t, const Kraken::RobEntry *>> memWriters;
 
 // Representation of memory, with typed getters and setters for access.
 class Memory {
@@ -43,15 +52,58 @@ public:
         return (T)(bits & ~kAddressTagMask);
     }
 
+    void handleRead() const
+    {
+        if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
+            return;
+
+        if (lastWriter)
+        {
+            wrn("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriter);
+            (*robCursorPtr)->depends.push_back(std::make_tuple((void *) this, lastWriter));
+        }
+        else
+        {
+            wrn("[%s] RobCusor %p gets free read ticket\n", id, (*robCursorPtr));
+        }
+    }
+
     template <typename T, typename A>
     static T Read(A address) {
         T value;
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleRead();
+                memset(&result, 0, sizeof(result));
+            }
+            else
+            {
+                // should take this away for performance
+                if (!(*robCursorPtr)->isReady())
+                    die("RobEntry %p is NOT READY\n", (*robCursorPtr));
+
+            }
+        }
+        else
+        {
+
+        }
         address = AddressUntag(address);
         VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                     (sizeof(value) == 4) || (sizeof(value) == 8) ||
                     (sizeof(value) == 16));
         memcpy(&value, reinterpret_cast<const char*>(address), sizeof(value));
         return value;
+    }
+
+    void handleWrite()
+    {
+        if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
+            return;
+
+        wrn("[%s] RobCusor %p gets free write ticket\n", id, (*robCursorPtr));
     }
 
     template <typename T, typename A>

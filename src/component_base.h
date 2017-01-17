@@ -34,6 +34,8 @@ public:
         if (isReady())
             computeComponent();
 
+        prf("Component readyCountdown: %d\n", readyCountdown);
+
         readyCountdown--;
     }
 
@@ -50,6 +52,10 @@ public:
             syncComponent();
     }
 
+    bool isReadyLv1() const {
+        return readyCountdown <= 0;
+    }
+
     bool isReady() const {
         bool amReady = readyCountdown <= 0;
 
@@ -59,7 +65,7 @@ public:
             return true;
         else
             for (const ComponentBase * slave : slaves)
-                if (slave->isReady())
+                if (slave->isReadyLv1())
                     return true;
 
         // am ready but all slaves busy

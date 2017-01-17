@@ -68,7 +68,8 @@ void Fetcher::fetch()
     dbg("   Fetcher: at: %p (buffer %d:%d)\n",
         pc, tmpBuffer.size(), buffer.size());
 
-    while (tmpBuffer.size() < MAX_ROB_SIZE)
+    int n = 0;
+    while (tmpBuffer.size() < MAX_BUF_SIZE)
     {
         if (pc < absTextEnd)
         {
@@ -80,6 +81,7 @@ void Fetcher::fetch()
 
             prf("   Fetcher: BP: %p -> %p\n", pc, bpSuggest);
             pc = bpSuggest;
+            n++;
         }
         else
         {
@@ -89,7 +91,7 @@ void Fetcher::fetch()
     }
 
     if (tmpBuffer.size() > 0)
-        dbg("   Fetcher: front instr = %p\n", tmpBuffer.front());
+        dbg("   Fetcher: front instr = %p, fetched %d, tmpBuffer: %d\n", tmpBuffer.front(), n, tmpBuffer.size());
 }
 
 } // namespace Kraken

@@ -4,6 +4,7 @@
 #include "types.h"
 #include "util.h"
 #include "component_base.h"
+#include "state.h"
 
 namespace Kraken
 {
@@ -11,13 +12,16 @@ namespace Kraken
 class Scribe : public ComponentBase
 {
 public:
-    Scribe(RobEntry *& _robHead,
+    Scribe(RobEntry * _robHead,
            State & _state)
         : robHead(_robHead),
           state(_state)
     {}
 
     virtual ~Scribe() {}
+    unsigned long getInstrCount() {
+        return instrCount;
+    }
 
 protected:
     virtual void hardResetComponent();
@@ -28,9 +32,7 @@ protected:
 private:
     RobEntry * robHead, * cachedRobHead;
     State & state;
-    int nToPop, cachedNToPop;
-
-    void applyScripture(const Scripture & s);
+    unsigned long instrCount = 0;
 };
 
 } // namespace Kraken

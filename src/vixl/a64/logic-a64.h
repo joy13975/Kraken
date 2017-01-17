@@ -41,14 +41,13 @@
 #include "util.h"
 #include "component_base.h"
 #include "fetcher.h"
-#include "scripture.h"
 
 namespace Kraken
 {
 class Fetcher;
 } // namespace Kraken
 
-#define MAX_RSTATION_SIZE 12
+#define MAX_RSTATION_SIZE 64
 
 namespace vixl {
 
@@ -261,8 +260,7 @@ protected:
     virtual void syncComponent();
 
 public:
-    explicit Logic(Kraken::RobEntry * _robHead,
-                   Kraken::BranchRecords & _branchRecords,
+    explicit Logic(Kraken::BranchRecords & _branchRecords,
                    const bool _pipelined,
                    const bool _simExecLatency,
                    const short _nSuperscalar,
@@ -281,8 +279,10 @@ public:
         decoder = _decoder;
         connect((ComponentBase*) _decoder, this);
     }
+    void setRobCursor(Kraken::RobEntry * cursor) {
+        robCursor = cursor;
+    }
 
-    unsigned long getInstrCount() const { return instrCount; }
     unsigned long getBpCorrect() const { return bpCorrectCount; }
     unsigned long getBpWrong() const { return bpWrongCount; }
 
@@ -748,13 +748,13 @@ public:
 
     // Like Print* (above), but respect trace_parameters().
     void LogRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer) {
-        if (trace_parameters() & LOG_REGS) PrintRegister(code, r31mode);
+        PrintRegister(code, r31mode);
     }
     void LogVRegister(unsigned code, PrintRegisterFormat format) {
-        if (trace_parameters() & LOG_VREGS) PrintVRegister(code, format);
+        PrintVRegister(code, format);
     }
     void LogSystemRegister(SystemRegister id) {
-        if (trace_parameters() & LOG_SYSREGS) PrintSystemRegister(id);
+        PrintSystemRegister(id);
     }
 
     // Print memory accesses.
@@ -2157,32 +2157,16 @@ private:
     Decoder * decoder;
 
     const Instruction * newPc, * cachedNewPc;
-    bool hasExecuted, cachedHasExecuted;
-    Kraken::RobEntry * robCursor, * cachedRobCursor;
+    bool hasExecuted, cachedHasExecuted, depCheckMode;
+    Kraken::RobEntry * robCursor, * cachedRobCursor, * depCheckRobCursor;
+    Memory mem;
 
-    unsigned long instrCount = 0;
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
 
     const int nSuperscalar;
 
     Kraken::ReservationStation tmpRStation, rStation;
     unsigned short rsVacancy = 0;
-
-    std::vector<Kraken::Scripture> scriptureList;
-
-    void passScriptures(Kraken::RobEntry * rbe);
-    // std::vector<int> getReadRegs(const Kraken::DecodedInstr & decInstr);
-    // std::vector<int> getWriteRegs(const Kraken::DecodedInstr & decInstr);
-
-// #define DECL_READ_REG_FUNC(ITEM) \
-//     std::vector<int> RR##ITEM(const Instruction * instr);
-//     VISITOR_LIST(DECL_READ_REG_FUNC);
-// #undef DECL_READ_REG_FUNC
-
-// #define DECL_WRITE_REG_FUNC(ITEM) \
-//     std::vector<int> WR##ITEM(const Instruction * instr);
-//     VISITOR_LIST(DECL_WRITE_REG_FUNC);
-// #undef DECL_WRITE_REG_FUNC
 
     template <typename T>
     static T FPDefaultNaN();

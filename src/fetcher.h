@@ -14,7 +14,7 @@ class Logic;
 class Decoder;
 } // namespace vixl
 
-#define MAX_ROB_SIZE 32
+#define MAX_BUF_SIZE 64
 
 namespace Kraken
 {

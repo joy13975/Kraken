@@ -28,11 +28,17 @@
 
 #ifndef _LOGIC_REGS_A64_H_
 #define _LOGIC_REGS_A64_H_
+#include <tuple>
 
 #include "vixl/a64/logic-constants-a64.h"
 #include "vixl/a64/logic-memory-a64.h"
-#include "scripture.h"
+#include "types.h"
 #include "util.h"
+
+namespace Kraken
+{
+class RobEntry;
+}
 
 namespace vixl
 {
@@ -40,8 +46,7 @@ namespace vixl
 class ScribeReg
 {
 public:
-    ScribeReg() : written_since_last_log_(false),
-        written_since_last_commit(false) {}
+    ScribeReg() {}
 
     // TODO: Make this return a map of updated bytes, so that we can highlight
     // updated lanes for load-and-insert. (That never happens for scalar code, but
@@ -50,19 +55,40 @@ public:
 
     void NotifyRegisterLogged() { written_since_last_log_ = false; }
 
-    bool WrittenSinceLastCommit() const { return written_since_last_commit; }
+    char * id = "???";
 
-    void NotifyRegisterCommitted() { written_since_last_commit = false; }
-
-    int id;
-    std::vector<Kraken::Scripture> * scriptureList = 0;
-
+    Kraken::RobEntry ** robCursorPtr = 0;
+    bool * depCheckModePtr = 0;
 protected:
     // Helpers to aid with register tracing.
-    bool written_since_last_log_;
-    bool written_since_last_commit;
+    bool written_since_last_log_ = false;
+    Kraken::RobEntry  * lastReader, * lastWriter;
 
     virtual void NotifyRegisterWrite() = 0;
+
+    void handleRead() const
+    {
+        if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
+            return;
+
+        if (lastWriter)
+        {
+            wrn("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriter);
+            (*robCursorPtr)->depends.push_back(std::make_tuple((void *) this, lastWriter));
+        }
+        else
+        {
+            wrn("[%s] RobCusor %p gets free read ticket\n", id, (*robCursorPtr));
+        }
+    }
+
+    void handleWrite()
+    {
+        if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
+            return;
+
+        wrn("[%s] RobCusor %p gets free write ticket\n", id, (*robCursorPtr));
+    }
 };
 
 // Represent a register (r0-r31, v0-v31).
@@ -75,13 +101,37 @@ public:
     // Write the specified value. The value is zero-extended if necessary.
     template <typename T>
     void Set(T new_value) {
-        VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
-        if (sizeof(new_value) < kSizeInBytes) {
-            // All AArch64 registers are zero-extending.
-            memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleWrite();
+            }
+            else
+            {
+                VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
+                if (sizeof(new_value) < kSizeInBytes) {
+                    // All AArch64 registers are zero-extending.
+                    memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+                }
+                memcpy((*robCursorPtr)->val, &new_value, sizeof(new_value));
+                (*robCursorPtr)->valLen = sizeof(new_value);
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+                memcpy(value_, &new_value, sizeof(new_value));
+                NotifyRegisterWrite();
+            }
         }
-        memcpy(value_, &new_value, sizeof(new_value));
-        NotifyRegisterWrite();
+        else
+        {
+            dbg("Reg[%s] init: %p\n", id, new_value);
+            VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
+            if (sizeof(new_value) < kSizeInBytes) {
+                // All AArch64 registers are zero-extending.
+                memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+            }
+            memcpy(value_, &new_value, sizeof(new_value));
+            NotifyRegisterWrite();
+        }
     }
 
     // Insert a typed value into a register, leaving the rest of the register
@@ -90,20 +140,72 @@ public:
     // 0 represents the least significant bits.
     template <typename T>
     void Insert(int lane, T new_value) {
-        VIXL_ASSERT(lane >= 0);
-        VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
-                    kSizeInBytes);
-        memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
-        NotifyRegisterWrite();
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleWrite();
+            }
+            else
+            {
+                VIXL_ASSERT(lane >= 0);
+                VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
+                            kSizeInBytes);
+                memcpy(&((*robCursorPtr)->val[lane * sizeof(new_value)]), &new_value, sizeof(new_value));
+                (*robCursorPtr)->valLen = sizeof(new_value);
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+                memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
+                NotifyRegisterWrite();
+            }
+        }
+        else
+        {
+            dbg("Reg[%s] init: %p\n", id, new_value);
+            VIXL_ASSERT(lane >= 0);
+            VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
+                        kSizeInBytes);
+            memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
+            NotifyRegisterWrite();
+        }
     }
 
     // Read the value as the specified type. The value is truncated if necessary.
     template <typename T>
     T Get(int lane = 0) const {
         T result;
-        VIXL_ASSERT(lane >= 0);
-        VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
-        memcpy(&result, &value_[lane * sizeof(result)], sizeof(result));
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleRead();
+                memset(&result, 0, sizeof(result));
+            }
+            else
+            {
+                VIXL_ASSERT(lane >= 0);
+                VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
+                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                if (dep)
+                {
+                    memcpy(&result, &(dep->val[lane * sizeof(result)]), dep->valLen);
+                    (*robCursorPtr)->valLen = dep->valLen;
+                }
+                else
+                {
+                    memcpy(&result, &((*robCursorPtr)->val[lane * sizeof(result)]), sizeof(result));
+                    // valLen should already have been set since this must be init
+                    dbg("Reg[%s] RobEntry init: %p\n", id, result);
+                }
+
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+            }
+        }
+        else
+        {
+            VIXL_ASSERT(lane >= 0);
+            VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
+            memcpy(&result, &value_[lane * sizeof(result)], sizeof(result));
+        }
         return result;
     }
 
@@ -113,24 +215,17 @@ protected:
     void NotifyRegisterWrite()
     {
         written_since_last_log_ = true;
-        written_since_last_commit = true;
+    }
 
-        if (scriptureList)
-        {
-            if (kSizeInBytes != 8 && kSizeInBytes != 16)
-                die("What size? %d\n", kSizeInBytes);
+    unsigned short getLen()
+    {
+        return kSizeInBytes;
+    }
 
-            Kraken::Scripture s = Kraken::Scripture(
-                                      kSizeInBytes == 8 ?
-                                      Kraken::DestType::Reg :
-                                      Kraken::DestType::VReg,
-                                      id,
-                                      kSizeInBytes
-                                  );
-            s.fill(value_);
-            scriptureList->push_back(s);
-        }
-    };
+    uint8_t * getVal()
+    {
+        return value_;
+    }
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
 typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
@@ -146,25 +241,163 @@ public:
     SimSystemRegister()
         : value_(0), write_ignore_mask_(0xffffffff) { }
 
-    uint32_t RawValue() const { return value_; }
-
     void SetRawValue(uint32_t new_value) {
-        value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
-        NotifyRegisterWrite();
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleWrite();
+            }
+            else
+            {
+                value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
+                memcpy((*robCursorPtr)->val, &value_, sizeof(value_));
+                (*robCursorPtr)->valLen = sizeof(value_);
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+                NotifyRegisterWrite();
+            }
+        }
+        else
+        {
+            dbg("Reg[%s] init: %p\n", id, new_value);
+            value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
+            NotifyRegisterWrite();
+        }
+    }
+
+    void SetBits(int msb, int lsb, uint32_t bits) {
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleWrite();
+            }
+            else
+            {
+                int width = msb - lsb + 1;
+                VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+
+                bits <<= lsb;
+                uint32_t mask = ((1 << width) - 1) << lsb;
+                VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+
+                value_ = (value_ & ~mask) | (bits & mask);
+                memcpy((*robCursorPtr)->val, &value_, sizeof(value_));
+                (*robCursorPtr)->valLen = sizeof(value_);
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+                NotifyRegisterWrite();
+            }
+        }
+        else
+        {
+            dbg("Reg[%s] init: %p\n", id, bits);
+            int width = msb - lsb + 1;
+            VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+
+            bits <<= lsb;
+            uint32_t mask = ((1 << width) - 1) << lsb;
+            VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+
+            value_ = (value_ & ~mask) | (bits & mask);
+            NotifyRegisterWrite();
+        }
+    }
+
+    uint32_t RawValue() const {
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleRead();
+            }
+            else
+            {
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+
+                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                if (dep)
+                {
+                    (*robCursorPtr)->valLen = dep->valLen;
+                    return *((uint32_t*) dep->val);
+                }
+                else
+                {
+                    // valLen should already have been set since this must be init
+                    dbg("Reg[%s] RobEntry init: %p\n", id, *((uint32_t*) (*robCursorPtr)->val));
+                    return *((uint32_t*) (*robCursorPtr)->val);
+                }
+            }
+        }
+        else
+        {
+            return value_;
+        }
     }
 
     uint32_t Bits(int msb, int lsb) const {
-        return unsigned_bitextract_32(msb, lsb, value_);
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleRead();
+            }
+            else
+            {
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+
+                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                if (dep)
+                {
+                    (*robCursorPtr)->valLen = dep->valLen;
+                    return unsigned_bitextract_32(msb, lsb, *((uint32_t*) dep->val));
+                }
+                else
+                {
+                    // valLen should already have been set since this must be init
+                    dbg("Reg[%s] RobEntry init: %p\n", id, *((uint32_t*) (*robCursorPtr)->val));
+                    return unsigned_bitextract_32(msb, lsb, *((uint32_t*) (*robCursorPtr)->val));
+                }
+            }
+        }
+        else
+        {
+            return unsigned_bitextract_32(msb, lsb, value_);
+        }
     }
 
     int32_t SignedBits(int msb, int lsb) const {
-        return signed_bitextract_32(msb, lsb, value_);
+        if (robCursorPtr && (*robCursorPtr))
+        {
+            if ((*depCheckModePtr))
+            {
+                handleRead();
+            }
+            else
+            {
+                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
+
+                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                if (dep)
+                {
+                    (*robCursorPtr)->valLen = dep->valLen;
+                    return signed_bitextract_32(msb, lsb, *((uint32_t*) dep->val));
+                }
+                else
+                {
+                    // valLen should already have been set since this must be init
+                    dbg("Reg[%s] RobEntry init: %p\n", id, *((uint32_t*) (*robCursorPtr)->val));
+                    return signed_bitextract_32(msb, lsb, *((uint32_t*) (*robCursorPtr)->val));
+                }
+            }
+        }
+        else
+        {
+            return signed_bitextract_32(msb, lsb, value_);
+        }
     }
 
-    void SetBits(int msb, int lsb, uint32_t bits);
-
     // Default system register values.
-    static SimSystemRegister DefaultValueFor(SystemRegister id);
+    static SimSystemRegister DefaultValueFor(SystemRegister _id);
 
 #define DEFINE_GETTER(Name, HighBit, LowBit, Func)        \
   uint32_t Name() const { return Func(HighBit, LowBit); } \
@@ -177,7 +410,6 @@ public:
 #undef DEFINE_ZERO_BITS
 #undef DEFINE_GETTER
 
-    std::vector<Kraken::Scripture> * scriptureList;
 protected:
     // Most system registers only implement a few of the bits in the word. Other
     // bits are "read-as-zero, write-ignored". The write_ignore_mask argument
@@ -191,20 +423,17 @@ protected:
     void NotifyRegisterWrite()
     {
         written_since_last_log_ = true;
-        written_since_last_commit = true;
-        if (id != -1 && id != -2)
-            die("What sys reg? %d\n", id);
+    }
 
-        Kraken::Scripture s = Kraken::Scripture(
-                                  id == -1 ?
-                                  Kraken::DestType::NZCV :
-                                  Kraken::DestType::FPCR,
-                                  id,
-                                  sizeof(uint32_t)
-                              );
-        s.fill((uint8_t*) &value_);
-        scriptureList->push_back(s);
-    };
+    unsigned short getLen()
+    {
+        return sizeof(uint32_t) / sizeof(uint8_t);
+    }
+
+    uint8_t * getVal()
+    {
+        return (uint8_t *) &value_;
+    }
 };
 
 

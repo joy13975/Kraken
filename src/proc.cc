@@ -50,7 +50,7 @@ void signalHandler(int sig)
         currentProc->dumpData();
         currentProc->dumpStack();
         const unsigned long cc = currentProc->getCycleCount();
-        const unsigned long ic = currentProc->getLogic()->getInstrCount();
+        const unsigned long ic = currentProc->getScribe()->getInstrCount();
         err("Last cycle count: %ld\n", cc);
         err("Last instr count: %ld\n", ic);
         err("Last IPC: %.2f\n", (float) ic / cc);
@@ -71,8 +71,7 @@ Proc::Proc(const Options &_options)
       branchRecords(_options.bpMode, _options.nBPBits, absTextEnd),
       fetcher(state.pc, branchRecords, _options.pipelined, absTextEnd),
       decoder(robHead),
-      logic(robHead,
-            branchRecords,
+      logic(branchRecords,
             _options.pipelined,
             _options.simExecLatency,
             _options.nSuperscalar),
@@ -110,6 +109,7 @@ void Proc::softResetComponent()
 
     branchRecords.clearRecords();
 
+    // now turn on future update prints
     if (get_log_level() < LOG_MESSAGE)
         logic.set_trace_parameters(vixl::LOG_ALL);
 
@@ -132,7 +132,7 @@ void Proc::init()
     decoder.addExUnit(&logic);
     logic.setFetcher(&fetcher);
     logic.setDecoder(&decoder);
-    //logic.addSlave ...
+    logic.setRobCursor(robHead);
 
     // initialise reg values
     state.pc = progInfo.offset<InstrPtr >(progInfo.entry);
@@ -153,118 +153,87 @@ void Proc::run()
     ProcStage stage = options.pipelined ? PIPELINED : FETCH;
     ClkState clkState = HIGH;
 
-    #pragma omp parallel
+
+    while (!shouldHalt)
     {
-        while (!shouldHalt)
+        const ptrdiff_t pcOffset = progInfo.fromBase<ptrdiff_t>(state.pc);
+        if (clkState == HIGH)
+            checkBreakpoint(pcOffset);
+
+        prf("Clk: %s, Stage: %s\n",
+            ClkStateString[clkState], ProcStageString(stage));
+        switch (clkState)
         {
-            #pragma omp barrier
+        case HIGH:
+        {
+            dbg("======================================== Compute[%d/%d]\n",
+                cycleCount, scribe.getInstrCount());
+            dbg("PC Offsest: %p\n", pcOffset);
+            prf("Clock HIGH: %s\n", ProcStageString(stage));
+            if (stage & FETCH) fetcher.compute();
+            if (stage & DECODE) decoder.compute();
+            if (stage & EXECUTE) logic.compute();
+            if (stage & WRITEBACK) scribe.compute();
 
-            #pragma omp single nowait
-            {
-                const ptrdiff_t pcOffset = progInfo.fromBase<ptrdiff_t>(state.pc);
-                if (clkState == HIGH)
-                    checkBreakpoint(pcOffset);
+            break;
+        }
+        case FALLING:
+        {
+            break;
+        }
+        case LOW:
+        {
+            dbg("======================================== Update[%d/%d] \n",
+                cycleCount, scribe.getInstrCount());
+            if (stage & FETCH) fetcher.update();
+            if (stage & DECODE) decoder.update();
+            if (stage & EXECUTE) logic.update();
+            if (stage & WRITEBACK) scribe.update();
 
-                prf("Clk: %s, Stage: %s\n",
-                ClkStateString[clkState], ProcStageString(stage));
-                switch (clkState)
-                {
-                case HIGH:
-                {
-                    dbg("======================================== Compute[%d/%d]\n",
-                    cycleCount, logic.getInstrCount());
-                    dbg("PC Offsest: %p\n", pcOffset);
-                    prf("Clock HIGH: %s\n", ProcStageString(stage));
+            break;
+        }
+        case RISING:
+        {
+            dbg("======================================== Sync [%d/%d] \n",
+                cycleCount, scribe.getInstrCount());
+            if (stage & FETCH) fetcher.sync();
+            if (stage & DECODE) decoder.sync();
+            if (stage & EXECUTE) logic.sync();
+            if (stage & WRITEBACK) scribe.sync();
 
-                    #pragma omp task
-                    if (stage & FETCH) fetcher.compute();
+            break;
+        }
+        default:
+            die("Unused clock state: %s\n", ClkStateString[clkState]);
+        }
 
-                    #pragma omp task
-                    if (stage & DECODE) decoder.compute();
+        // below code MUST run AFTER task sync
+        if (clkState == RISING)
+        {
+            stage = nextStage(stage);
+            cycleCount++;
+            dbg("======================================== Cycle End\n\n");
+        }
 
-                    #pragma omp task
-                    if (stage & EXECUTE) logic.compute();
+        if (state.pc == 0)
+        {
+            shouldHalt = true;
+            dbg("======================================== Halt Sequence\n");
+            scribe.compute();
+            scribe.update();
+            scribe.sync();
+            dbg("======================================== Proc Halts\n");
+        }
+        else if (state.pc < absTextStart || state.pc > absTextEnd)
+        {
+            err("Invalid state.PC: [%d, %d]\n",
+                state.pc < absTextStart, state.pc > absTextStart);
+            die("PC: %p is not inside [%p, %p]\n",
+                state.pc, absTextStart, absTextEnd);
+        }
 
-                    #pragma omp task
-                    if (stage & WRITEBACK) scribe.compute();
-
-                    break;
-                }
-                case FALLING:
-                {
-                    break;
-                }
-                case LOW:
-                {
-                    dbg("======================================== Update[%d/%d] \n",
-                        cycleCount, logic.getInstrCount());
-
-                    #pragma omp task
-                    if (stage & FETCH) fetcher.update();
-
-                    #pragma omp task
-                    if (stage & DECODE) decoder.update();
-
-                    #pragma omp task
-                    if (stage & EXECUTE) logic.update();
-
-                    #pragma omp task
-                    if (stage & WRITEBACK) scribe.update();
-
-                    break;
-                }
-                case RISING:
-                {
-                    dbg("======================================== Sync [%d/%d] \n",
-                        cycleCount, logic.getInstrCount());
-
-                    #pragma omp task
-                    if (stage & FETCH) fetcher.sync();
-
-                    #pragma omp task
-                    if (stage & DECODE) decoder.sync();
-
-                    #pragma omp task
-                    if (stage & EXECUTE) logic.sync();
-
-                    #pragma omp task
-                    if (stage & WRITEBACK) scribe.sync();
-
-                    break;
-                }
-                default:
-                    die("Unused clock state: %s\n", ClkStateString[clkState]);
-                }
-
-                #pragma omp taskwait
-
-                // below code MUST run AFTER task sync
-                if (clkState == RISING)
-                {
-                    stage = nextStage(stage);
-                    cycleCount++;
-                    dbg("======================================== Cycle End\n");
-                }
-
-                if (state.pc == 0)
-                {
-                    shouldHalt = true;
-                    dbg("======================================== Proc Halts\n");
-                }
-                else if (state.pc < absTextStart || state.pc > absTextEnd)
-                {
-                    err("Invalid state.PC: [%d, %d]\n",
-                        state.pc < absTextStart, state.pc > absTextStart);
-                    die("PC: %p is not inside [%p, %p]\n",
-                        state.pc, absTextStart, absTextEnd);
-                }
-
-                clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);
-            } // omp single
-
-            #pragma omp barrier
-        } // while(!shouldHalt)
-    }
+        clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);
+    } // while(!shouldHalt)
 
     logic.PrintRegister(0);
     // logic.PrintVRegisters();
@@ -273,7 +242,7 @@ void Proc::run()
     msg("Return code as long:  %ld\n", logic.getRegisters()[0].Get<uint64_t>());
 
     msg("%ld instructions in %ld cycles; I/C = %.2f\n",
-        logic.getInstrCount(), cycleCount, (float) logic.getInstrCount() / cycleCount);
+        scribe.getInstrCount(), cycleCount, (float) scribe.getInstrCount() / cycleCount);
 
     const unsigned long bpTotal = logic.getBpCorrect() + logic.getBpWrong();
     const float bpAccuracy = (float) 100.0f * logic.getBpCorrect() / bpTotal;

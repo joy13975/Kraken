@@ -43,7 +43,7 @@ namespace Kraken
 class Fetcher;
 }
 
-#define MAX_ROB_SIZE 32
+#define MAX_BUF_SIZE 64
 
 namespace vixl
 {
