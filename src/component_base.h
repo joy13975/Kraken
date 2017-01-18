@@ -18,8 +18,8 @@ public:
     {
         masters.clear();
         slaves.clear();
-        softReset();
         hardResetComponent();
+        softReset();
     }
 
     virtual void softReset() final

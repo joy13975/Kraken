@@ -17,6 +17,10 @@ void Scribe::computeComponent()
 {
     int nToPop = 0;
     bool noSucc = false;
+
+    // need to keep one
+    RobEntry * ptr = robHead;
+
     while (robHead &&
             (robHead->status == RobStatus::CanKill ||
              robHead->status == RobStatus::Invalid))
@@ -25,8 +29,9 @@ void Scribe::computeComponent()
             robHead->decInstr.instr, RobStatusString[robHead->status]);
         nToPop++;
 
-        if (robHead->status != RobStatus::Invalid)
+        if (robHead->status == RobStatus::CanKill)
         {
+            instrCount++;
             //TODO: commit changes from robentry to proc state
         }
 
@@ -34,10 +39,9 @@ void Scribe::computeComponent()
             break;
 
         RobEntry * tmp = robHead->successor;
-        delete robHead;
+        // do not delete - not built for this yet
+        // delete robHead;
         robHead = tmp;
-
-        instrCount++;
     }
 
     dbg("   Scribe: popped %d ROB entries (now: %p:%s)\n",

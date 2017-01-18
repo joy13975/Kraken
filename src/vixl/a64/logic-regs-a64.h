@@ -55,39 +55,48 @@ public:
 
     void NotifyRegisterLogged() { written_since_last_log_ = false; }
 
-    char * id = "???";
+    const char * id = "???";
 
     Kraken::RobEntry ** robCursorPtr = 0;
     bool * depCheckModePtr = 0;
+    bool beingLogged = false;
+    Kraken::RobTicket * lastWriteTicket = 0;
 protected:
     // Helpers to aid with register tracing.
     bool written_since_last_log_ = false;
-    Kraken::RobEntry  * lastReader, * lastWriter;
 
-    virtual void NotifyRegisterWrite() = 0;
+    void NotifyRegisterWrite()
+    {
+        written_since_last_log_ = true;
+    }
 
-    void handleRead() const
+    void handleRead(const size_t size) const
     {
         if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
             return;
 
-        if (lastWriter)
+        if (lastWriteTicket && !lastWriteTicket->valid)
         {
-            wrn("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriter);
-            (*robCursorPtr)->depends.push_back(std::make_tuple((void *) this, lastWriter));
+            (*robCursorPtr)->deps.push_back(lastWriteTicket);
+            wrn("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriteTicket);
         }
         else
         {
-            wrn("[%s] RobCusor %p gets free read ticket\n", id, (*robCursorPtr));
+            wrn("[%s] RobCusor %p read can go ahead (init)\n", id, (*robCursorPtr));
         }
     }
 
-    void handleWrite()
+    void handleWrite(const size_t size)
     {
         if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
             return;
 
-        wrn("[%s] RobCusor %p gets free write ticket\n", id, (*robCursorPtr));
+        Kraken::RobTicket writeTicket((void*) this, false, size, (uint8_t*) calloc(1, size));
+        (*robCursorPtr)->tickets.push_back(writeTicket);
+        lastWriteTicket = &((*robCursorPtr)->tickets.back());
+
+        wrn("[%s] RobCusor %p write can go ahead with ticket %p\n",
+            id, (*robCursorPtr), lastWriteTicket);
     }
 };
 
@@ -101,35 +110,33 @@ public:
     // Write the specified value. The value is zero-extended if necessary.
     template <typename T>
     void Set(T new_value) {
+        VIXL_STATIC_ASSERT(sizeof(T) <= kSizeInBytes);
+
         if (robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleWrite();
+                handleWrite(sizeof(T));
             }
             else
             {
-                VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
-                if (sizeof(new_value) < kSizeInBytes) {
+                if (sizeof(T) < kSizeInBytes) {
                     // All AArch64 registers are zero-extending.
-                    memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+                    memset(value_ + sizeof(T), 0, kSizeInBytes - sizeof(T));
                 }
-                memcpy((*robCursorPtr)->val, &new_value, sizeof(new_value));
-                (*robCursorPtr)->valLen = sizeof(new_value);
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
-                memcpy(value_, &new_value, sizeof(new_value));
+                memcpy(value_, &new_value, sizeof(T));
                 NotifyRegisterWrite();
+
+                (*robCursorPtr)->fill(this, value_, sizeof(T));
             }
         }
         else
         {
-            dbg("Reg[%s] init: %p\n", id, new_value);
-            VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
-            if (sizeof(new_value) < kSizeInBytes) {
+            if (sizeof(T) < kSizeInBytes) {
                 // All AArch64 registers are zero-extending.
-                memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+                memset(value_ + sizeof(T), 0, kSizeInBytes - sizeof(T));
             }
-            memcpy(value_, &new_value, sizeof(new_value));
+            memcpy(value_, &new_value, sizeof(T));
             NotifyRegisterWrite();
         }
     }
@@ -140,31 +147,27 @@ public:
     // 0 represents the least significant bits.
     template <typename T>
     void Insert(int lane, T new_value) {
+        VIXL_ASSERT(lane >= 0);
+        VIXL_ASSERT((sizeof(T) + (lane * sizeof(T))) <=
+                    kSizeInBytes);
+
         if (robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleWrite();
+                handleWrite(sizeof(T));
             }
             else
             {
-                VIXL_ASSERT(lane >= 0);
-                VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
-                            kSizeInBytes);
-                memcpy(&((*robCursorPtr)->val[lane * sizeof(new_value)]), &new_value, sizeof(new_value));
-                (*robCursorPtr)->valLen = sizeof(new_value);
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
-                memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
+                memcpy(&value_[lane * sizeof(T)], &new_value, sizeof(T));
                 NotifyRegisterWrite();
+
+                (*robCursorPtr)->fill(this, value_, sizeof(T));
             }
         }
         else
         {
-            dbg("Reg[%s] init: %p\n", id, new_value);
-            VIXL_ASSERT(lane >= 0);
-            VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
-                        kSizeInBytes);
-            memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
+            memcpy(&value_[lane * sizeof(T)], &new_value, sizeof(T));
             NotifyRegisterWrite();
         }
     }
@@ -172,50 +175,38 @@ public:
     // Read the value as the specified type. The value is truncated if necessary.
     template <typename T>
     T Get(int lane = 0) const {
+        VIXL_ASSERT(lane >= 0);
+        VIXL_ASSERT((sizeof(T) + (lane * sizeof(T))) <= kSizeInBytes);
+
         T result;
-        if (robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleRead();
-                memset(&result, 0, sizeof(result));
+                handleRead(sizeof(T));
             }
             else
             {
-                VIXL_ASSERT(lane >= 0);
-                VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
-                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                const Kraken::RobTicket * dep = (*robCursorPtr)->findDep(this);
                 if (dep)
                 {
-                    memcpy(&result, &(dep->val[lane * sizeof(result)]), dep->valLen);
-                    (*robCursorPtr)->valLen = dep->valLen;
+                    memcpy(&result, &(dep->val[lane * sizeof(T)]), sizeof(T));
+                    return result;
                 }
                 else
                 {
-                    memcpy(&result, &((*robCursorPtr)->val[lane * sizeof(result)]), sizeof(result));
-                    // valLen should already have been set since this must be init
-                    dbg("Reg[%s] RobEntry init: %p\n", id, result);
+                    dbg("[%s] RobEntry %p reads init val %p\n",
+                        id, (*robCursorPtr), result);
                 }
-
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
             }
         }
-        else
-        {
-            VIXL_ASSERT(lane >= 0);
-            VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
-            memcpy(&result, &value_[lane * sizeof(result)], sizeof(result));
-        }
+
+        memcpy(&result, &value_[lane * sizeof(T)], sizeof(T));
         return result;
     }
 
 protected:
     uint8_t value_[kSizeInBytes];
-
-    void NotifyRegisterWrite()
-    {
-        written_since_last_log_ = true;
-    }
 
     unsigned short getLen()
     {
@@ -246,154 +237,125 @@ public:
         {
             if ((*depCheckModePtr))
             {
-                handleWrite();
+                handleWrite(sizeof(value_));
             }
             else
             {
                 value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
-                memcpy((*robCursorPtr)->val, &value_, sizeof(value_));
-                (*robCursorPtr)->valLen = sizeof(value_);
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
                 NotifyRegisterWrite();
+
+                (*robCursorPtr)->fill(this, &value_, sizeof(value_));
             }
         }
         else
         {
-            dbg("Reg[%s] init: %p\n", id, new_value);
             value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
             NotifyRegisterWrite();
         }
     }
 
     void SetBits(int msb, int lsb, uint32_t bits) {
+        int width = msb - lsb + 1;
+        VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
+
+        bits <<= lsb;
+        uint32_t mask = ((1 << width) - 1) << lsb;
+        VIXL_ASSERT((mask & write_ignore_mask_) == 0);
+
         if (robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleWrite();
+                handleWrite(sizeof(value_));
             }
             else
             {
-                int width = msb - lsb + 1;
-                VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
-
-                bits <<= lsb;
-                uint32_t mask = ((1 << width) - 1) << lsb;
-                VIXL_ASSERT((mask & write_ignore_mask_) == 0);
-
                 value_ = (value_ & ~mask) | (bits & mask);
-                memcpy((*robCursorPtr)->val, &value_, sizeof(value_));
-                (*robCursorPtr)->valLen = sizeof(value_);
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
                 NotifyRegisterWrite();
+
+                (*robCursorPtr)->fill(this, &value_, sizeof(value_));
             }
         }
         else
         {
-            dbg("Reg[%s] init: %p\n", id, bits);
-            int width = msb - lsb + 1;
-            VIXL_ASSERT(is_uintn(width, bits) || is_intn(width, bits));
-
-            bits <<= lsb;
-            uint32_t mask = ((1 << width) - 1) << lsb;
-            VIXL_ASSERT((mask & write_ignore_mask_) == 0);
-
             value_ = (value_ & ~mask) | (bits & mask);
             NotifyRegisterWrite();
         }
     }
 
     uint32_t RawValue() const {
-        if (robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleRead();
+                handleRead(sizeof(value_));
             }
             else
             {
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
-
-                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                const Kraken::RobTicket * dep = (*robCursorPtr)->findDep(this);
                 if (dep)
                 {
-                    (*robCursorPtr)->valLen = dep->valLen;
-                    return *((uint32_t*) dep->val);
+                    return *((uint32_t *) dep->val);
                 }
                 else
                 {
-                    // valLen should already have been set since this must be init
-                    dbg("Reg[%s] RobEntry init: %p\n", id, *((uint32_t*) (*robCursorPtr)->val));
-                    return *((uint32_t*) (*robCursorPtr)->val);
+                    dbg("[%s] RobEntry %p reads init val %p\n",
+                        id, (*robCursorPtr), value_);
                 }
             }
         }
-        else
-        {
-            return value_;
-        }
+
+        return value_;
     }
 
     uint32_t Bits(int msb, int lsb) const {
-        if (robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleRead();
+                handleRead(sizeof(value_));
             }
             else
             {
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
-
-                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                const Kraken::RobTicket * dep = (*robCursorPtr)->findDep(this);
                 if (dep)
                 {
-                    (*robCursorPtr)->valLen = dep->valLen;
-                    return unsigned_bitextract_32(msb, lsb, *((uint32_t*) dep->val));
+                    return unsigned_bitextract_32(msb, lsb, *((uint32_t *) dep->val));
                 }
                 else
                 {
-                    // valLen should already have been set since this must be init
-                    dbg("Reg[%s] RobEntry init: %p\n", id, *((uint32_t*) (*robCursorPtr)->val));
-                    return unsigned_bitextract_32(msb, lsb, *((uint32_t*) (*robCursorPtr)->val));
+                    dbg("[%s] RobEntry %p reads init val %p\n",
+                        id, (*robCursorPtr), unsigned_bitextract_32(msb, lsb, value_));
                 }
             }
         }
-        else
-        {
-            return unsigned_bitextract_32(msb, lsb, value_);
-        }
+
+        return unsigned_bitextract_32(msb, lsb, value_);
     }
 
     int32_t SignedBits(int msb, int lsb) const {
-        if (robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr && (*robCursorPtr))
         {
             if ((*depCheckModePtr))
             {
-                handleRead();
+                handleRead(sizeof(value_));
             }
             else
             {
-                (*robCursorPtr)->status == Kraken::RobStatus::Ready;
-
-                const Kraken::RobEntry * dep = (*robCursorPtr)->findDependency(this);
+                const Kraken::RobTicket * dep = (*robCursorPtr)->findDep(this);
                 if (dep)
                 {
-                    (*robCursorPtr)->valLen = dep->valLen;
-                    return signed_bitextract_32(msb, lsb, *((uint32_t*) dep->val));
+                    return signed_bitextract_32(msb, lsb, *((uint32_t *) dep->val));
                 }
                 else
                 {
-                    // valLen should already have been set since this must be init
-                    dbg("Reg[%s] RobEntry init: %p\n", id, *((uint32_t*) (*robCursorPtr)->val));
-                    return signed_bitextract_32(msb, lsb, *((uint32_t*) (*robCursorPtr)->val));
+                    dbg("[%s] RobEntry %p reads init val %p\n",
+                        id, (*robCursorPtr), signed_bitextract_32(msb, lsb, value_));
                 }
             }
         }
-        else
-        {
-            return signed_bitextract_32(msb, lsb, value_);
-        }
+
+        return signed_bitextract_32(msb, lsb, value_);
     }
 
     // Default system register values.
@@ -419,11 +381,6 @@ protected:
 
     uint32_t value_;
     uint32_t write_ignore_mask_;
-
-    void NotifyRegisterWrite()
-    {
-        written_since_last_log_ = true;
-    }
 
     unsigned short getLen()
     {

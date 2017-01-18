@@ -3,91 +3,76 @@ fac_rec.a64:     file format elf64-littleaarch64
 fac_rec.a64
 architecture: aarch64, flags 0x00000112:
 EXEC_P, HAS_SYMS, D_PAGED
-start address 0x00000000000001b8
+start address 0x0000000000000164
 
 Program Header:
     LOAD off    0x0000000000000000 vaddr 0x0000000000000000 paddr 0x0000000000000000 align 2**16
-         filesz 0x00000000000001f0 memsz 0x00000000000001f0 flags r-x
+         filesz 0x0000000000000194 memsz 0x0000000000000194 flags r-x
 private flags = 0:
 
 Sections:
 Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         000000c4  0000000000000100  0000000000000100  00000100  2**2
+  0 .text         00000094  0000000000000100  0000000000000100  00000100  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .rodata       00000020  00000000000001d0  00000000000001d0  000001d0  2**4
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  2 .comment      00000015  0000000000000000  0000000000000000  000001f0  2**0
+  1 .comment      00000015  0000000000000000  0000000000000000  00000194  2**0
                   CONTENTS, READONLY
 SYMBOL TABLE:
 0000000000000100 l    d  .text	0000000000000000 .text
-00000000000001d0 l    d  .rodata	0000000000000000 .rodata
 0000000000000000 l    d  .comment	0000000000000000 .comment
 0000000000000000 l    df *ABS*	0000000000000000 fac_rec.c
-00000000000101f0 g       .rodata	0000000000000000 _bss_end__
-00000000000101f0 g       .rodata	0000000000000000 __bss_start__
-00000000000101f0 g       .rodata	0000000000000000 __bss_end__
-00000000000101f0 g       .rodata	0000000000000000 __bss_start
-00000000000001b8 g     F .text	000000000000000c main
-00000000000101f0 g       .rodata	0000000000000000 __end__
-00000000000101f0 g       .rodata	0000000000000000 _edata
-00000000000101f0 g       .rodata	0000000000000000 _end
+0000000000010194 g       .text	0000000000000000 _bss_end__
+0000000000010194 g       .text	0000000000000000 __bss_start__
+0000000000010194 g       .text	0000000000000000 __bss_end__
+0000000000010194 g       .text	0000000000000000 __bss_start
+0000000000000164 g     F .text	0000000000000030 main
+0000000000010198 g       .text	0000000000000000 __end__
+0000000000010194 g       .text	0000000000000000 _edata
+0000000000010198 g       .text	0000000000000000 _end
 0000000000080000 g       .comment	0000000000000000 _stack
-00000000000101f0 g       .rodata	0000000000000000 __data_start
-0000000000000100 g     F .text	00000000000000b8 fac
+0000000000010194 g       .text	0000000000000000 __data_start
+0000000000000100 g     F .text	0000000000000064 fac
 
 
 
 Disassembly of section .text:
 
 0000000000000100 <fac>:
- 100:	7100081f 	cmp	w0, #0x2
- 104:	540000ab 	b.lt	118 <fac+0x18>
- 108:	71000409 	subs	w9, w0, #0x1
- 10c:	540000c1 	b.ne	124 <fac+0x24>
- 110:	320003e8 	orr	w8, wzr, #0x1
- 114:	14000022 	b	19c <fac+0x9c>
- 118:	320003e8 	orr	w8, wzr, #0x1
- 11c:	2a0803e0 	mov	w0, w8
- 120:	d65f03c0 	ret
- 124:	121d712a 	and	w10, w9, #0xfffffff8
- 128:	3400026a 	cbz	w10, 174 <fac+0x74>
- 12c:	4b0a0008 	sub	w8, w0, w10
- 130:	4f000420 	movi	v0.4s, #0x1
- 134:	9000000b 	adrp	x11, 0 <fac-0x100>
- 138:	3dc07562 	ldr	q2, [x11,#464]
- 13c:	9000000b 	adrp	x11, 0 <fac-0x100>
- 140:	3dc07963 	ldr	q3, [x11,#480]
- 144:	2a0a03eb 	mov	w11, w10
- 148:	4ea01c01 	mov	v1.16b, v0.16b
- 14c:	4e040c04 	dup	v4.4s, w0
- 150:	4ea28485 	add	v5.4s, v4.4s, v2.4s
- 154:	4ea38484 	add	v4.4s, v4.4s, v3.4s
- 158:	4ea09ca0 	mul	v0.4s, v5.4s, v0.4s
- 15c:	4ea19c81 	mul	v1.4s, v4.4s, v1.4s
- 160:	51002000 	sub	w0, w0, #0x8
- 164:	5100216b 	sub	w11, w11, #0x8
- 168:	35ffff2b 	cbnz	w11, 14c <fac+0x4c>
- 16c:	2a0803e0 	mov	w0, w8
- 170:	14000004 	b	180 <fac+0x80>
- 174:	2a1f03ea 	mov	w10, wzr
- 178:	4f000420 	movi	v0.4s, #0x1
- 17c:	4ea01c01 	mov	v1.16b, v0.16b
- 180:	4ea09c20 	mul	v0.4s, v1.4s, v0.4s
- 184:	6e004001 	ext	v1.16b, v0.16b, v0.16b, #8
- 188:	4ea19c00 	mul	v0.4s, v0.4s, v1.4s
- 18c:	4fa08000 	mul	v0.4s, v0.4s, v0.s[1]
- 190:	1e260008 	fmov	w8, s0
- 194:	6b0a013f 	cmp	w9, w10
- 198:	540000c0 	b.eq	1b0 <fac+0xb0>
- 19c:	1b087c08 	mul	w8, w0, w8
- 1a0:	51000409 	sub	w9, w0, #0x1
- 1a4:	2a0903e0 	mov	w0, w9
- 1a8:	7100053f 	cmp	w9, #0x1
- 1ac:	54ffff8c 	b.gt	19c <fac+0x9c>
- 1b0:	2a0803e0 	mov	w0, w8
- 1b4:	d65f03c0 	ret
+ 100:	a9bf7bfd 	stp	x29, x30, [sp,#-16]!
+ 104:	910003fd 	mov	x29, sp
+ 108:	d10043ff 	sub	sp, sp, #0x10
+ 10c:	b81fc3a0 	stur	w0, [x29,#-4]
+ 110:	b85fc3a0 	ldur	w0, [x29,#-4]
+ 114:	7100041f 	cmp	w0, #0x1
+ 118:	5400004c 	b.gt	120 <fac+0x20>
+ 11c:	1400000b 	b	148 <fac+0x48>
+ 120:	b85fc3a8 	ldur	w8, [x29,#-4]
+ 124:	b85fc3a9 	ldur	w9, [x29,#-4]
+ 128:	320003ea 	orr	w10, wzr, #0x1
+ 12c:	6b0a0120 	subs	w0, w9, w10
+ 130:	b9000be8 	str	w8, [sp,#8]
+ 134:	97fffff3 	bl	100 <fac>
+ 138:	b9400be8 	ldr	w8, [sp,#8]
+ 13c:	1b007d00 	mul	w0, w8, w0
+ 140:	b90007e0 	str	w0, [sp,#4]
+ 144:	14000004 	b	154 <fac+0x54>
+ 148:	320003e8 	orr	w8, wzr, #0x1
+ 14c:	b90007e8 	str	w8, [sp,#4]
+ 150:	14000001 	b	154 <fac+0x54>
+ 154:	b94007e0 	ldr	w0, [sp,#4]
+ 158:	910003bf 	mov	sp, x29
+ 15c:	a8c17bfd 	ldp	x29, x30, [sp],#16
+ 160:	d65f03c0 	ret
 
-00000000000001b8 <main>:
- 1b8:	52a006e0 	mov	w0, #0x370000              	// #3604480
- 1bc:	728be000 	movk	w0, #0x5f00
- 1c0:	d65f03c0 	ret
+0000000000000164 <main>:
+ 164:	a9bf7bfd 	stp	x29, x30, [sp,#-16]!
+ 168:	910003fd 	mov	x29, sp
+ 16c:	d10043ff 	sub	sp, sp, #0x10
+ 170:	52800140 	mov	w0, #0xa                   	// #10
+ 174:	52800008 	mov	w8, #0x0                   	// #0
+ 178:	b81fc3a8 	stur	w8, [x29,#-4]
+ 17c:	97ffffe1 	bl	100 <fac>
+ 180:	b9000be0 	str	w0, [sp,#8]
+ 184:	b9400be0 	ldr	w0, [sp,#8]
+ 188:	910003bf 	mov	sp, x29
+ 18c:	a8c17bfd 	ldp	x29, x30, [sp],#16
+ 190:	d65f03c0 	ret

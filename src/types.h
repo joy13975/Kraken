@@ -31,10 +31,25 @@ struct DecodedInstr
         : ac(_ac), instr(_instr) {}
 };
 
+struct RobTicket
+{
+    const void * id;
+    bool valid = false;
+    unsigned short valLen = -1;
+    uint8_t * val = 0;
+    RobTicket(const void * _id,
+              const bool _valid,
+              unsigned short _valLen,
+              uint8_t * _val) :
+        id(_id),
+        valid(_valid),
+        valLen(_valLen),
+        val(_val) {}
+};
+
 #define FOREACH_ROB_STATUS(v) \
         v(Idle) \
-        v(Waiting) \
-        v(Ready) \
+        v(DepChecked) \
         v(Done) \
         v(CanKill) \
         v(Invalid)
@@ -45,41 +60,49 @@ class RobEntry
 public:
     RobEntry()
         : decInstr((ActionCode) 0, 0),
-          status(Invalid),
-          successor(0) {}
+          status(Invalid) {}
     RobEntry(const DecodedInstr _decInstr)
         : decInstr(_decInstr) {}
     RobEntry(const RobEntry & other)
         : decInstr(other.decInstr),
           status(other.status),
           successor(other.successor) {}
-    RobEntry& operator=(const RobEntry& other)
-    {
-        if (this == &other)
-            return *this;
+    virtual ~RobEntry() {
+        delete successor;
+    };
 
-        decInstr = other.decInstr;
-        status = other.status;
-        successor = other.successor;
-        return *this;
-    }
-    virtual ~RobEntry() {};
-
-    const RobEntry * findDependency(const void * findReg) const
+    const RobTicket * findDep(const void * id) const
     {
-        for (const auto& d : depends)
-            if (std::get<0>(d) == findReg)
-                return std::get<1>(d);
+        for (int i = 0; i < deps.size(); i++)
+            if (deps[i]->id == id)
+                return deps[i];
 
         return NULL;
     }
 
+    void fill(const void * id, const void * addr, const size_t len)
+    {
+        for (auto& t : tickets)
+        {
+            if (t.id == id)
+            {
+                memcpy(t.val, addr, len);
+                t.valid = true;
+                wrn("[%p] filled ticket %p\n", this, &t);
+            }
+            else
+            {
+                wrn("[%p] did not fill ticket %p\n", this, &t);
+            }
+        }
+    }
+
     bool isReady() const {
-        if (depends.size() == 0)
+        if (deps.size() == 0)
             return true;
 
-        for (const auto& d : depends)
-            if (!std::get<1>(d)->isReady())
+        for (const auto& d : deps)
+            if (!d->valid)
                 return false;
 
         return true;
@@ -88,9 +111,10 @@ public:
     DecodedInstr decInstr;
     RobStatus status = Idle;
     RobEntry * successor = 0;
-    std::vector<std::tuple<const void *, const RobEntry *>> depends;
-    unsigned short valLen;
-    uint8_t * val = 0;
+
+    std::vector<RobTicket *> deps;
+    std::vector<RobTicket> tickets;
+    bool memAccRdy = true;
 private:
 };
 

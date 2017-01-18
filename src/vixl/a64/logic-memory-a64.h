@@ -36,10 +36,11 @@ namespace vixl
 {
 static Kraken::RobEntry     ** memRobCursorPtr;
 static bool                 * memDepCheckModePtr;
-static Kraken::RobEntry     * memLastReader;
-static Kraken::RobEntry     * memLastWriter;
-static std::vector<std::tuple<const void *, const size_t, const Kraken::RobEntry *>> memReaders;
-static std::vector<std::tuple<const void *, const size_t, const Kraken::RobEntry *>> memWriters;
+static bool                 * memDepCheckSpeculativePtr;
+
+typedef std::vector<std::tuple<const char *, const size_t>> RangeList;
+static RangeList readRanges;
+static RangeList writeRanges;
 
 // Representation of memory, with typed getters and setters for access.
 class Memory {
@@ -52,58 +53,100 @@ public:
         return (T)(bits & ~kAddressTagMask);
     }
 
-    void handleRead() const
-    {
-        if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
-            return;
+    static void clearRanges() {
+        readRanges.clear();
+        writeRanges.clear();
+    }
 
-        if (lastWriter)
+    static bool rangeConflict(RangeList & rl, const char * findAddr, const size_t findSize)
+    {
+        const char * addr = 0;
+        size_t size = 0;
+
+        int i = 0;
+        for (i = rl.size() - 1; i > -1; --i)
         {
-            wrn("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriter);
-            (*robCursorPtr)->depends.push_back(std::make_tuple((void *) this, lastWriter));
+            std::tie(addr, size) = rl[i];
+            if ((addr <= findAddr && (addr + size) > findAddr) ||
+                    (findAddr <= addr && (findAddr + findSize) > addr))
+                return true;
+        }
+
+        return false;
+    }
+
+    static void handleRead(const char * address, const size_t & size)
+    {
+        (*memRobCursorPtr)->memAccRdy = false;
+
+        // if rob is pending read from some reg, wait for that because it might be the address
+        // or if logic is in speculative mode - no mem access! can't rollback
+        if (!(*memRobCursorPtr)->isReady())
+        {
+            wrn("[MEM] Reject read attempt by %p\n", (*memRobCursorPtr));
+        }
+        else if (rangeConflict(writeRanges, address, size))
+        {
+            wrn("[MEM] RobCusor %p has read conflict at addr %p len %ld\n",
+                (*memRobCursorPtr), address, size);
         }
         else
         {
-            wrn("[%s] RobCusor %p gets free read ticket\n", id, (*robCursorPtr));
+            (*memRobCursorPtr)->memAccRdy = true;
+            wrn("[MEM] RobCusor %p read can go ahead\n", (*memRobCursorPtr));
         }
+
+        // still need to recrod range even if tried and failed
+        readRanges.push_back(std::make_tuple(address, size));
     }
 
     template <typename T, typename A>
     static T Read(A address) {
-        T value;
-        if (robCursorPtr && (*robCursorPtr))
-        {
-            if ((*depCheckModePtr))
-            {
-                handleRead();
-                memset(&result, 0, sizeof(result));
-            }
-            else
-            {
-                // should take this away for performance
-                if (!(*robCursorPtr)->isReady())
-                    die("RobEntry %p is NOT READY\n", (*robCursorPtr));
-
-            }
-        }
-        else
-        {
-
-        }
         address = AddressUntag(address);
         VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                     (sizeof(value) == 4) || (sizeof(value) == 8) ||
                     (sizeof(value) == 16));
-        memcpy(&value, reinterpret_cast<const char*>(address), sizeof(value));
+
+        T value;
+        if (memRobCursorPtr && (*memRobCursorPtr) && (*memDepCheckModePtr))
+        {
+            handleRead(reinterpret_cast<const char*>(address), sizeof(value));
+            memset(&value, 0, sizeof(value));
+        }
+        else
+        {
+            dbg("[MEM] read %p len %p\n", address, sizeof(value));
+            memcpy(&value, reinterpret_cast<const char*>(address), sizeof(value));
+        }
+
         return value;
     }
 
-    void handleWrite()
+    static void handleWrite(const char * address, const size_t & size)
     {
-        if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
-            return;
+        (*memRobCursorPtr)->memAccRdy = false;
 
-        wrn("[%s] RobCusor %p gets free write ticket\n", id, (*robCursorPtr));
+        // if rob is pending read from some reg, wait for that because it might be the address
+        // or if logic is in speculative mode - no mem access! can't rollback
+        if (!(*memRobCursorPtr)->isReady() ||
+                (*memDepCheckSpeculativePtr))
+        {
+            wrn("[MEM] Reject write attempt by %p\n", (*memRobCursorPtr));
+        }
+        else if (rangeConflict(writeRanges, address, size) ||
+                 rangeConflict(readRanges, address, size))
+        {
+            wrn("[MEM] RobCusor %p has conflict at addr %p len %ld\n",
+                (*memRobCursorPtr), address, size);
+        }
+        else
+        {
+            (*memRobCursorPtr)->memAccRdy = true;
+            wrn("[MEM] RobCusor %p can write go ahead\n", (*memRobCursorPtr));
+        }
+
+        // still need to recrod range even if tried and failed
+        writeRanges.push_back(std::make_tuple(address, size));
     }
 
     template <typename T, typename A>
@@ -112,7 +155,11 @@ public:
         VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                     (sizeof(value) == 4) || (sizeof(value) == 8) ||
                     (sizeof(value) == 16));
-        memcpy(reinterpret_cast<char*>(address), &value, sizeof(value));
+
+        if (memRobCursorPtr && (*memRobCursorPtr) && (*memDepCheckModePtr))
+            handleWrite(reinterpret_cast<const char*>(address), sizeof(value));
+        else
+            memcpy(reinterpret_cast<char*>(address), &value, sizeof(value));
     }
 };
 

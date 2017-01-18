@@ -267,6 +267,7 @@ public:
                    FILE* stream = stdout);
     ~Logic();
 
+    void clearDepVars();
     bool hasRStationSpace() { return rsVacancy > 0; }
     void receiveIssue(Kraken::RobEntry * rbe);
     void setFetcher(Kraken::Fetcher * _fetcher)
@@ -278,9 +279,6 @@ public:
     {
         decoder = _decoder;
         connect((ComponentBase*) _decoder, this);
-    }
-    void setRobCursor(Kraken::RobEntry * cursor) {
-        robCursor = cursor;
     }
 
     unsigned long getBpCorrect() const { return bpCorrectCount; }
@@ -297,10 +295,85 @@ public:
     static const Instruction* kEndOfSimAddress;
 
     // Simulation helpers.
-    const Instruction* pc() const { return pc_; }
+    Kraken::RobTicket * lastPcWriteTicket = 0;
+
+    void handlePcRead(const size_t size) const
+    {
+        if (depCheckRobCursor->status == Kraken::RobStatus::DepChecked)
+            return;
+
+        if (lastPcWriteTicket)
+        {
+            depCheckRobCursor->deps.push_back(lastPcWriteTicket);
+            wrn("[PC] RobCusor %p read-depends on %p\n", depCheckRobCursor, lastPcWriteTicket);
+        }
+        else
+        {
+            wrn("[PC] RobCusor %p read can go ahead (init)\n", depCheckRobCursor);
+        }
+    }
+
+    const Instruction* pc() const {
+        if (depCheckRobCursor)
+        {
+            if (depCheckMode)
+            {
+                handlePcRead(sizeof(pc_));
+            }
+            else
+            {
+                const Kraken::RobTicket * dep = depCheckRobCursor->findDep(this);
+                if (dep)
+                {
+                    return *((const Instruction **) dep->val);
+                }
+                else
+                {
+                    dbg("[PC] RobEntry %p reads init val %p\n",
+                        depCheckRobCursor, pc_);
+                }
+            }
+        }
+
+        return pc_;
+    }
+
+    void handlePcWrite(const size_t size)
+    {
+        if (depCheckRobCursor->status == Kraken::RobStatus::DepChecked)
+            return;
+
+        Kraken::RobTicket writeTicket((void*) this, false, size, (uint8_t*) calloc(1, size));
+        depCheckRobCursor->tickets.push_back(writeTicket);
+        lastPcWriteTicket = &(depCheckRobCursor->tickets.back());
+
+        wrn("[PC] RobCusor %p write can go ahead with ticket %p\n",
+            depCheckRobCursor, lastPcWriteTicket);
+    }
+
     void set_pc(const Instruction* new_pc) {
-        pc_ = Memory::AddressUntag(new_pc);
-        pc_modified_ = true;
+        if (trace_parameters() & LOG_REGS)
+            raw("#    pc: %p\n", Memory::AddressUntag(new_pc));
+
+        if (depCheckRobCursor)
+        {
+            if (depCheckMode)
+            {
+                handlePcWrite(sizeof(pc_));
+            }
+            else
+            {
+                pc_ = Memory::AddressUntag(new_pc);
+                pc_modified_ = true;
+
+                depCheckRobCursor->fill(this, &pc_, sizeof(pc_));
+            }
+        }
+        else
+        {
+            pc_ = Memory::AddressUntag(new_pc);
+            pc_modified_ = true;
+        }
     }
 
     const Instruction* get_pc() {
@@ -2156,10 +2229,15 @@ private:
     Kraken::Fetcher * fetcher;
     Decoder * decoder;
 
-    const Instruction * newPc, * cachedNewPc;
-    bool hasExecuted, cachedHasExecuted, depCheckMode;
-    Kraken::RobEntry * robCursor, * cachedRobCursor, * depCheckRobCursor;
-    Memory mem;
+    const Instruction * newPc = 0;
+    const Instruction * cachedNewPc = 0;
+    bool hasExecuted = false;
+    bool cachedHasExecuted = false;
+    Kraken::RobEntry * executedBranch = 0;
+    Kraken::RobEntry * cachedExecutedBranch = 0;
+    bool depCheckMode = false;
+    bool depCheckSpeculative = false;
+    Kraken::RobEntry * depCheckRobCursor = 0;
 
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
 

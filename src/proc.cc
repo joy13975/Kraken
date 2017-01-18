@@ -132,7 +132,6 @@ void Proc::init()
     decoder.addExUnit(&logic);
     logic.setFetcher(&fetcher);
     logic.setDecoder(&decoder);
-    logic.setRobCursor(robHead);
 
     // initialise reg values
     state.pc = progInfo.offset<InstrPtr >(progInfo.entry);

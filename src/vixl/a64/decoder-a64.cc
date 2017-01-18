@@ -33,6 +33,7 @@ namespace vixl {
 
 void Decoder::hardResetComponent()
 {
+    dbg("   Decoder: hard reset\n");
     fetcher = 0;
     exUnits.clear();
 }
@@ -96,8 +97,6 @@ void Decoder::computeComponent()
 
                 dbg("   Decoder: issue instr %p ac %d (%d left in buffer)\n",
                     di.instr, di.ac, buffer.size());
-                // wrn("   Decoder: Rd=%d, Rn=%d, Rm=%d, Ra=%d, Rt=%d, Rt2=%d\n",
-                //     di.instr->Rd(), di.instr->Rn(), di.instr->Rm(), di.instr->Ra(), di.instr->Rt(), di.instr->Rt2());
 
                 issued = true;
             }

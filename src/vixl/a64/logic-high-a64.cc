@@ -44,6 +44,7 @@ void Logic::receiveIssue(Kraken::RobEntry * rbe)
 
 void Logic::hardResetComponent()
 {
+    dbg("   Logic: hard reset\n");
     ResetState();
 
     branchRecords.clearRecords();
@@ -56,13 +57,14 @@ void Logic::hardResetComponent()
 
 void Logic::softResetComponent()
 {
+    dbg("   Logic: soft reset\n");
     newPc = 0;
     cachedNewPc = 0;
     hasExecuted = false;
     cachedHasExecuted = false;
+    executedBranch = 0;
+    cachedExecutedBranch = 0;
 
-    robCursor = 0;
-    cachedRobCursor = 0;
     depCheckRobCursor = 0;
     depCheckMode = false;
     tmpRStation.clear();
@@ -70,28 +72,63 @@ void Logic::softResetComponent()
 
     memRobCursorPtr = &depCheckRobCursor;
     memDepCheckModePtr = &depCheckMode;
+    memDepCheckSpeculativePtr = &depCheckSpeculative;
+    Memory::clearRanges();
 
     for (unsigned i = 0; i < kNumberOfRegisters; i++)
     {
-        asprintf(&(registers_[i].id), "R%d", i);
+        asprintf((char**) & (registers_[i].id), "R%d", i);
         registers_[i].robCursorPtr = &depCheckRobCursor;
         registers_[i].depCheckModePtr = &depCheckMode;
+        registers_[i].beingLogged = false;
+        registers_[i].lastWriteTicket = 0;
     }
 
 
     for (unsigned i = 0; i < kNumberOfVRegisters; i++)
     {
-        asprintf(&(vregisters_[i].id), "V%d", i);
+        asprintf((char**) & (vregisters_[i].id), "V%d", i);
         vregisters_[i].robCursorPtr = &depCheckRobCursor;
         vregisters_[i].depCheckModePtr = &depCheckMode;
+        vregisters_[i].beingLogged = false;
+        vregisters_[i].lastWriteTicket = 0;
     }
 
-    asprintf(&(nzcv().id), "NZCV");
+    asprintf((char**) & (nzcv_.id), "NZCV");
     nzcv().robCursorPtr = &depCheckRobCursor;
     nzcv().depCheckModePtr = &depCheckMode;
-    asprintf(&(fpcr().id), "FPCR");
+    nzcv().beingLogged = false;
+    nzcv().lastWriteTicket = 0;
+    asprintf((char**) & (fpcr_.id), "FPCR");
     fpcr().robCursorPtr = &depCheckRobCursor;
     fpcr().depCheckModePtr = &depCheckMode;
+    fpcr().beingLogged = false;
+    fpcr().lastWriteTicket = 0;
+}
+
+void Logic::clearDepVars()
+{
+    depCheckRobCursor = 0;
+    depCheckMode = false;
+    Memory::clearRanges();
+
+    for (unsigned i = 0; i < kNumberOfRegisters; i++)
+    {
+        registers_[i].beingLogged = false;
+        registers_[i].lastWriteTicket = 0;
+    }
+
+
+    for (unsigned i = 0; i < kNumberOfVRegisters; i++)
+    {
+        vregisters_[i].beingLogged = false;
+        vregisters_[i].lastWriteTicket = 0;
+    }
+
+    nzcv().beingLogged = false;
+    nzcv().lastWriteTicket = 0;
+    fpcr().beingLogged = false;
+    fpcr().lastWriteTicket = 0;
 }
 
 void Logic::computeComponent()
@@ -108,29 +145,17 @@ void Logic::updateComponent()
 
     if (readyCountdown == 0)
     {
-        // this robCursor needs to be the un-updated one
-        RobEntry * robPtr = cachedRobCursor;
-
-        if (!robPtr)
+        RobEntry * rc = rStation.front();
+        while (rc &&
+                (rc->status == RobStatus::Done ||
+                 rc->status == RobStatus::Invalid))
         {
-            err("   Logic: ROB cursor pointing to null!\n");
-            return;
-        }
+            rc->status = RobStatus::CanKill;
+            rStation.pop_front();
 
-        // set status
-        prf("Pre-kill-loop: robPtr %p status=%s, succ=%p\n", robPtr, RobStatusString[robPtr->status],
-            robPtr->successor);
-        while (robPtr->status == RobStatus::Done ||
-                robPtr->status == RobStatus::CanKill ||
-                robPtr->status == RobStatus::Invalid)
-        {
-            robPtr->status = RobStatus::CanKill;
-            prf("Killed %p status=%s, succ=%p\n", robPtr, RobStatusString[robPtr->status],
-                robPtr->successor);
-            if (!(robPtr->successor))
+            if (rStation.size() == 0)
                 break;
-            else
-                robPtr = robPtr->successor;
+            rc = rStation.front();
         }
     }
 
@@ -138,8 +163,7 @@ void Logic::updateComponent()
     dbg("   Logic: cachedHasExecuted <- %d\n", cachedHasExecuted);
     cachedNewPc = newPc;
     dbg("   Logic: cachedNewPc <- %p\n", cachedNewPc);
-    cachedRobCursor = robCursor;
-    dbg("   Logic: cachedRobCursor <- %p\n", cachedRobCursor);
+    cachedExecutedBranch = executedBranch;
     rStation.insert(rStation.end(), tmpRStation.begin(), tmpRStation.end());
     rsVacancy = MAX_RSTATION_SIZE - rStation.size();
     tmpRStation.clear();
@@ -151,9 +175,7 @@ void Logic::syncComponent()
 {
     using namespace Kraken;
 
-    if (cachedHasExecuted &&
-            cachedRobCursor &&
-            Decoder::isBranch(cachedRobCursor->decInstr.instr))
+    if (cachedHasExecuted && cachedExecutedBranch)
     {
         if (newPc == 0)
         {
@@ -162,11 +184,11 @@ void Logic::syncComponent()
             return;
         }
 
-        branchRecords.updateRecord(cachedRobCursor->decInstr.instr,
+        branchRecords.updateRecord(cachedExecutedBranch->decInstr.instr,
                                    cachedNewPc);
 
-        if (cachedRobCursor->successor &&
-                cachedNewPc == cachedRobCursor->successor->decInstr.instr)
+        if (cachedExecutedBranch->successor &&
+                cachedNewPc == cachedExecutedBranch->successor->decInstr.instr)
         {
             bpCorrectCount++;
             dbg("   Logic: Branch prediction was correct: %d\n",
@@ -180,16 +202,16 @@ void Logic::syncComponent()
             decoder->softReset();
             tmpRStation.clear();
             rStation.clear();
+            clearDepVars();
 
-            // invalidate all RobEntries when reset
-            RobEntry * robPtr = cachedRobCursor;
+
+            RobEntry * robPtr = cachedExecutedBranch;
             while (robPtr->successor)
             {
                 robPtr->status = RobStatus::Invalid;
                 robPtr = robPtr->successor;
             }
             robPtr->status = RobStatus::Invalid;
-            robCursor = robPtr;
 
             fetcher->setPc(cachedNewPc);
             dbg("   Logic: BP wrong: %d; Fetcher pc <- cachedNewPc: %p\n",
@@ -212,18 +234,25 @@ void Logic::Execute()
         return;
     }
 
-    // dependency check
-    depCheckMode = true;
-    for (ReservationStation::iterator i = rStation.begin(); i != rStation.end(); ++i)
-    {
-        depCheckRobCursor = *i;
-        const DecodedInstr & decInstr = depCheckRobCursor->decInstr;
-
-        wrn("Hi %d - %s\n", i - rStation.begin(), ActionCodeString[decInstr.ac]);
-
-        // pretend to execute instruction - just to get dependencies set up
-        switch (decInstr.ac)
+    bool experiement = false;
+    executedBranch = 0;
+    if (experiement) {
+        wrn("----------------------Experimental DepCheck--------------\n");
+        // dependency check
+        depCheckMode = true;
+        depCheckSpeculative = false;
+        Memory::clearRanges();
+        for (ReservationStation::iterator i = rStation.begin(); i != rStation.end(); ++i)
         {
+            depCheckRobCursor = *i;
+            if (depCheckRobCursor->status >= RobStatus::Done)
+                continue;
+
+            const DecodedInstr & decInstr = depCheckRobCursor->decInstr;
+
+            // pretend to execute instruction - just to get dependencies set up
+            switch (decInstr.ac)
+            {
 #define GEN_AC_CASES(ITEM) \
             case AC_##ITEM: \
                 if (get_log_level() < LOG_MESSAGE) \
@@ -231,45 +260,129 @@ void Logic::Execute()
                 Visit##ITEM(decInstr.instr); \
                 break;
 
-            VISITOR_LIST(GEN_AC_CASES);
+                VISITOR_LIST(GEN_AC_CASES);
 #undef GEN_AC_CASES
-        default:
-            die("Unknown ActionCode: %d (%s)\n",
-                decInstr.ac, ActionCodeString[decInstr.ac]);
+            default:
+                die("Unknown ActionCode: %d (%s)\n",
+                    decInstr.ac, ActionCodeString[decInstr.ac]);
+            }
+
+            if (Decoder::isBranch(decInstr.instr))
+            {
+                wrn("DepCheck: entered speculative mode\n");
+                depCheckSpeculative = true;
+            }
+
+            wrn("DepCheck[%d] - %s: %s\n", i - rStation.begin(), ActionCodeString[decInstr.ac],
+                RobStatusString[depCheckRobCursor->status]);
+
+            depCheckRobCursor->status = RobStatus::DepChecked;
+        }
+        depCheckRobCursor = 0;
+        depCheckMode = false;
+        depCheckSpeculative = false;
+
+        wrn("----------------------Experimental Execute--------------\n");
+        int ssCount = 0, brCount = 0;
+        for (ReservationStation::iterator i = rStation.begin(); i != rStation.end(); ++i)
+        {
+            RobEntry * rc = *i;
+            depCheckRobCursor = rc;
+            if (rc->status == RobStatus::DepChecked &&
+                    rc->memAccRdy &&
+                    rc->isReady())
+            {
+                const DecodedInstr & decInstr = rc->decInstr;
+
+                const bool isBranch = Decoder::isBranch(decInstr.instr);
+                if (isBranch)
+                {
+                    brCount++;
+                    if (brCount > 1)
+                        break;
+                    else
+                        executedBranch = rc;
+                }
+
+                // logic assumes pc has been incremented
+                const Instruction *const oldPC = decInstr.instr->NextInstruction();
+                pc_ = oldPC;
+
+                prf("   Logic[%d]: execute tag: %s\n",
+                    ssCount, ActionCodeString[decInstr.ac]);
+
+
+                // execute instruction
+                switch (decInstr.ac)
+                {
+#define GEN_AC_CASES(ITEM) \
+            case AC_##ITEM: \
+                if (get_log_level() < LOG_MESSAGE) \
+                    print_disasm_->Visit##ITEM(decInstr.instr); \
+                Visit##ITEM(decInstr.instr); \
+                break;
+
+                    VISITOR_LIST(GEN_AC_CASES);
+#undef GEN_AC_CASES
+                default:
+                    die("Unknown ActionCode: %d (%s)\n",
+                        decInstr.ac, ActionCodeString[decInstr.ac]);
+                }
+
+                prf("RobEntry made done: %p\n", rc);
+                rc->status = RobStatus::Done;
+
+                if (get_log_level() < LOG_MESSAGE)
+                    LogAllWrittenRegisters();
+
+                // simulate execution latency
+                readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
+
+                hasExecuted = true;
+                dbg("   Logic[%d]: hasExecuted <- %d\n", ssCount, hasExecuted);
+                newPc = pc_;
+                dbg("   Logic[%d]: newPc <- %p\n", ssCount, newPc);
+
+                if (++ssCount >= nSuperscalar)
+                    break;
+
+                if (isBranch)
+                    break;
+            }
         }
 
-        depCheckRobCursor->status = Kraken::RobStatus::DepChecked;
+        depCheckRobCursor = 0;
     }
-    depCheckRobCursor = 0;
-    depCheckMode = false;
-
-    int ssCount = 0;
-    while (rStation.size() > 0 && ssCount < nSuperscalar)
+    else
     {
-        RobEntry * rc = rStation.front();
-        const DecodedInstr & decInstr = rc->decInstr;
-
-        bool isBranch = Decoder::isBranch(decInstr.instr);
-        if (ssCount > 0 && isBranch)
-            break;
-
-        robCursor = rc;
-
-
-        // remove ptr from RS but still lives in roBuffer
-        rStation.pop_front();
-
-        // logic assumes pc has been incremented
-        const Instruction *const oldPC = decInstr.instr->NextInstruction();
-        set_pc(oldPC);
-
-        prf("   Logic[%d]: execute tag: %s\n",
-            ssCount, ActionCodeString[decInstr.ac]);
-
-
-        // execute instruction
-        switch (decInstr.ac)
+        int ssCount = 0, brCount = 0;
+        for (ReservationStation::iterator i = rStation.begin(); i != rStation.end(); ++i)
         {
+            RobEntry * rc = *i;
+
+            const DecodedInstr & decInstr = rc->decInstr;
+
+            const bool isBranch = Decoder::isBranch(decInstr.instr);
+            if (isBranch)
+            {
+                brCount++;
+                if (brCount > 1)
+                    break;
+                else
+                    executedBranch = rc;
+            }
+
+            // logic assumes pc has been incremented
+            const Instruction *const oldPC = decInstr.instr->NextInstruction();
+            set_pc(oldPC);
+
+            prf("   Logic[%d]: execute tag: %s\n",
+                ssCount, ActionCodeString[decInstr.ac]);
+
+
+            // execute instruction
+            switch (decInstr.ac)
+            {
 #define GEN_AC_CASES(ITEM) \
             case AC_##ITEM: \
                 if (get_log_level() < LOG_MESSAGE) \
@@ -277,31 +390,33 @@ void Logic::Execute()
                 Visit##ITEM(decInstr.instr); \
                 break;
 
-            VISITOR_LIST(GEN_AC_CASES);
+                VISITOR_LIST(GEN_AC_CASES);
 #undef GEN_AC_CASES
-        default:
-            die("Unknown ActionCode: %d (%s)\n",
-                decInstr.ac, ActionCodeString[decInstr.ac]);
+            default:
+                die("Unknown ActionCode: %d (%s)\n",
+                    decInstr.ac, ActionCodeString[decInstr.ac]);
+            }
+
+            prf("RobEntry made done: %p\n", rc);
+            rc->status = RobStatus::Done;
+
+            if (get_log_level() < LOG_MESSAGE)
+                LogAllWrittenRegisters();
+
+            // simulate execution latency
+            readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
+
+            hasExecuted = true;
+            dbg("   Logic[%d]: hasExecuted <- %d\n", ssCount, hasExecuted);
+            newPc = pc_;
+            dbg("   Logic[%d]: newPc <- %p\n", ssCount, newPc);
+
+            if (++ssCount >= nSuperscalar)
+                break;
+
+            if (isBranch)
+                break;
         }
-
-        prf("RobEntry made done: %p\n", robCursor);
-        robCursor->status = RobStatus::Done;
-
-        if (get_log_level() < LOG_MESSAGE)
-            LogAllWrittenRegisters();
-
-        // simulate execution latency
-        readyCountdown = simExecLatency ? ActionCodeCycles[decInstr.ac] : 1;
-
-        hasExecuted = true;
-        dbg("   Logic[%d]: hasExecuted <- %d\n", ssCount, hasExecuted);
-        newPc = pc_;
-        dbg("   Logic[%d]: newPc <- %p\n", ssCount, newPc);
-        dbg("   Logic[%d]: robCursor <- %p\n", ssCount, robCursor + ssCount);
-        ssCount++;
-
-        if (isBranch)
-            break;
     }
 }
 
@@ -4315,6 +4430,7 @@ void Logic::PrintSystemRegister(SystemRegister id) {
     {
         switch (id) {
         case NZCV:
+            nzcv().beingLogged = true;
             fprintf(stream_,
                     "# %sNZCV: %sN:%d Z:%d C:%d V:%d%s\n",
                     clr_flag_name,
@@ -4324,8 +4440,10 @@ void Logic::PrintSystemRegister(SystemRegister id) {
                     nzcv().C(),
                     nzcv().V(),
                     clr_normal);
+            nzcv().beingLogged = false;
             break;
         case FPCR: {
+            fpcr().beingLogged = true;
             static const char* rmode[] = {"0b00 (Round to Nearest)",
                                           "0b01 (Round towards Plus Infinity)",
                                           "0b10 (Round towards Minus Infinity)",
@@ -4341,6 +4459,7 @@ void Logic::PrintSystemRegister(SystemRegister id) {
                     fpcr().FZ(),
                     rmode[fpcr().RMode()],
                     clr_normal);
+            fpcr().beingLogged = false;
             break;
         }
         default:
@@ -4439,6 +4558,7 @@ void Logic::PrintVWrite(uintptr_t address,
 void Logic::PrintRegisterRawHelper(unsigned code,
                                    Reg31Mode r31mode,
                                    int size_in_bytes) {
+    registers_[code].beingLogged = true;
     // The template for all supported sizes.
     //   "# x{code}: 0xffeeddccbbaa9988"
     //   "# w{code}:         0xbbaa9988"
@@ -4488,10 +4608,12 @@ void Logic::PrintRegisterRawHelper(unsigned code,
             chars,
             bits,
             clr_normal);
+    registers_[code].beingLogged = false;
 }
 
 
 void Logic::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
+    vregisters_[code].beingLogged = true;
     // The template for vector types:
     //   "# v{code}: 0xffeeddccbbaa99887766554433221100".
     // An example with bytes=4 and lsb=8:
@@ -4525,6 +4647,7 @@ void Logic::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
         byte--;
     }
     fprintf(stream_, "%s", clr_normal);
+    vregisters_[code].beingLogged = false;
 }
 
 

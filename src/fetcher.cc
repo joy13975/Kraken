@@ -35,6 +35,7 @@ InstrPtr Fetcher::consumeInstr() {
 
 void Fetcher::hardResetComponent()
 {
+    dbg("   Fetcher: hard reset\n");
     pc = 0;
     decoder = 0;
     logic = 0;
