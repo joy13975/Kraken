@@ -1,0 +1,755 @@
+[35m[MSG] [0mLog level set to LOG_DEBUG
+[35m[MSG] [0mUsing input binary "bmo0/br.a64"
+[34m[DBG] [0mProgram section: p_type(0001) p_flags(0005) p_offset(00000000) p_vaddr(00000000) p_paddr(00000000) p_filesz(0452) p_memsz(0452) p_align(65536)
+[34m[DBG] [0mLoaded 452 bytes at 0x7f8bd7801000; base: 0x7f8bd7801000
+[33m[WRN] [0mCould not find section named ".data" (sections=6)
+[33m[WRN] [0mCould not find section named ".data" (sections=6)
+[35m[MSG] [0mPipelining is enabled
+[34m[DBG] [0m   Fetcher: hard reset
+[34m[DBG] [0m   Fetcher: soft reset
+[34m[DBG] [0m   Decoder: hard reset
+[34m[DBG] [0m   Decoder: soft reset
+[34m[DBG] [0m   Logic: hard reset
+[34m[DBG] [0m   Logic: soft reset
+[35m[MSG] [0mPC at entry (main): 0xff17af002100 (global: 0x7f8bd7801100)
+[35m[MSG] [0m.text scope:  0x7f8bd7801100 - 0x7f8bd78011c4
+[35m[MSG] [0mMemory scope: 0x7f8bd7801000 - 0x7f8bd78011c4
+[35m[MSG] [0mStack scope:  0x7f8bd7801600 - 0x7f8bd7809800
+[34m[DBG] [0m======================================== Compute[0/0]
+[34m[DBG] [0mPC Offsest: 0x100
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd7801100 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd7801100, fetched 33, tmpBuffer: 33
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd66002e0:NoSucc)
+[34m[DBG] [0m======================================== Update[0/0] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [0/0] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[1/0]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 33:33)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd7801100, fetched 0, tmpBuffer: 33
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801100 (32 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801104 (31 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801108 (30 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780110c (29 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801110 (28 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801114 (27 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801118 (26 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780111c (25 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801120 (24 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801124 (23 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801128 (22 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780112c (21 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801130 (20 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801134 (19 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801138 (18 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780114c (17 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801150 (16 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801154 (15 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801158 (14 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780115c (13 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801170 (12 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801174 (11 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801178 (10 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780117c (9 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801180 (8 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801194 (7 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801198 (6 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780119c (5 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a0 (4 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a4 (3 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011b8 (2 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011bc (1 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011c0 (0 left in buffer)
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: front instr = 0x7f8bd7801100
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd66002e0:NoSucc)
+[34m[DBG] [0m======================================== Update[1/0] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [1/0] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[2/0]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801100 ac 1 (32 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801104 ac 3 (31 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801108 ac 3 (30 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780110c ac 2 (29 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801110 ac 2 (28 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801114 ac 22 (27 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801118 ac 22 (26 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780111c ac 22 (25 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801120 ac 22 (24 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801124 ac 22 (23 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801128 ac 22 (22 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780112c ac 22 (21 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801130 ac 25 (20 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801134 ac 10 (19 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801138 ac 6 (18 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780114c ac 22 (17 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801150 ac 22 (16 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801154 ac 25 (15 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801158 ac 10 (14 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780115c ac 6 (13 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801170 ac 22 (12 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801174 ac 22 (11 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801178 ac 25 (10 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780117c ac 10 (9 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801180 ac 6 (8 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801194 ac 22 (7 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801198 ac 22 (6 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780119c ac 25 (5 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a0 ac 10 (4 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a4 ac 6 (3 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011b8 ac 22 (2 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011bc ac 1 (1 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011c0 ac 7 (0 left in buffer)
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd6605fd0:Idle)
+[34m[DBG] [0m======================================== Update[2/0] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 33, rsVacancy <- 31
+[34m[DBG] [0m======================================== Sync [2/0] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[3/0]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801104
+0x00007f8bd7801100  d10083ff		sub sp, sp, #0x20 (32)
+#    sp: 0x00007f8bd78096e0
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd7801104
+#    pc: 0x7f8bd7801108
+0x00007f8bd7801104  52800008		mov w8, #0x0
+#    x8: 0x0000000000000000
+[34m[DBG] [0m   Logic[1]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[1]: newPc <- 0x7f8bd7801108
+#    pc: 0x7f8bd780110c
+0x00007f8bd7801108  528000a9		mov w9, #0x5
+#    x9: 0x0000000000000005
+[34m[DBG] [0m   Logic[2]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[2]: newPc <- 0x7f8bd780110c
+#    pc: 0x7f8bd7801110
+0x00007f8bd780110c  320007ea		orr w10, wzr, #0x3
+#   x10: 0x0000000000000003
+[34m[DBG] [0m   Logic[3]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[3]: newPc <- 0x7f8bd7801110
+#    pc: 0x7f8bd7801114
+0x00007f8bd7801110  320003eb		orr w11, wzr, #0x1
+#   x11: 0x0000000000000001
+[34m[DBG] [0m   Logic[4]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[4]: newPc <- 0x7f8bd7801114
+#    pc: 0x7f8bd7801118
+0x00007f8bd7801114  b9001fe8		str w8, [sp, #28]
+#    w8:         0x00000000 -> 0x00007f8bd78096fc
+[34m[DBG] [0m   Logic[5]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[5]: newPc <- 0x7f8bd7801118
+#    pc: 0x7f8bd780111c
+0x00007f8bd7801118  b9001beb		str w11, [sp, #24]
+#   w11:         0x00000001 -> 0x00007f8bd78096f8
+[34m[DBG] [0m   Logic[6]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[6]: newPc <- 0x7f8bd780111c
+#    pc: 0x7f8bd7801120
+0x00007f8bd780111c  b90017ea		str w10, [sp, #20]
+#   w10:         0x00000003 -> 0x00007f8bd78096f4
+[34m[DBG] [0m   Logic[7]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[7]: newPc <- 0x7f8bd7801120
+#    pc: 0x7f8bd7801124
+0x00007f8bd7801120  b90013e9		str w9, [sp, #16]
+#    w9:         0x00000005 -> 0x00007f8bd78096f0
+[34m[DBG] [0m   Logic[8]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[8]: newPc <- 0x7f8bd7801124
+#    pc: 0x7f8bd7801128
+0x00007f8bd7801124  b9000fe8		str w8, [sp, #12]
+#    w8:         0x00000000 -> 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[9]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[9]: newPc <- 0x7f8bd7801128
+#    pc: 0x7f8bd780112c
+0x00007f8bd7801128  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000000 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[10]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[10]: newPc <- 0x7f8bd780112c
+#    pc: 0x7f8bd7801130
+0x00007f8bd780112c  b9401be9		ldr w9, [sp, #24]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096f8 len 0x4
+#    x9: 0x0000000000000001 <- 0x00007f8bd78096f8
+[34m[DBG] [0m   Logic[11]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[11]: newPc <- 0x7f8bd7801130
+#    pc: 0x7f8bd7801134
+0x00007f8bd7801130  6b09011f		cmp w8, w9
+# NZCV: N:1 Z:0 C:0 V:0
+[34m[DBG] [0m   Logic[12]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[12]: newPc <- 0x7f8bd7801134
+[34m[DBG] [0m   Scribe: popped 0 ROB entries (now: 0x7f8bd6605fd0:Done)
+[34m[DBG] [0m======================================== Update[3/0] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd7801134
+[34m[DBG] [0m   Logic: rStation size <- 20, rsVacancy <- 44
+[34m[DBG] [0m======================================== Sync [3/0] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[4/0]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801138
+0x00007f8bd7801134  5400004b		b.lt #+0x8 (addr 0x7f8bd780113c)
+#    pc: 0x7f8bd780113c
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd780113c
+[34m[DBG] [0m   Scribe: popped 13 ROB entries (now: 0x7f8bd6606970:Done)
+[34m[DBG] [0m======================================== Update[4/13] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd780113c
+[34m[DBG] [0m   Logic: rStation size <- 19, rsVacancy <- 45
+[34m[DBG] [0m======================================== Sync [4/13] 
+[34m[DBG] [0mAdding new BP record for 0x7f8bd7801134 -> 0x7f8bd780113c
+[34m[DBG] [0m   Fetcher: soft reset
+[34m[DBG] [0m   Decoder: soft reset
+[34m[DBG] [0m   Logic: BP wrong: 1; Fetcher pc <- cachedNewPc: 0x7f8bd780113c
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[5/13]
+[34m[DBG] [0mPC Offsest: 0x13c
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd780113c (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd780113c, fetched 22, tmpBuffer: 22
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 20 ROB entries (now: 0x7f8bd6607a10:NoSucc)
+[34m[DBG] [0m======================================== Update[5/13] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [5/13] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[6/13]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 22:22)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd780113c, fetched 0, tmpBuffer: 22
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780113c (21 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801140 (20 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801144 (19 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801148 (18 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780114c (17 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801150 (16 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801154 (15 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801158 (14 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780115c (13 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801170 (12 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801174 (11 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801178 (10 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780117c (9 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801180 (8 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801194 (7 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801198 (6 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780119c (5 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a0 (4 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a4 (3 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011b8 (2 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011bc (1 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011c0 (0 left in buffer)
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: front instr = 0x7f8bd780113c
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd6607a10:NoSucc)
+[34m[DBG] [0m======================================== Update[6/13] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [6/13] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[7/13]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780113c ac 22 (21 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801140 ac 2 (20 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801144 ac 25 (19 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801148 ac 22 (18 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780114c ac 22 (17 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801150 ac 22 (16 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801154 ac 25 (15 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801158 ac 10 (14 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780115c ac 6 (13 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801170 ac 22 (12 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801174 ac 22 (11 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801178 ac 25 (10 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780117c ac 10 (9 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801180 ac 6 (8 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801194 ac 22 (7 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801198 ac 22 (6 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780119c ac 25 (5 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a0 ac 10 (4 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a4 ac 6 (3 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011b8 ac 22 (2 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011bc ac 1 (1 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011c0 ac 7 (0 left in buffer)
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd660c460:Idle)
+[34m[DBG] [0m======================================== Update[7/13] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 22, rsVacancy <- 42
+[34m[DBG] [0m======================================== Sync [7/13] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[8/13]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801140
+0x00007f8bd780113c  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000000 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd7801140
+#    pc: 0x7f8bd7801144
+0x00007f8bd7801140  320003e9		orr w9, wzr, #0x1
+#    x9: 0x0000000000000001
+[34m[DBG] [0m   Logic[1]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[1]: newPc <- 0x7f8bd7801144
+#    pc: 0x7f8bd7801148
+0x00007f8bd7801144  0b090108		add w8, w8, w9
+#    x8: 0x0000000000000001
+[34m[DBG] [0m   Logic[2]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[2]: newPc <- 0x7f8bd7801148
+#    pc: 0x7f8bd780114c
+0x00007f8bd7801148  b9000fe8		str w8, [sp, #12]
+#    w8:         0x00000001 -> 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[3]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[3]: newPc <- 0x7f8bd780114c
+#    pc: 0x7f8bd7801150
+0x00007f8bd780114c  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000001 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[4]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[4]: newPc <- 0x7f8bd7801150
+#    pc: 0x7f8bd7801154
+0x00007f8bd7801150  b9401be9		ldr w9, [sp, #24]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096f8 len 0x4
+#    x9: 0x0000000000000001 <- 0x00007f8bd78096f8
+[34m[DBG] [0m   Logic[5]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[5]: newPc <- 0x7f8bd7801154
+#    pc: 0x7f8bd7801158
+0x00007f8bd7801154  6b09011f		cmp w8, w9
+# NZCV: N:0 Z:1 C:1 V:0
+[34m[DBG] [0m   Logic[6]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[6]: newPc <- 0x7f8bd7801158
+[34m[DBG] [0m   Scribe: popped 0 ROB entries (now: 0x7f8bd660c460:Done)
+[34m[DBG] [0m======================================== Update[8/13] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd7801158
+[34m[DBG] [0m   Logic: rStation size <- 15, rsVacancy <- 49
+[34m[DBG] [0m======================================== Sync [8/13] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[9/13]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd780115c
+0x00007f8bd7801158  5400004c		b.gt #+0x8 (addr 0x7f8bd7801160)
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd780115c
+[34m[DBG] [0m   Scribe: popped 7 ROB entries (now: 0x7f8bd660ca80:Done)
+[34m[DBG] [0m======================================== Update[9/20] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd780115c
+[34m[DBG] [0m   Logic: rStation size <- 14, rsVacancy <- 50
+[34m[DBG] [0m======================================== Sync [9/20] 
+[34m[DBG] [0mAdding new BP record for 0x7f8bd7801158 -> 0x7f8bd780115c
+[34m[DBG] [0m   Logic: Branch prediction was correct: 1
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[10/20]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801160
+0x00007f8bd780115c  14000005		b #+0x14 (addr 0x7f8bd7801170)
+#    pc: 0x7f8bd7801170
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd7801170
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd660cb60:Done)
+[34m[DBG] [0m======================================== Update[10/21] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd7801170
+[34m[DBG] [0m   Logic: rStation size <- 13, rsVacancy <- 51
+[34m[DBG] [0m======================================== Sync [10/21] 
+[34m[DBG] [0mAdding new BP record for 0x7f8bd780115c -> 0x7f8bd7801170
+[34m[DBG] [0m   Logic: Branch prediction was correct: 2
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[11/21]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801174
+0x00007f8bd7801170  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000001 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd7801174
+#    pc: 0x7f8bd7801178
+0x00007f8bd7801174  b94017e9		ldr w9, [sp, #20]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096f4 len 0x4
+#    x9: 0x0000000000000003 <- 0x00007f8bd78096f4
+[34m[DBG] [0m   Logic[1]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[1]: newPc <- 0x7f8bd7801178
+#    pc: 0x7f8bd780117c
+0x00007f8bd7801178  6b09011f		cmp w8, w9
+# NZCV: N:1 Z:0 C:0 V:0
+[34m[DBG] [0m   Logic[2]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[2]: newPc <- 0x7f8bd780117c
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd660cc40:Done)
+[34m[DBG] [0m======================================== Update[11/22] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd780117c
+[34m[DBG] [0m   Logic: rStation size <- 10, rsVacancy <- 54
+[34m[DBG] [0m======================================== Sync [11/22] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[12/22]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801180
+0x00007f8bd780117c  54000041		b.ne #+0x8 (addr 0x7f8bd7801184)
+#    pc: 0x7f8bd7801184
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd7801184
+[34m[DBG] [0m   Scribe: popped 3 ROB entries (now: 0x7f8bd660cee0:Done)
+[34m[DBG] [0m======================================== Update[12/25] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd7801184
+[34m[DBG] [0m   Logic: rStation size <- 9, rsVacancy <- 55
+[34m[DBG] [0m======================================== Sync [12/25] 
+[34m[DBG] [0mAdding new BP record for 0x7f8bd780117c -> 0x7f8bd7801184
+[34m[DBG] [0m   Fetcher: soft reset
+[34m[DBG] [0m   Decoder: soft reset
+[34m[DBG] [0m   Logic: BP wrong: 2; Fetcher pc <- cachedNewPc: 0x7f8bd7801184
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[13/25]
+[34m[DBG] [0mPC Offsest: 0x184
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd7801184 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd7801184, fetched 12, tmpBuffer: 12
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 10 ROB entries (now: 0x7f8bd660d6c0:NoSucc)
+[34m[DBG] [0m======================================== Update[13/25] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [13/25] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[14/25]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 12:12)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd7801184, fetched 0, tmpBuffer: 12
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801184 (11 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801188 (10 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780118c (9 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801190 (8 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801194 (7 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd7801198 (6 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd780119c (5 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a0 (4 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a4 (3 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011b8 (2 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011bc (1 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011c0 (0 left in buffer)
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: front instr = 0x7f8bd7801184
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd660d6c0:NoSucc)
+[34m[DBG] [0m======================================== Update[14/25] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [14/25] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[15/25]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801184 ac 22 (11 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801188 ac 2 (10 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780118c ac 25 (9 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801190 ac 22 (8 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801194 ac 22 (7 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd7801198 ac 22 (6 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd780119c ac 25 (5 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a0 ac 10 (4 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a4 ac 6 (3 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011b8 ac 22 (2 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011bc ac 1 (1 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011c0 ac 7 (0 left in buffer)
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd66138c0:Idle)
+[34m[DBG] [0m======================================== Update[15/25] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 12, rsVacancy <- 52
+[34m[DBG] [0m======================================== Sync [15/25] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[16/25]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd7801188
+0x00007f8bd7801184  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000001 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd7801188
+#    pc: 0x7f8bd780118c
+0x00007f8bd7801188  320003e9		orr w9, wzr, #0x1
+#    x9: 0x0000000000000001
+[34m[DBG] [0m   Logic[1]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[1]: newPc <- 0x7f8bd780118c
+#    pc: 0x7f8bd7801190
+0x00007f8bd780118c  0b090108		add w8, w8, w9
+#    x8: 0x0000000000000002
+[34m[DBG] [0m   Logic[2]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[2]: newPc <- 0x7f8bd7801190
+#    pc: 0x7f8bd7801194
+0x00007f8bd7801190  b9000fe8		str w8, [sp, #12]
+#    w8:         0x00000002 -> 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[3]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[3]: newPc <- 0x7f8bd7801194
+#    pc: 0x7f8bd7801198
+0x00007f8bd7801194  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000002 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[4]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[4]: newPc <- 0x7f8bd7801198
+#    pc: 0x7f8bd780119c
+0x00007f8bd7801198  b94013e9		ldr w9, [sp, #16]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096f0 len 0x4
+#    x9: 0x0000000000000005 <- 0x00007f8bd78096f0
+[34m[DBG] [0m   Logic[5]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[5]: newPc <- 0x7f8bd780119c
+#    pc: 0x7f8bd78011a0
+0x00007f8bd780119c  6b09011f		cmp w8, w9
+# NZCV: N:1 Z:0 C:0 V:0
+[34m[DBG] [0m   Logic[6]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[6]: newPc <- 0x7f8bd78011a0
+[34m[DBG] [0m   Scribe: popped 0 ROB entries (now: 0x7f8bd66138c0:Done)
+[34m[DBG] [0m======================================== Update[16/25] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd78011a0
+[34m[DBG] [0m   Logic: rStation size <- 5, rsVacancy <- 59
+[34m[DBG] [0m======================================== Sync [16/25] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[17/25]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd78011a4
+0x00007f8bd78011a0  5400004b		b.lt #+0x8 (addr 0x7f8bd78011a8)
+#    pc: 0x7f8bd78011a8
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd78011a8
+[34m[DBG] [0m   Scribe: popped 7 ROB entries (now: 0x7f8bd6613ee0:Done)
+[34m[DBG] [0m======================================== Update[17/32] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd78011a8
+[34m[DBG] [0m   Logic: rStation size <- 4, rsVacancy <- 60
+[34m[DBG] [0m======================================== Sync [17/32] 
+[34m[DBG] [0mAdding new BP record for 0x7f8bd78011a0 -> 0x7f8bd78011a8
+[34m[DBG] [0m   Fetcher: soft reset
+[34m[DBG] [0m   Decoder: soft reset
+[34m[DBG] [0m   Logic: BP wrong: 3; Fetcher pc <- cachedNewPc: 0x7f8bd78011a8
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[18/32]
+[34m[DBG] [0mPC Offsest: 0x1a8
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011a8 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd78011a8, fetched 7, tmpBuffer: 7
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 5 ROB entries (now: 0x7f8bd6614260:NoSucc)
+[34m[DBG] [0m======================================== Update[18/32] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [18/32] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[19/32]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 7:7)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: front instr = 0x7f8bd78011a8, fetched 0, tmpBuffer: 7
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011a8 (6 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011ac (5 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011b0 (4 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011b4 (3 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011b8 (2 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011bc (1 left in buffer)
+[34m[DBG] [0m   Fetcher: consume instr 0x7f8bd78011c0 (0 left in buffer)
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: front instr = 0x7f8bd78011a8
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd6614260:NoSucc)
+[34m[DBG] [0m======================================== Update[19/32] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [19/32] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[20/32]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011a8 ac 22 (6 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011ac ac 2 (5 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011b0 ac 25 (4 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011b4 ac 22 (3 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011b8 ac 22 (2 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011bc ac 1 (1 left in buffer)
+[34m[DBG] [0m   Decoder: issue instr 0x7f8bd78011c0 ac 7 (0 left in buffer)
+[34m[DBG] [0m   Logic: rStation empty
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd660f4a0:Idle)
+[34m[DBG] [0m======================================== Update[20/32] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 0
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 7, rsVacancy <- 57
+[34m[DBG] [0m======================================== Sync [20/32] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[21/32]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd78011ac
+0x00007f8bd78011a8  b9400fe8		ldr w8, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x8: 0x0000000000000002 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x7f8bd78011ac
+#    pc: 0x7f8bd78011b0
+0x00007f8bd78011ac  320003e9		orr w9, wzr, #0x1
+#    x9: 0x0000000000000001
+[34m[DBG] [0m   Logic[1]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[1]: newPc <- 0x7f8bd78011b0
+#    pc: 0x7f8bd78011b4
+0x00007f8bd78011b0  0b090108		add w8, w8, w9
+#    x8: 0x0000000000000003
+[34m[DBG] [0m   Logic[2]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[2]: newPc <- 0x7f8bd78011b4
+#    pc: 0x7f8bd78011b8
+0x00007f8bd78011b4  b9000fe8		str w8, [sp, #12]
+#    w8:         0x00000003 -> 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[3]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[3]: newPc <- 0x7f8bd78011b8
+#    pc: 0x7f8bd78011bc
+0x00007f8bd78011b8  b9400fe0		ldr w0, [sp, #12]
+[34m[DBG] [0m[MEM] read 0x7f8bd78096ec len 0x4
+#    x0: 0x0000000000000003 <- 0x00007f8bd78096ec
+[34m[DBG] [0m   Logic[4]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[4]: newPc <- 0x7f8bd78011bc
+#    pc: 0x7f8bd78011c0
+0x00007f8bd78011bc  910083ff		add sp, sp, #0x20 (32)
+#    sp: 0x00007f8bd7809700
+[34m[DBG] [0m   Logic[5]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[5]: newPc <- 0x7f8bd78011c0
+[34m[DBG] [0m   Scribe: popped 0 ROB entries (now: 0x7f8bd660f4a0:Done)
+[34m[DBG] [0m======================================== Update[21/32] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x7f8bd78011c0
+[34m[DBG] [0m   Logic: rStation size <- 1, rsVacancy <- 63
+[34m[DBG] [0m======================================== Sync [21/32] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Compute[22/32]
+[34m[DBG] [0mPC Offsest: 0x1c4
+[34m[DBG] [0m   Fetcher: at: 0x7f8bd78011c4 (buffer 0:0)
+[34m[DBG] [0m   Fetcher: PC reached end of .text: 0x7f8bd78011c4/0x7f8bd78011c4
+[34m[DBG] [0m   Fetcher: nothing in buffer for consumption
+[34m[DBG] [0m   Decoder: fetcher buffer is empty
+#    pc: 0x7f8bd78011c4
+0x00007f8bd78011c0  d65f03c0		ret
+#    pc: 0x0
+[34m[DBG] [0m   Logic[0]: hasExecuted <- 1
+[34m[DBG] [0m   Logic[0]: newPc <- 0x0
+[34m[DBG] [0m   Scribe: popped 6 ROB entries (now: 0x7f8bd6618360:Done)
+[34m[DBG] [0m======================================== Update[22/38] 
+[34m[DBG] [0m   Logic: cachedHasExecuted <- 1
+[34m[DBG] [0m   Logic: cachedNewPc <- 0x0
+[34m[DBG] [0m   Logic: rStation size <- 0, rsVacancy <- 64
+[34m[DBG] [0m======================================== Sync [22/38] 
+[34m[DBG] [0m======================================== Cycle End
+
+[34m[DBG] [0m======================================== Halt Sequence
+[34m[DBG] [0m   Scribe: popped 1 ROB entries (now: 0x7f8bd6618360:NoSucc)
+[34m[DBG] [0m======================================== Proc Halts
+#    x0: 0x0000000000000003
+[35m[MSG] [0mReturn code as long:  3
+[35m[MSG] [0m39 instructions in 23 cycles; I/C = 1.70
+[35m[MSG] [0mBranch Prediction Accuracy: 40.00% (2/5)
