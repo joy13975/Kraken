@@ -10,6 +10,7 @@ void Scribe::hardResetComponent()
 
 void Scribe::softResetComponent()
 {
+    dbg("   Scribe: soft reset\n");
     instrCount = 0;
 }
 
@@ -18,33 +19,40 @@ void Scribe::computeComponent()
     int nToPop = 0;
     bool noSucc = false;
 
-    // need to keep one
-    RobEntry * ptr = robHead;
-
-    while (robHead &&
-            (robHead->status == RobStatus::CanKill ||
-             robHead->status == RobStatus::Invalid))
+    while (robHead)
     {
-        prf("   Scribe: shifting robHead %p for status %s\n",
-            robHead->decInstr.instr, RobStatusString[robHead->status]);
-        nToPop++;
+        prf("   Scribe: robHead %p, status %s, succ %p\n",
+            robHead,
+            RobStatusString[robHead->status],
+            robHead->successor);
 
-        if (robHead->status == RobStatus::CanKill)
+        // this includes CanKill and Invalid
+        if (robHead->status >= RobStatus::CanKill)
         {
-            instrCount++;
-            //TODO: commit changes from robentry to proc state
+            if (robHead->status == RobStatus::CanKill)
+            {
+                if (robHead->speculator)
+                    break;
+                instrCount++;
+            }
+
+            nToPop++;
+
+            if ((noSucc = (!robHead->successor)))
+                break;
+
+            RobEntry * tmp = robHead->successor;
+            // do not delete - not built for this yet
+            // delete robHead;
+            robHead = tmp;
         }
-
-        if ((noSucc = !robHead->successor))
+        else
+        {
             break;
-
-        RobEntry * tmp = robHead->successor;
-        // do not delete - not built for this yet
-        // delete robHead;
-        robHead = tmp;
+        }
     }
 
-    dbg("   Scribe: popped %d ROB entries (now: %p:%s)\n",
+    dbg("   Scribe: retired %d ROB entries (now: %p:%s)\n",
         nToPop, robHead, noSucc ? "NoSucc" : RobStatusString[robHead->status]);
 }
 

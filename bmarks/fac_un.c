@@ -8,22 +8,33 @@ int main(void)
     int res = 1, i = N;
 
 #define itr() \
-    if (i != 1) \
     { \
         res *= i; \
         i--; \
     }
 
+#define itr10() \
+    itr(); \
+    itr(); \
+    itr(); \
+    itr(); \
+    itr(); \
+    itr(); \
+    itr(); \
+    itr(); \
+    itr(); \
     itr();
-    itr();
-    itr();
-    itr();
-    itr();
-    itr();
-    itr();
-    itr();
-    itr();
-    itr();
+
+    itr10();
+    itr10();
+    itr10();
+    itr10();
+    itr10();
+    itr10();
+    itr10();
+    itr10();
+    itr10();
+    itr10();
 
 #ifdef _DEBUG
     printf("fac(%d) = %d\n", N, res);

@@ -41,7 +41,7 @@ main:                                   // @main
 	stp	x29, x30, [sp, #-16]!
 	mov	 x29, sp
 	sub	sp, sp, #16             // =16
-	movz	w0, #0xa
+	movz	w0, #0x64
 	movz	w8, #0
 	stur	w8, [x29, #-4]
 	bl	fac

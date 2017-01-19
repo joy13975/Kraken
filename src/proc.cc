@@ -74,7 +74,8 @@ Proc::Proc(const Options &_options)
       logic(branchRecords,
             _options.pipelined,
             _options.simExecLatency,
-            _options.nSuperscalar),
+            _options.nSuperscalar,
+            _options.experimental),
       scribe(robHead, state)
 {
     currentProc = this;
@@ -216,12 +217,20 @@ void Proc::run()
 
         if (state.pc == 0)
         {
-            shouldHalt = true;
-            dbg("======================================== Halt Sequence\n");
-            scribe.compute();
-            scribe.update();
-            scribe.sync();
-            dbg("======================================== Proc Halts\n");
+            // if all done then logic should be empty
+            if (logic.rStationEmpty())
+            {
+                shouldHalt = true;
+                dbg("======================================== Halt Sequence\n");
+                scribe.compute();
+                scribe.update();
+                scribe.sync();
+                dbg("======================================== Proc Halts\n");
+            }
+            else
+            {
+                dbg("======Halting Sequence has began=======\n");
+            }
         }
         else if (state.pc < absTextStart || state.pc > absTextEnd)
         {
@@ -234,10 +243,25 @@ void Proc::run()
         clkState = static_cast<ClkState>((clkState + 1) % _NCLKSTATES_);
     } // while(!shouldHalt)
 
+    // while (robHead)
+    // {
+    //     if (robHead->tickets.size() > 0 && robHead->tickets[0]->id == &logic.getRegisters()[0])
+    //     {
+    //         msg("RobEntry %p Ticket %p has w0: %p\n",
+    //             robHead, &(robHead->tickets[0]), *((uint32_t *) robHead->tickets[0]->val));
+    //         memcpy(logic.getRegisters()[0].value_, robHead->tickets[0]->val, robHead->tickets[0]->valLen);
+    //     }
+
+    //     robHead = robHead->successor;
+    //     if (robHead->isEnd)
+    //         break;
+    // }
+
     logic.PrintRegister(0);
     // logic.PrintVRegisters();
     // logic.PrintSystemRegisters();
 
+    logic.getRegisters()[0].beingLogged = true;
     msg("Return code as long:  %ld\n", logic.getRegisters()[0].Get<uint64_t>());
 
     msg("%ld instructions in %ld cycles; I/C = %.2f\n",

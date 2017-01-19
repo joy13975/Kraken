@@ -75,14 +75,14 @@ protected:
         if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
             return;
 
-        if (lastWriteTicket && !lastWriteTicket->valid)
+        if (lastWriteTicket)
         {
             (*robCursorPtr)->deps.push_back(lastWriteTicket);
-            wrn("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriteTicket);
+            prf("[%s] RobCusor %p read-depends on %p\n", id, (*robCursorPtr), lastWriteTicket);
         }
         else
         {
-            wrn("[%s] RobCusor %p read can go ahead (init)\n", id, (*robCursorPtr));
+            prf("[%s] RobCusor %p read can go ahead (init)\n", id, (*robCursorPtr));
         }
     }
 
@@ -91,12 +91,15 @@ protected:
         if ((*robCursorPtr)->status == Kraken::RobStatus::DepChecked)
             return;
 
-        Kraken::RobTicket writeTicket((void*) this, false, size, (uint8_t*) calloc(1, size));
-        (*robCursorPtr)->tickets.push_back(writeTicket);
-        lastWriteTicket = &((*robCursorPtr)->tickets.back());
+        lastWriteTicket = new Kraken::RobTicket((void*) this,
+                                                false,
+                                                (*robCursorPtr)->speculator,
+                                                size,
+                                                (uint8_t*) calloc(1, size));
+        (*robCursorPtr)->tickets.push_back(lastWriteTicket);
 
-        wrn("[%s] RobCusor %p write can go ahead with ticket %p\n",
-            id, (*robCursorPtr), lastWriteTicket);
+        prf("[%s] RobCusor %p write can go ahead with ticket %p id %p\n",
+            id, (*robCursorPtr), lastWriteTicket, lastWriteTicket->id);
     }
 };
 
@@ -112,25 +115,7 @@ public:
     void Set(T new_value) {
         VIXL_STATIC_ASSERT(sizeof(T) <= kSizeInBytes);
 
-        if (robCursorPtr && (*robCursorPtr))
-        {
-            if ((*depCheckModePtr))
-            {
-                handleWrite(sizeof(T));
-            }
-            else
-            {
-                if (sizeof(T) < kSizeInBytes) {
-                    // All AArch64 registers are zero-extending.
-                    memset(value_ + sizeof(T), 0, kSizeInBytes - sizeof(T));
-                }
-                memcpy(value_, &new_value, sizeof(T));
-                NotifyRegisterWrite();
-
-                (*robCursorPtr)->fill(this, value_, sizeof(T));
-            }
-        }
-        else
+        if (!robCursorPtr)
         {
             if (sizeof(T) < kSizeInBytes) {
                 // All AArch64 registers are zero-extending.
@@ -138,6 +123,40 @@ public:
             }
             memcpy(value_, &new_value, sizeof(T));
             NotifyRegisterWrite();
+
+            return;
+        }
+
+        if ((*depCheckModePtr))
+        {
+            handleWrite(sizeof(T));
+        }
+        else
+        {
+            if ((*robCursorPtr)->speculator)
+            {
+                prf("[%s] Speculative write by %p val=%p\n",
+                    id, (*robCursorPtr), new_value);
+            }
+            else
+            {
+                if (sizeof(T) < kSizeInBytes) {
+                    // All AArch64 registers are zero-extending.
+                    memset(value_ + sizeof(T), 0, kSizeInBytes - sizeof(T));
+                }
+                if (!(*robCursorPtr)->pastRet)
+                {
+                    memcpy(value_, &new_value, sizeof(T));
+                    NotifyRegisterWrite();
+                    prf("[%s] Normal write: %p\n", id, new_value);
+                }
+                else
+                {
+                    prf("[%s] Past ret no write: %p\n", id, new_value);
+                }
+            }
+
+            (*robCursorPtr)->fill(this, value_, sizeof(T));
         }
     }
 
@@ -151,24 +170,39 @@ public:
         VIXL_ASSERT((sizeof(T) + (lane * sizeof(T))) <=
                     kSizeInBytes);
 
-        if (robCursorPtr && (*robCursorPtr))
-        {
-            if ((*depCheckModePtr))
-            {
-                handleWrite(sizeof(T));
-            }
-            else
-            {
-                memcpy(&value_[lane * sizeof(T)], &new_value, sizeof(T));
-                NotifyRegisterWrite();
-
-                (*robCursorPtr)->fill(this, value_, sizeof(T));
-            }
-        }
-        else
+        if (!robCursorPtr)
         {
             memcpy(&value_[lane * sizeof(T)], &new_value, sizeof(T));
             NotifyRegisterWrite();
+            return;
+        }
+
+        if ((*depCheckModePtr))
+        {
+            handleWrite(sizeof(T));
+        }
+        else
+        {
+            if ((*robCursorPtr)->speculator)
+            {
+                prf("[%s] Speculative write by %p val=%p\n",
+                    id, (*robCursorPtr), new_value);
+            }
+            else
+            {
+                if (!(*robCursorPtr)->pastRet)
+                {
+                    memcpy(&value_[lane * sizeof(T)], &new_value, sizeof(T));
+                    NotifyRegisterWrite();
+                    prf("[%s] Normal write: %p\n", id, new_value);
+                }
+                else
+                {
+                    prf("[%s] Past ret no write: %p\n", id, new_value);
+                }
+            }
+
+            (*robCursorPtr)->fill(this, value_, sizeof(T));
         }
     }
 
@@ -179,7 +213,7 @@ public:
         VIXL_ASSERT((sizeof(T) + (lane * sizeof(T))) <= kSizeInBytes);
 
         T result;
-        if (!beingLogged && robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr)
         {
             if ((*depCheckModePtr))
             {
@@ -191,11 +225,13 @@ public:
                 if (dep)
                 {
                     memcpy(&result, &(dep->val[lane * sizeof(T)]), sizeof(T));
+                    prf("[%s] Dep read: %p from RobTicket %p (uint32=%p)\n",
+                        id, result, dep, *((uint32_t*) dep->val));
                     return result;
                 }
                 else
                 {
-                    dbg("[%s] RobEntry %p reads init val %p\n",
+                    prf("[%s] RobEntry %p reads init val %p\n",
                         id, (*robCursorPtr), result);
                 }
             }
@@ -205,8 +241,8 @@ public:
         return result;
     }
 
-protected:
     uint8_t value_[kSizeInBytes];
+protected:
 
     unsigned short getLen()
     {
@@ -233,24 +269,31 @@ public:
         : value_(0), write_ignore_mask_(0xffffffff) { }
 
     void SetRawValue(uint32_t new_value) {
-        if (robCursorPtr && (*robCursorPtr))
+        if (!robCursorPtr)
         {
-            if ((*depCheckModePtr))
+            value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
+            NotifyRegisterWrite();
+            return;
+        }
+
+        if ((*depCheckModePtr))
+        {
+            handleWrite(sizeof(value_));
+        }
+        else
+        {
+            if ((*robCursorPtr)->speculator)
             {
-                handleWrite(sizeof(value_));
+                prf("[%s] Speculative write by %p val=%p\n",
+                    id, (*robCursorPtr), new_value);
             }
             else
             {
                 value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
                 NotifyRegisterWrite();
-
-                (*robCursorPtr)->fill(this, &value_, sizeof(value_));
             }
-        }
-        else
-        {
-            value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
-            NotifyRegisterWrite();
+
+            (*robCursorPtr)->fill(this, &value_, sizeof(value_));
         }
     }
 
@@ -262,29 +305,36 @@ public:
         uint32_t mask = ((1 << width) - 1) << lsb;
         VIXL_ASSERT((mask & write_ignore_mask_) == 0);
 
-        if (robCursorPtr && (*robCursorPtr))
+        if (!robCursorPtr)
         {
-            if ((*depCheckModePtr))
+            value_ = (value_ & ~mask) | (bits & mask);
+            NotifyRegisterWrite();
+            return;
+        }
+
+        if ((*depCheckModePtr))
+        {
+            handleWrite(sizeof(value_));
+        }
+        else
+        {
+            if ((*robCursorPtr)->speculator)
             {
-                handleWrite(sizeof(value_));
+                prf("[%s] Speculative write by %p val=%p\n",
+                    id, (*robCursorPtr), bits);
             }
             else
             {
                 value_ = (value_ & ~mask) | (bits & mask);
                 NotifyRegisterWrite();
-
-                (*robCursorPtr)->fill(this, &value_, sizeof(value_));
             }
-        }
-        else
-        {
-            value_ = (value_ & ~mask) | (bits & mask);
-            NotifyRegisterWrite();
+
+            (*robCursorPtr)->fill(this, &value_, sizeof(value_));
         }
     }
 
     uint32_t RawValue() const {
-        if (!beingLogged && robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr)
         {
             if ((*depCheckModePtr))
             {
@@ -299,7 +349,7 @@ public:
                 }
                 else
                 {
-                    dbg("[%s] RobEntry %p reads init val %p\n",
+                    prf("[%s] RobEntry %p reads init val %p\n",
                         id, (*robCursorPtr), value_);
                 }
             }
@@ -309,7 +359,7 @@ public:
     }
 
     uint32_t Bits(int msb, int lsb) const {
-        if (!beingLogged && robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr)
         {
             if ((*depCheckModePtr))
             {
@@ -324,7 +374,7 @@ public:
                 }
                 else
                 {
-                    dbg("[%s] RobEntry %p reads init val %p\n",
+                    prf("[%s] RobEntry %p reads init val %p\n",
                         id, (*robCursorPtr), unsigned_bitextract_32(msb, lsb, value_));
                 }
             }
@@ -334,7 +384,7 @@ public:
     }
 
     int32_t SignedBits(int msb, int lsb) const {
-        if (!beingLogged && robCursorPtr && (*robCursorPtr))
+        if (!beingLogged && robCursorPtr)
         {
             if ((*depCheckModePtr))
             {
@@ -349,7 +399,7 @@ public:
                 }
                 else
                 {
-                    dbg("[%s] RobEntry %p reads init val %p\n",
+                    prf("[%s] RobEntry %p reads init val %p\n",
                         id, (*robCursorPtr), signed_bitextract_32(msb, lsb, value_));
                 }
             }

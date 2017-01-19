@@ -68,7 +68,7 @@ void Decoder::computeComponent()
         }
         else
         {
-            dbg("   Decoder: fetcher buffer is empty\n");
+            dbg("   Decoder: fetcher buffer is dry\n");
             break;
         }
     }
@@ -95,7 +95,7 @@ void Decoder::computeComponent()
 
                 buffer.pop_front();
 
-                dbg("   Decoder: issue instr %p ac %d (%d left in buffer)\n",
+                prf("   Decoder: issue instr %p ac %d (%d left in buffer)\n",
                     di.instr, di.ac, buffer.size());
 
                 issued = true;
@@ -104,7 +104,7 @@ void Decoder::computeComponent()
 
         if (!issued)
         {
-            dbg("   Reservation Stations are full\n");
+            dbg("   Decoder: Logic reservation station is full\n");
             break;
         }
     }

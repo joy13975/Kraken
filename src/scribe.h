@@ -30,7 +30,7 @@ protected:
     virtual void updateComponent();
 
 private:
-    RobEntry * robHead, * cachedRobHead;
+    RobEntry * robHead;
     State & state;
     unsigned long instrCount = 0;
 };

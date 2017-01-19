@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cd bmarks; make clean; nmake all; cd ..

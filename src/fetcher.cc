@@ -21,14 +21,13 @@ InstrPtr Fetcher::consumeInstr() {
     {
         InstrPtr ip = buffer.front();
         buffer.pop_front();
-        tmpBuffer.pop_front();
-        dbg("   Fetcher: consume instr %p (%d left in buffer)\n",
+        prf("   Fetcher: consume instr %p (%d left in buffer)\n",
             ip, buffer.size());
         return ip;
     }
     else
     {
-        dbg("   Fetcher: nothing in buffer for consumption\n");
+        prf("   Fetcher: nothing in buffer to be consumed\n");
         return 0;
     }
 }
@@ -57,7 +56,13 @@ void Fetcher::computeComponent()
 
 void Fetcher::updateComponent()
 {
-    buffer = tmpBuffer;
+    if (tmpBuffer.size())
+    {
+        buffer.insert(buffer.end(), tmpBuffer.begin(), tmpBuffer.end());
+        tmpBuffer.clear();
+    }
+
+    dbg("   Fetcher: buffer.size = %d\n", buffer.size());
 }
 
 void Fetcher::syncComponent()
@@ -70,7 +75,7 @@ void Fetcher::fetch()
         pc, tmpBuffer.size(), buffer.size());
 
     int n = 0;
-    while (tmpBuffer.size() < MAX_BUF_SIZE)
+    while (tmpBuffer.size() + buffer.size() < MAX_BUF_SIZE)
     {
         if (pc < absTextEnd)
         {

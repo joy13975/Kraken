@@ -36,7 +36,6 @@ namespace vixl
 {
 static Kraken::RobEntry     ** memRobCursorPtr;
 static bool                 * memDepCheckModePtr;
-static bool                 * memDepCheckSpeculativePtr;
 
 typedef std::vector<std::tuple<const char *, const size_t>> RangeList;
 static RangeList readRanges;
@@ -83,17 +82,17 @@ public:
         // or if logic is in speculative mode - no mem access! can't rollback
         if (!(*memRobCursorPtr)->isReady())
         {
-            wrn("[MEM] Reject read attempt by %p\n", (*memRobCursorPtr));
+            prf("[MEM] Reject read attempt by %p\n", (*memRobCursorPtr));
         }
         else if (rangeConflict(writeRanges, address, size))
         {
-            wrn("[MEM] RobCusor %p has read conflict at addr %p len %ld\n",
+            prf("[MEM] RobCusor %p has read conflict at addr %p len %ld\n",
                 (*memRobCursorPtr), address, size);
         }
         else
         {
             (*memRobCursorPtr)->memAccRdy = true;
-            wrn("[MEM] RobCusor %p read can go ahead\n", (*memRobCursorPtr));
+            prf("[MEM] RobCusor %p read can go ahead\n", (*memRobCursorPtr));
         }
 
         // still need to recrod range even if tried and failed
@@ -108,15 +107,16 @@ public:
                     (sizeof(value) == 16));
 
         T value;
-        if (memRobCursorPtr && (*memRobCursorPtr) && (*memDepCheckModePtr))
+        if (memDepCheckModePtr && *memDepCheckModePtr)
         {
             handleRead(reinterpret_cast<const char*>(address), sizeof(value));
             memset(&value, 0, sizeof(value));
         }
         else
         {
-            dbg("[MEM] read %p len %p\n", address, sizeof(value));
             memcpy(&value, reinterpret_cast<const char*>(address), sizeof(value));
+            dbg("[MEM] read addr=%p len=%p val=%p\n",
+                address, sizeof(value), value);
         }
 
         return value;
@@ -128,21 +128,20 @@ public:
 
         // if rob is pending read from some reg, wait for that because it might be the address
         // or if logic is in speculative mode - no mem access! can't rollback
-        if (!(*memRobCursorPtr)->isReady() ||
-                (*memDepCheckSpeculativePtr))
+        if (!(*memRobCursorPtr)->isReady() || (*memRobCursorPtr)->speculator)
         {
-            wrn("[MEM] Reject write attempt by %p\n", (*memRobCursorPtr));
+            prf("[MEM] Reject write attempt by %p\n", (*memRobCursorPtr));
         }
         else if (rangeConflict(writeRanges, address, size) ||
                  rangeConflict(readRanges, address, size))
         {
-            wrn("[MEM] RobCusor %p has conflict at addr %p len %ld\n",
+            prf("[MEM] RobCusor %p has conflict at addr %p len %ld\n",
                 (*memRobCursorPtr), address, size);
         }
         else
         {
             (*memRobCursorPtr)->memAccRdy = true;
-            wrn("[MEM] RobCusor %p can write go ahead\n", (*memRobCursorPtr));
+            prf("[MEM] RobCusor %p can write go ahead\n", (*memRobCursorPtr));
         }
 
         // still need to recrod range even if tried and failed
@@ -156,10 +155,17 @@ public:
                     (sizeof(value) == 4) || (sizeof(value) == 8) ||
                     (sizeof(value) == 16));
 
-        if (memRobCursorPtr && (*memRobCursorPtr) && (*memDepCheckModePtr))
+        if (memDepCheckModePtr && (*memDepCheckModePtr))
+        {
             handleWrite(reinterpret_cast<const char*>(address), sizeof(value));
+        }
         else
+        {
             memcpy(reinterpret_cast<char*>(address), &value, sizeof(value));
+            int * ptr = (int*) reinterpret_cast<char*>(address);
+            wrn("[MEM] Real write: %p, %p (should be %p, len=%d)\n",
+                ptr, *ptr, value, sizeof(value));
+        }
     }
 };
 

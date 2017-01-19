@@ -31,6 +31,7 @@ DECL_ARG_CALLBACK(enableBrandhPrediction) {
 }
 DECL_ARG_CALLBACK(enableExecLatency) { options.simExecLatency = true; }
 DECL_ARG_CALLBACK(setSuperscalar) { options.nSuperscalar = parse_long(arg_in); }
+DECL_ARG_CALLBACK(enableExp) { options.experimental = true; }
 
 const argument_bundle argbv[] = {
     // necessary argument
@@ -56,7 +57,8 @@ const argument_bundle argbv[] = {
         enableBrandhPrediction
     },
     {"-el", "--execlatency", "Enable execution latency simulation", false, enableExecLatency},
-    {"-ss", "--superscalar <N_EU>", "Set number of superscalar units", true, setSuperscalar}
+    {"-ss", "--superscalar <N_EU>", "Set number of superscalar units", true, setSuperscalar},
+    {"-e", "--experimental", "Turn on experimental mode", false, enableExp}
 };
 #define ARG_BUND_SIZE (sizeof(argbv) / sizeof(argbv[0]))
 
@@ -71,7 +73,7 @@ DECL_ARG_CALLBACK(helpAndExit)
     print_arg_title("OPTIONS:");
     print_arg_bundles(&ptr, 6);
     print_arg_title("FEATURES:");
-    print_arg_bundles(&ptr, ARG_BUND_SIZE - 8);
+    print_arg_bundles(&ptr, ARG_BUND_SIZE - 7);
 
     exit(1);
 }

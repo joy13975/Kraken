@@ -264,11 +264,13 @@ public:
                    const bool _pipelined,
                    const bool _simExecLatency,
                    const short _nSuperscalar,
+                   const short _experimental,
                    FILE* stream = stdout);
     ~Logic();
 
     void clearDepVars();
     bool hasRStationSpace() { return rsVacancy > 0; }
+    bool rStationEmpty() { return rStation.size() == 0; }
     void receiveIssue(Kraken::RobEntry * rbe);
     void setFetcher(Kraken::Fetcher * _fetcher)
     {
@@ -299,22 +301,22 @@ public:
 
     void handlePcRead(const size_t size) const
     {
-        if (depCheckRobCursor->status == Kraken::RobStatus::DepChecked)
+        if (robCursor->status == Kraken::RobStatus::DepChecked)
             return;
 
         if (lastPcWriteTicket)
         {
-            depCheckRobCursor->deps.push_back(lastPcWriteTicket);
-            wrn("[PC] RobCusor %p read-depends on %p\n", depCheckRobCursor, lastPcWriteTicket);
+            robCursor->deps.push_back(lastPcWriteTicket);
+            prf("[PC] RobCusor %p read-depends on %p\n", robCursor, lastPcWriteTicket);
         }
         else
         {
-            wrn("[PC] RobCusor %p read can go ahead (init)\n", depCheckRobCursor);
+            prf("[PC] RobCusor %p read can go ahead (init)\n", robCursor);
         }
     }
 
     const Instruction* pc() const {
-        if (depCheckRobCursor)
+        if (robCursor)
         {
             if (depCheckMode)
             {
@@ -322,15 +324,15 @@ public:
             }
             else
             {
-                const Kraken::RobTicket * dep = depCheckRobCursor->findDep(this);
+                const Kraken::RobTicket * dep = robCursor->findDep(this);
                 if (dep)
                 {
                     return *((const Instruction **) dep->val);
                 }
                 else
                 {
-                    dbg("[PC] RobEntry %p reads init val %p\n",
-                        depCheckRobCursor, pc_);
+                    prf("[PC] RobEntry %p reads init val %p\n",
+                        robCursor, pc_);
                 }
             }
         }
@@ -340,39 +342,49 @@ public:
 
     void handlePcWrite(const size_t size)
     {
-        if (depCheckRobCursor->status == Kraken::RobStatus::DepChecked)
+        if (robCursor->status == Kraken::RobStatus::DepChecked)
             return;
 
-        Kraken::RobTicket writeTicket((void*) this, false, size, (uint8_t*) calloc(1, size));
-        depCheckRobCursor->tickets.push_back(writeTicket);
-        lastPcWriteTicket = &(depCheckRobCursor->tickets.back());
+        lastPcWriteTicket = new Kraken::RobTicket((void*) this,
+                false,
+                robCursor->speculator,
+                size,
+                (uint8_t*) calloc(1, size));
+        robCursor->tickets.push_back(lastPcWriteTicket);
 
-        wrn("[PC] RobCusor %p write can go ahead with ticket %p\n",
-            depCheckRobCursor, lastPcWriteTicket);
+        prf("[PC] RobCusor %p (intr=%p) write can go ahead with ticket %p\n",
+            robCursor, robCursor->decInstr.instr, lastPcWriteTicket);
     }
 
     void set_pc(const Instruction* new_pc) {
+        const Instruction* new_pc_addr = Memory::AddressUntag(new_pc);
         if (trace_parameters() & LOG_REGS)
-            raw("#    pc: %p\n", Memory::AddressUntag(new_pc));
+            raw("#    pc: %p (by %p)\n", new_pc_addr, robCursor);
 
-        if (depCheckRobCursor)
+        if (!robCursor)
         {
-            if (depCheckMode)
-            {
-                handlePcWrite(sizeof(pc_));
-            }
-            else
-            {
-                pc_ = Memory::AddressUntag(new_pc);
-                pc_modified_ = true;
+            pc_ = new_pc_addr;
+            return;
+        }
 
-                depCheckRobCursor->fill(this, &pc_, sizeof(pc_));
-            }
+        if (depCheckMode)
+        {
+            handlePcWrite(sizeof(pc_));
         }
         else
         {
-            pc_ = Memory::AddressUntag(new_pc);
+            if (robCursor->speculator)
+            {
+                wrn("Speculative write by %p val=%p\n",
+                    robCursor, new_pc_addr);
+            }
+            else
+            {
+                pc_ = new_pc_addr;
+            }
+
             pc_modified_ = true;
+            robCursor->fill(this, &new_pc_addr, sizeof(pc_));
         }
     }
 
@@ -387,10 +399,10 @@ public:
     }
 
     // register getters
-    const SimRegister *const getRegisters() { return registers_; };
-    const SimVRegister *const getVRegisters() { return vregisters_; };
-    const SimSystemRegister *const getNZCV() { return &nzcv_; };
-    const SimSystemRegister *const getFPCR() { return &fpcr_; };
+    SimRegister * getRegisters() { return registers_; };
+    SimVRegister * getVRegisters() { return vregisters_; };
+    SimSystemRegister * getNZCV() { return &nzcv_; };
+    SimSystemRegister * getFPCR() { return &fpcr_; };
 
 // Declare all Visitor functions.
 #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
@@ -2230,21 +2242,29 @@ private:
     Decoder * decoder;
 
     const Instruction * newPc = 0;
-    const Instruction * cachedNewPc = 0;
-    bool hasExecuted = false;
-    bool cachedHasExecuted = false;
     Kraken::RobEntry * executedBranch = 0;
     Kraken::RobEntry * cachedExecutedBranch = 0;
     bool depCheckMode = false;
-    bool depCheckSpeculative = false;
-    Kraken::RobEntry * depCheckRobCursor = 0;
+    Kraken::RobEntry * robCursor = 0;
+    std::vector<Kraken::RobEntry *> correctBranches;
+    std::vector<Kraken::RobEntry *> wrongBranches;
 
     unsigned long bpCorrectCount = 0, bpWrongCount = 0;
 
     const int nSuperscalar;
+    const bool experiemental;
 
     Kraken::ReservationStation tmpRStation, rStation;
     unsigned short rsVacancy = 0;
+
+
+    bool branchToZero(const Instruction * instr)
+    {
+        const Instruction* target = Instruction::Cast(xreg(instr->Rn()));
+
+        if (instr->Mask(UnconditionalBranchToRegisterMask) == RET && target == 0)
+            return true;
+    }
 
     template <typename T>
     static T FPDefaultNaN();

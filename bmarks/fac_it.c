@@ -17,7 +17,7 @@ int fac(int i)
     return x;
 }
 
-#define N 10
+#define N 100
 int main(void)
 {
     int res = fac(N);

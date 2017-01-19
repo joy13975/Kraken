@@ -35,14 +35,17 @@ struct RobTicket
 {
     const void * id;
     bool valid = false;
+    bool speculative = false;
     unsigned short valLen = -1;
     uint8_t * val = 0;
     RobTicket(const void * _id,
               const bool _valid,
+              const bool _speculative,
               unsigned short _valLen,
               uint8_t * _val) :
         id(_id),
         valid(_valid),
+        speculative(_speculative),
         valLen(_valLen),
         val(_val) {}
 };
@@ -71,6 +74,20 @@ public:
         delete successor;
     };
 
+    void speculate()
+    {
+        speculator = true;
+        for (auto& t : tickets)
+            t->speculative = true;
+    }
+
+    void affirm()
+    {
+        speculator = false;
+        for (auto& t : tickets)
+            t->speculative = false;
+    }
+
     const RobTicket * findDep(const void * id) const
     {
         for (int i = 0; i < deps.size(); i++)
@@ -84,15 +101,17 @@ public:
     {
         for (auto& t : tickets)
         {
-            if (t.id == id)
+            if (t->id == id)
             {
-                memcpy(t.val, addr, len);
-                t.valid = true;
-                wrn("[%p] filled ticket %p\n", this, &t);
+                memcpy(t->val, addr, t->valLen);
+                t->valid = true;
+                prf("[%p] filled ticket %p with uint32=%p at ptr %p (test=%p)\n",
+                    this, t, *((uint32_t*) addr), t->val, *((uint32_t*) tickets[0]->val));
             }
             else
             {
-                wrn("[%p] did not fill ticket %p\n", this, &t);
+                prf("[%p] did not fill ticket %p (uint32=%p, test=%p)\n",
+                    this, t, *((uint32_t*) t->val), *((uint32_t*) tickets[0]->val));
             }
         }
     }
@@ -102,8 +121,18 @@ public:
             return true;
 
         for (const auto& d : deps)
+        {
             if (!d->valid)
+            {
+                prf("RobEntry %p not ready due to %p\n", this, d);
                 return false;
+            }
+            else
+            {
+                prf("RobEntry %p has ready dep ticket %p (uint32=%p)\n",
+                    this, d, *((uint64_t*) d->val));
+            }
+        }
 
         return true;
     }
@@ -113,8 +142,12 @@ public:
     RobEntry * successor = 0;
 
     std::vector<RobTicket *> deps;
-    std::vector<RobTicket> tickets;
+    std::vector<RobTicket *> tickets;
     bool memAccRdy = true;
+    bool speculator = false;
+    bool isBranch = false;
+    bool branchCorrect = false;
+    bool pastRet = false;
 private:
 };
 
@@ -137,6 +170,7 @@ typedef struct
     bool interactive                = false;
     bool pipelined                  = false;
     bool simExecLatency             = false;
+    bool experimental               = false;
 
     short nBPBits                   = 5;
     BranchPredictionMode bpMode     = NoneMode;
