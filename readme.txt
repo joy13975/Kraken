@@ -1,3 +1,7 @@
+This was a coursework I did for advanced computer architecture during my last year in university.
+
+It's not meant to serve any real world use and probably breaks a lot.
+
 To compile:
     make clean; make
 
